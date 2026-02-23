@@ -9,6 +9,7 @@ const tools = [
   { name: 'Speed Runner', href: '/speed/' },
   { name: 'Code Sandbox', href: '/sandbox/' },
   { name: 'WebLLM Chat', href: '/webllm/' },
+  { name: 'Resume Optimizer', href: '/resume/' },
 ]
 
 const resources = [

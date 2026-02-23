@@ -1,7 +1,8 @@
-use std::io::{Cursor, Write};
+use std::io::{Cursor, Read, Write};
 
-use js_sys::{Array, Uint8Array};
+use js_sys::{Array, Object, Reflect, Uint8Array};
 use wasm_bindgen::prelude::*;
+use zip::read::ZipArchive;
 use zip::write::FileOptions;
 use zip::{CompressionMethod, ZipWriter};
 
@@ -65,4 +66,42 @@ pub fn zip_files(names: Array, contents: Array) -> Result<Uint8Array, JsValue> {
     let bytes = cursor.into_inner();
 
     Ok(Uint8Array::from(bytes.as_slice()))
+}
+
+/// Extract files from a ZIP archive and return an array of `{ name, bytes }` objects.
+#[wasm_bindgen]
+pub fn unzip_files(zip_bytes: Uint8Array) -> Result<Array, JsValue> {
+    let cursor = Cursor::new(zip_bytes.to_vec());
+    let mut archive = ZipArchive::new(cursor).map_err(to_js_error)?;
+    let result = Array::new();
+
+    for idx in 0..archive.len() {
+        let mut file = archive
+            .by_index(idx)
+            .map_err(|err| JsValue::from_str(&format!("unable to read file #{idx}: {err}")))?;
+
+        if file.name().ends_with('/') {
+            continue;
+        }
+
+        let mut content = Vec::new();
+        file.read_to_end(&mut content)
+            .map_err(|err| JsValue::from_str(&format!("unable to extract file #{idx}: {err}")))?;
+
+        let entry = Object::new();
+        Reflect::set(
+            &entry,
+            &JsValue::from_str("name"),
+            &JsValue::from_str(file.name()),
+        )?;
+        Reflect::set(
+            &entry,
+            &JsValue::from_str("bytes"),
+            &Uint8Array::from(content.as_slice()),
+        )?;
+
+        result.push(&entry);
+    }
+
+    Ok(result)
 }

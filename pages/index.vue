@@ -73,7 +73,7 @@ useHead({
       <NuxtLink to="/zip" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-violet-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-violet-500/10">
         <div class="w-16 h-16 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-4xl">📦</div>
         <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">File Compressor</h2>
+          <h2 class="text-xl font-bold tracking-tight text-white">view and zip files</h2>
           <p class="text-sm text-slate-400 leading-relaxed mt-2">Create ZIP archives from your files and folders. Compress multiple items into organized archives with drag-and-drop simplicity.</p>
         </div>
         <ul class="text-xs text-slate-400 space-y-1">
@@ -82,7 +82,7 @@ useHead({
           <li>✓ Drag &amp; drop interface</li>
           <li>✓ Batch file processing</li>
         </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-violet-500 to-purple-400 hover:shadow-lg hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5">Open File Compressor →</button>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-violet-500 to-purple-400 hover:shadow-lg hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5">Open view and zip files →</button>
       </NuxtLink>
 
       <!-- WebLLM -->
@@ -99,6 +99,22 @@ useHead({
           <li>✓ PWA ready</li>
         </ul>
         <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-gradient-to-r from-orange-400 to-amber-400 hover:shadow-lg hover:shadow-orange-500/40 transition-all hover:-translate-y-0.5">Open WebLLM Studio →</button>
+      </NuxtLink>
+
+      <!-- Resume -->
+      <NuxtLink to="/resume" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-emerald-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-emerald-500/10">
+        <div class="w-16 h-16 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-4xl">📄</div>
+        <div>
+          <h2 class="text-xl font-bold tracking-tight text-white">Resume Optimizer</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mt-2">Upload your PDF resume, compare it against a job description, and get ATS-focused rewrites from the same local WebLLM model.</p>
+        </div>
+        <ul class="text-xs text-slate-400 space-y-1">
+          <li>✓ PDF resume parsing</li>
+          <li>✓ Rust WASM ATS scoring</li>
+          <li>✓ Missing keyword detection</li>
+          <li>✓ LLM rewrite suggestions</li>
+        </ul>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:shadow-lg hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">Open Resume Optimizer →</button>
       </NuxtLink>
 
       <!-- Speed -->

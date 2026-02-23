@@ -2,12 +2,11 @@ const CACHE_NAME = "zipper-static-v1";
 const OFFLINE_ASSETS = [
   "./",
   "./index.html",
-  "./main.js",
   "./manifest.webmanifest",
   "./icons/icon-192.svg",
   "./icons/icon-512.svg",
-  "../pkg/compressor.js",
-  "../pkg/compressor_bg.wasm"
+  "./pkg/compressor.js",
+  "./pkg/compressor_bg.wasm"
 ];
 
 self.addEventListener("install", (event) => {

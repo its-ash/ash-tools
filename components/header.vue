@@ -8,6 +8,7 @@ const navLinks = [
   { name: 'Speed', href: '/speed/' },
   { name: 'Sandbox', href: '/sandbox/' },
   { name: 'WebLLM', href: '/webllm/' },
+  { name: 'Resume', href: '/resume/' },
 ]
 
 const isMenuOpen = ref(false)

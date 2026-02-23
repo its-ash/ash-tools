@@ -33,53 +33,49 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-slate-950 text-slate-200 flex flex-col p-2.5">
-    <div class="w-full max-w-4xl mx-auto flex flex-col gap-2 min-h-[calc(100vh-68px)] pb-52">
+  <div id="webllm-page" class="min-h-[calc(100vh-48px)] text-[#ececec] flex flex-col px-3 pb-3 bg-slate-950">
+    <div class="w-full max-w-4xl mx-auto flex flex-col min-h-[calc(100vh-68px)] pb-4">
 
       <!-- Header -->
-      <header class="bg-slate-900/90 border border-white/8 rounded-2xl p-5 backdrop-blur-md shadow-2xl">
-        <div class="mb-2">
-          <h1 class="text-2xl md:text-3xl font-bold tracking-tight -mb-2 bg-gradient-to-r from-sky-400 via-teal-400 to-orange-400 bg-clip-text text-transparent">On-Device WebLLM Studio</h1>
+      <header class="sticky top-2 z-20 border border-white/10 rounded-2xl px-4 py-3 backdrop-blur-xl mt-2 mb-3 bg-slate-900/70 shadow-xl shadow-slate-950/40">
+        <div id="status-indicator" data-state="loading" class="inline-flex items-center gap-2 w-fit px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-[11px] font-medium text-[#b5b5b5] mt-2">Model warming up…</div>
+        <div class="progress-track h-1 bg-white/10 rounded-full overflow-hidden mt-2" aria-label="Model download progress">
+          <div id="model-progress" class="h-full w-0 bg-[#10a37f] transition-all duration-300"></div>
         </div>
-        <div id="status-indicator" data-state="loading" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full border border-white/10 bg-white/5 text-xs font-medium text-slate-400">Model warming up…</div>
-        <div class="progress-track h-1.5 bg-white/5 rounded-full overflow-hidden my-2" aria-label="Model download progress">
-          <div id="model-progress" class="h-full w-0 bg-gradient-to-r from-sky-400 to-teal-400 transition-all duration-300"></div>
-        </div>
-        <small id="progress-label" class="text-slate-500 text-xs">Initializing WebLLM…</small>
+        <small id="progress-label" class="text-[#8f8f8f] text-[11px] mt-1">Initializing WebLLM…</small>
       </header>
 
       <!-- History Panel -->
-      <section class="bg-slate-900/80 border border-white/8 rounded-2xl p-4 backdrop-blur-md shadow-2xl flex-1 min-h-0">
-        <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-2 block">Conversation history</label>
-        <div id="history-empty" class="text-slate-500 text-sm py-5">Waiting for your first prompt.</div>
-        <ul id="history-list" class="flex flex-col gap-1.5 overflow-y-auto flex-1" hidden></ul>
+      <section class="flex-1 min-h-0 px-1 md:px-2">
+        <div id="history-empty" class="text-[#8f8f8f] text-sm py-10 text-center">Start a conversation with your local model.</div>
+        <ul id="history-list" class="flex flex-col gap-3 overflow-y-auto flex-1" hidden></ul>
       </section>
 
-      <!-- Input Panel (Fixed Bottom) -->
-      <form id="prompt-form" class="fixed bottom-[5%] left-[10%] right-[10%] md:left-[15%] md:right-[15%] bg-slate-900/95 border border-white/8 rounded-2xl p-4 backdrop-blur-md shadow-2xl z-10">
+      <!-- Input Panel -->
+      <form id="prompt-form" class="mt-3 w-full border border-white/10 rounded-3xl p-3 md:p-4 backdrop-blur-xl shadow-2xl bg-slate-900/75">
         <!-- Context Field (Toggle) -->
         <div class="context-field mb-3 hidden">
-          <label for="context-input" class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-2 block">Context</label>
-          <textarea id="context-input" name="context" placeholder="e.g. You are a helpful assistant that speaks in concise checklists." class="w-full min-h-28 rounded-lg border border-white/10 bg-slate-800/80 text-slate-200 text-sm p-3 font-mono resize-vertical"></textarea>
+          <label for="context-input" class="text-[11px] uppercase tracking-wide text-[#a8a8a8] font-semibold mb-2 block">Context</label>
+          <textarea id="context-input" name="context" placeholder="e.g. You are a helpful assistant that speaks in concise checklists." class="w-full min-h-20 rounded-2xl border border-white/10 bg-[#3a3a3a] text-[#ececec] text-sm p-3 font-mono resize-y outline-none focus:border-[#10a37f]/50 focus:ring-2 focus:ring-[#10a37f]/25 transition-all"></textarea>
         </div>
 
         <!-- Prompt -->
         <div class="mb-3">
-          <label for="prompt-input" class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-2 block">Prompt</label>
-          <textarea id="prompt-input" name="prompt" placeholder="Ask a follow-up question…" class="w-full min-h-28 rounded-lg border border-white/10 bg-slate-800/80 text-slate-200 text-sm p-3 font-mono resize-vertical"></textarea>
+          <label for="prompt-input" class="sr-only">Prompt</label>
+          <textarea id="prompt-input" name="prompt" placeholder="Message WebLLM…" class="w-full min-h-24 rounded-2xl border border-white/10 bg-slate-800/90 text-[#ececec] text-[15px] p-4 font-sans resize-y outline-none focus:border-[#10a37f]/50 focus:ring-2 focus:ring-[#10a37f]/25 transition-all"></textarea>
         </div>
 
         <!-- Buttons -->
-        <div class="flex gap-1.5 flex-wrap mb-3">
-          <button type="button" @click="toggleContext" class="px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-slate-200 text-sm font-semibold hover:bg-white/10 transition-colors">Add Context</button>
-          <button type="submit" id="submit-btn" class="flex-1 min-w-32 px-4 py-2 bg-gradient-to-r from-sky-400 to-teal-400 text-slate-950 rounded-lg font-semibold text-sm hover:-translate-y-0.5 transition-all">Send</button>
-          <button type="button" id="reset-btn" class="px-4 py-2 rounded-lg bg-red-500/15 text-red-300 text-sm font-semibold hover:bg-red-500/25 transition-colors">Reset</button>
+        <div class="flex items-center gap-2 flex-wrap mb-3">
+          <button type="button" @click="toggleContext" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-[#e7e7e7] text-xs md:text-sm font-medium hover:bg-white/10 transition-colors">Context</button>
+          <button type="button" id="reset-btn" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-[#cfcfcf] text-xs md:text-sm font-medium hover:bg-white/10 transition-colors">Reset</button>
+          <button type="submit" id="submit-btn" class="ml-auto inline-flex items-center justify-center px-5 py-2.5 bg-[#10a37f] text-white rounded-xl font-semibold text-sm hover:bg-[#0e906f] transition-colors">Send</button>
         </div>
 
         <!-- Context Preview -->
         <div>
-          <label class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-2 block">Active context preview</label>
-          <div id="context-preview" class="text-xs text-slate-500 font-mono p-2.5 bg-slate-800/50 border border-white/5 rounded-lg">No context captured yet.</div>
+          <label class="text-[11px] uppercase tracking-wide text-[#a8a8a8] font-semibold mb-2 block">Active context preview</label>
+          <div id="context-preview" class="text-xs text-[#a0a0a0] font-mono p-2.5 bg-[#3a3a3a] border border-white/10 rounded-xl">No context captured yet.</div>
         </div>
       </form>
     </div>
@@ -87,232 +83,145 @@ onUnmounted(() => {
 </template>
 
 <style>
-@reference "tailwindcss";
+#webllm-page {
+  background:
+    radial-gradient(1200px 450px at 20% -10%, rgba(14, 165, 233, 0.12), transparent 60%),
+    radial-gradient(900px 350px at 85% 0%, rgba(16, 185, 129, 0.1), transparent 60%),
+    #020617;
+}
 
-.webllm-page .message {
-  @apply flex flex-col gap-1 p-2.5 rounded-lg border border-white/5 bg-slate-800/50;
+#webllm-page .message {
+  max-width: min(92%, 760px);
+  width: fit-content;
+  border-radius: 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #2f2f2f;
+  color: #ececec;
+  align-self: flex-start;
 }
-.webllm-page .message-header {
-  @apply flex items-center gap-2 text-xs text-slate-500 uppercase tracking-wider;
-}
-.webllm-page .message-content {
-  @apply text-sm leading-relaxed;
-}
-</style>
 
-<style>
-.webllm-page {
-  --bg: radial-gradient(circle at 15% 20%, #0f172a, #020617 55%);
-  --panel: rgba(10, 15, 35, 0.9);
-  --panel-strong: rgba(10, 14, 30, 0.95);
-  --border: rgba(255, 255, 255, 0.08);
-  --accent: #0ea5e9;
-  --accent-2: #14b8a6;
-  --accent-warm: #f97316;
-  --accent-warm-2: #fb923c;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --shadow: 0 35px 120px rgba(2, 6, 23, 0.8);
-  color-scheme: dark;
-  min-height: calc(100vh - 48px);
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+#webllm-page .message[data-role='user'] {
+  margin-left: auto;
+  background: #343541;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+#webllm-page .message-header {
   display: flex;
-  flex-direction: column;
-  padding: 10px;
-}
-
-.webllm-page * { box-sizing: border-box; }
-
-.webllm-page .shell {
-  width: min(1000px, 100%);
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
-  min-height: calc(100vh - 68px);
-  margin: 0 auto;
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
 }
 
-.webllm-page header {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: var(--shadow);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.webllm-page .hero h1 {
-  font-size: clamp(24px, 3vw, 32px);
-  margin: 0 0 8px;
-  letter-spacing: -0.02em;
-  background: linear-gradient(120deg, var(--accent) 0%, var(--accent-2) 50%, var(--accent-warm));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.webllm-page main {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  padding-bottom: 200px;
-}
-
-.webllm-page .panel {
-  background: var(--panel-strong);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.webllm-page textarea {
-  width: 100%;
-  min-height: 120px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(8, 12, 28, 0.8);
-  color: var(--text);
+#webllm-page .message-content {
   font-size: 14px;
-  padding: 12px;
-  font-family: 'JetBrains Mono', 'IBM Plex Mono', monospace;
-  resize: vertical;
+  line-height: 1.55;
+  color: #ececec;
 }
 
-.webllm-page .actions { display: flex; gap: 6px; flex-wrap: wrap; }
-
-.webllm-page button {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: transform 0.2s ease;
+#webllm-page .message-content p {
+  margin: 0 0 8px;
 }
 
-.webllm-page .btn-primary {
-  background: linear-gradient(120deg, var(--accent), var(--accent-2));
-  color: #020617;
-  flex: 1;
-  min-width: 120px;
+#webllm-page .message-content p:last-child {
+  margin-bottom: 0;
 }
 
-.webllm-page .btn-secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-
-.webllm-page .btn-reset { background: rgba(248, 113, 113, 0.15); color: #fca5a5; }
-.webllm-page button:disabled { opacity: 0.5; cursor: not-allowed; }
-.webllm-page button:not(:disabled):hover { transform: translateY(-1px); }
-
-.webllm-page .history-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.webllm-page .input-panel {
-  position: fixed;
-  bottom: 2vh;
-  left: 10vw;
-  right: 10vw;
-  background: var(--panel-strong);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: var(--shadow);
-  z-index: 10;
-}
-
-.webllm-page .message {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(8, 12, 28, 0.7);
-}
-
-.webllm-page .message-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.webllm-page .message-content { font-size: 13px; line-height: 1.4; }
-
-.webllm-page .status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.05);
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.webllm-page .progress-track {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 3px;
+#webllm-page .code-block {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
   overflow: hidden;
-  margin: 8px 0;
+  background: #1e1e1e;
+  margin-top: 6px;
 }
 
-.webllm-page .progress-value {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  transition: width 0.3s ease;
+#webllm-page #history-list {
+  padding-bottom: 18px;
 }
 
-.webllm-page .context-preview {
-  font-size: 13px;
-  color: var(--muted);
-  font-family: 'IBM Plex Mono', monospace;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 8px;
-  border: 1px solid var(--border);
+#webllm-page #status-indicator[data-state='ready'] {
+  color: #c7f2e6;
+  border-color: rgba(16, 163, 127, 0.5);
+  background: rgba(16, 163, 127, 0.14);
 }
 
-.webllm-page .empty-state { color: var(--muted); font-size: 14px; padding: 20px 0; }
-
-.webllm-page label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  font-weight: 600;
+#webllm-page #status-indicator[data-state='loading'] {
+  color: #dbeafe;
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.12);
+  animation: thinkingPulse 1.6s ease-in-out infinite;
+  position: relative;
 }
 
-@media (max-width: 900px) {
-  .webllm-page header { grid-template-columns: 1fr; }
-  .webllm-page main { grid-template-columns: 1fr; }
-  .webllm-page .input-panel { left: 5vw; right: 5vw; }
+#webllm-page #status-indicator[data-state='loading']::after {
+  content: '...';
+  margin-left: 2px;
+  letter-spacing: 1px;
+  animation: thinkingDots 1.2s steps(4, end) infinite;
+}
+
+#webllm-page #status-indicator[data-state='error'] {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(127, 29, 29, 0.35);
+}
+
+#webllm-page #model-progress {
+  background: linear-gradient(90deg, #0ea5e9, #10b981, #14b8a6);
+  background-size: 200% 100%;
+  animation: progressShimmer 1.8s linear infinite;
+}
+
+@keyframes thinkingPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.28);
+    transform: translateY(0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.05);
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes thinkingDots {
+  0% {
+    content: '.';
+  }
+
+  33% {
+    content: '..';
+  }
+
+  66% {
+    content: '...';
+  }
+
+  100% {
+    content: '';
+  }
+}
+
+@keyframes progressShimmer {
+  from {
+    background-position: 0% 0;
+  }
+
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@media (max-width: 768px) {
+  #webllm-page .message {
+    max-width: 97%;
+  }
 }
 </style>
+
