@@ -29,7 +29,7 @@ const LANGUAGE_CONFIG = {
   python: {
     label: "Python",
     worker: "./workers/python-runner.js",
-    starter: `# Python via Pyodide\nimport math\n\nvalues = [math.sqrt(x) for x in range(1, 8)]\nprint("sqrt", values)\nvalues` 
+    starter: `name = input("What is you name : ")\nprint('Hello, Python!', name)`
   },
   rust: {
     label: "Rust",
@@ -237,12 +237,30 @@ copyErrorBtn?.addEventListener("click", () => {
 
 const init = async () => {
   try {
-    const savedLang = localStorage.getItem("sandbox.lang");
-    if (savedLang && LANGUAGE_CONFIG[savedLang]) {
-      languageSelect.value = savedLang;
+    // prefer URL param ?lang= over saved localStorage
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('lang');
+      if (q && LANGUAGE_CONFIG[q]) {
+        languageSelect.value = q;
+      } else {
+        const savedLang = localStorage.getItem("sandbox.lang");
+        if (savedLang && LANGUAGE_CONFIG[savedLang]) {
+          languageSelect.value = savedLang;
+        }
+      }
+    } catch (e) {
+      const savedLang = localStorage.getItem("sandbox.lang");
+      if (savedLang && LANGUAGE_CONFIG[savedLang]) {
+        languageSelect.value = savedLang;
+      }
     }
     currentLanguage = languageSelect.value;
     runtimeStatus.textContent = `Ready: ${LANGUAGE_CONFIG[currentLanguage].label}`;
+    // ensure stdin has default value
+    try {
+      if (stdinInput && !stdinInput.value) stdinInput.value = 'Ash';
+    } catch (e) {}
   } catch (err) {
     errorOutput.textContent = `Editor failed to load: ${err instanceof Error ? err.message : String(err)}`;
   }

@@ -13,12 +13,25 @@ const loadPyodideRuntime = async () => {
 };
 
 self.onmessage = async (event) => {
-  const { type, code } = event.data || {};
+  const { type, code, input = "" } = event.data || {};
   if (type !== "run") return;
 
   try {
     const pyodide = await loadPyodideRuntime();
-    const result = await pyodide.runPythonAsync(code);
+
+    // Wrap user's code so built-in input() reads from provided `input` string line-by-line.
+    // We create an iterator over lines; input() will return the next line or raise EOFError.
+    const wrapper = `import builtins\n` +
+      `_lines = iter(${JSON.stringify(input)}.splitlines(True))\n` +
+      `def _input(prompt=''):\n` +
+      `    try:\n` +
+      `        return next(_lines).rstrip('\\n')\n` +
+      `    except StopIteration:\n` +
+      `        raise EOFError('EOF when reading a line')\n` +
+      `builtins.input = _input\n` +
+      `\n` + code;
+
+    const result = await pyodide.runPythonAsync(wrapper);
     if (result !== undefined) {
       self.postMessage({ type: "stdout", text: String(result) + "\n" });
     }

@@ -26,7 +26,7 @@ if (typeof globalThis !== 'undefined') {
 const selectedLanguage = ref('javascript');
 const demoCodes: Record<string, string> = {
   javascript: `// JavaScript demo\nconsole.log('Hello, JavaScript!');`,
-  python: `# Python demo\nprint('Hello, Python!')`,
+  python: `name = input("What is you name : ")\nprint('Hello, Python!', name)`,
   rust: `// Rust demo\nfn main() {\n    println!(\"Hello, Rust!\");\n}`
 };
 
@@ -41,6 +41,14 @@ function updateMonacoLanguageAndCode(lang: string) {
 }
 
 onMounted(() => {
+  // respect ?lang=... in URL
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('lang');
+    if (q && ['javascript','python','rust'].includes(q)) {
+      selectedLanguage.value = q;
+    }
+  } catch(e) {}
   if (scriptEl) scriptEl.remove();
   // Dynamically load Monaco Editor from CDN
   const monacoScript = document.createElement("script");
@@ -106,6 +114,13 @@ onMounted(() => {
 
 watch(selectedLanguage, (lang) => {
   updateMonacoLanguageAndCode(lang);
+  // update URL without reloading
+  try {
+    const params = new URLSearchParams(window.location.search);
+    params.set('lang', lang);
+    const url = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState({}, '', url);
+  } catch(e) {}
 });
 
 onUnmounted(() => {
@@ -271,7 +286,7 @@ onUnmounted(() => {
                 id="stdinInput"
                 placeholder="Enter input here..."
                 class="w-full h-20 bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-xs text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-teal-500/50"
-              ></textarea>
+              >Ash</textarea>
             </div>
 
             <!-- Console Output card -->
