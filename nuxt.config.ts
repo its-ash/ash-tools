@@ -181,6 +181,7 @@ export default defineNuxtConfig({
       ]
     },
     baseURL: '/', 
+    buildAssetsDir: 'assets',
   },
 
   routeRules: {
