@@ -206,6 +206,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
     assetsInclude: ['**/*.wasm'],
+    base: '/',
   },
 
   compatibilityDate: '2024-11-01',
