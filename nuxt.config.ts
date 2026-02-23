@@ -179,7 +179,8 @@ export default defineNuxtConfig({
           crossorigin: 'anonymous',
         }
       ]
-    }
+    },
+    baseURL: '/', 
   },
 
   routeRules: {
