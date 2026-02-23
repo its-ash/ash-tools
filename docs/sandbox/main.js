@@ -1,13 +1,3 @@
-import { EditorState } from "https://esm.sh/@codemirror/state";
-import { EditorView, highlightActiveLineGutter, lineNumbers } from "https://esm.sh/@codemirror/view";
-import { defaultHighlightStyle, indentOnInput, syntaxHighlighting } from "https://esm.sh/@codemirror/language";
-import { history, historyKeymap } from "https://esm.sh/@codemirror/commands";
-import { defaultKeymap, indentWithTab } from "https://esm.sh/@codemirror/commands";
-import { keymap } from "https://esm.sh/@codemirror/view";
-import { javascript } from "https://esm.sh/@codemirror/lang-javascript";
-import { python } from "https://esm.sh/@codemirror/lang-python";
-import { rust } from "https://esm.sh/@codemirror/lang-rust";
-import { cpp } from "https://esm.sh/@codemirror/lang-cpp";
 
 const languageSelect = document.getElementById("languageSelect");
 const timeoutSelect = document.getElementById("timeoutSelect");
@@ -21,15 +11,14 @@ const memoryEl = document.getElementById("memory");
 const exitCodeEl = document.getElementById("exitCode");
 const statusEl = document.getElementById("status");
 const runtimeStatus = document.getElementById("runtimeStatus");
-const editorHost = document.getElementById("codeEditor");
 const stdinInput = document.getElementById("stdinInput");
 const copyConsoleBtn = document.getElementById("copyConsoleBtn");
 const copyErrorBtn = document.getElementById("copyErrorBtn");
 
-let editorView = null;
 let activeWorker = null;
 let runTimeoutId = null;
 let currentLanguage = "javascript";
+let runCompleted = false;
 
 const LANGUAGE_CONFIG = {
   javascript: {
@@ -64,50 +53,20 @@ const formatBytes = (bytes) => {
   return `${(kb / 1024).toFixed(2)} MB`;
 };
 
-const editorTheme = EditorView.theme({
-  "&": {
-    color: "var(--text)",
-    backgroundColor: "var(--panel-strong)",
-    height: "100%"
-  },
-  ".cm-content": {
-    fontFamily: "\"IBM Plex Mono\", monospace",
-    fontSize: "13px"
-  },
-  ".cm-gutters": {
-    backgroundColor: "var(--panel-strong)",
-    color: "var(--muted)",
-    borderRight: "1px solid var(--border)"
-  },
-  ".cm-activeLineGutter": {
-    color: "var(--accent)"
-  },
-  ".cm-cursor": {
-    borderLeftColor: "var(--accent)"
-  },
-  ".cm-line": {
-    paddingLeft: "2px",
-    paddingRight: "4px"
-  },
-  ".cm-selectionBackground": {
-    backgroundColor: "rgba(45, 212, 191, 0.2)"
-  },
-  ".cm-activeLine": {
-    backgroundColor: "rgba(255, 255, 255, 0.04)"
+// Save Monaco editor contents to localStorage (if Monaco is present)
+const saveDraft = (lang = languageSelect.value) => {
+  try {
+    const getter = (typeof globalThis !== 'undefined' && globalThis.__getMonacoCode) ? globalThis.__getMonacoCode : (window && window.__getMonacoCode ? window.__getMonacoCode : null);
+    if (!getter) return;
+    const code = getter() || '';
+    localStorage.setItem(`sandbox.code.${lang}`, code);
+    localStorage.setItem("sandbox.lang", lang);
+    localStorage.setItem(editedKey(lang), "true");
+  } catch (e) {
+    // ignore
   }
-}, { dark: true });
+};
 
-const scrollChaining = EditorView.domEventHandlers({
-  wheel: (event, view) => {
-    const scroller = view.scrollDOM;
-    const atTop = scroller.scrollTop === 0;
-    const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1;
-    if ((event.deltaY < 0 && atTop) || (event.deltaY > 0 && atBottom)) {
-      return false;
-    }
-    return false;
-  }
-});
 
 const setStatus = (text, isError = false) => {
   statusEl.textContent = text;
@@ -123,79 +82,7 @@ const clearOutputs = () => {
   exitCodeEl.textContent = "--";
 };
 
-const saveDraft = (lang = languageSelect.value) => {
-  if (!editorView) return;
-  localStorage.setItem(`sandbox.code.${lang}`, editorView.state.doc.toString());
-  localStorage.setItem("sandbox.lang", lang);
-};
-
-const loadDraft = (lang) => {
-  const edited = localStorage.getItem(editedKey(lang)) === "true";
-  if (!edited) return LANGUAGE_CONFIG[lang].starter;
-  const draft = localStorage.getItem(`sandbox.code.${lang}`);
-  return draft || LANGUAGE_CONFIG[lang].starter;
-};
-
-const baseExtensions = [
-  lineNumbers(),
-  highlightActiveLineGutter(),
-  history(),
-  indentOnInput(),
-  syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-  keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-  editorTheme,
-  scrollChaining,
-  EditorView.updateListener.of((update) => {
-    if (!update.docChanged) return;
-    const lang = currentLanguage;
-    localStorage.setItem(editedKey(lang), "true");
-    localStorage.setItem(`sandbox.code.${lang}`, update.state.doc.toString());
-  })
-];
-
-const languageExtension = (lang) => {
-  switch (lang) {
-    case "python":
-      return python();
-    case "rust":
-      return rust();
-    case "cpp":
-      return cpp();
-    case "javascript":
-    default:
-      return javascript();
-  }
-};
-
-const createEditorState = (lang, doc) =>
-  EditorState.create({
-    doc,
-    extensions: [...baseExtensions, languageExtension(lang)]
-  });
-
-const initEditor = () => {
-  if (!editorHost) {
-    throw new Error("Editor host not found");
-  }
-  const lang = languageSelect.value;
-  const state = createEditorState(lang, loadDraft(lang));
-  editorView = new EditorView({
-    state,
-    parent: editorHost
-  });
-};
-
-const switchLanguage = (lang) => {
-  if (!editorView) return;
-  saveDraft(currentLanguage);
-  currentLanguage = lang;
-  const state = createEditorState(lang, loadDraft(lang));
-  editorView.setState(state);
-  runtimeStatus.textContent = `Ready: ${LANGUAGE_CONFIG[lang].label}`;
-  editorView.focus();
-};
-
-const stopRun = () => {
+const stopRun = (manual = true) => {
   if (activeWorker) {
     activeWorker.terminate();
     activeWorker = null;
@@ -206,15 +93,22 @@ const stopRun = () => {
   }
   runBtn.disabled = false;
   stopBtn.disabled = true;
-  setStatus("Stopped", true);
-  runtimeStatus.textContent = "Idle";
+  if (manual) {
+    setStatus("Stopped", true);
+    runtimeStatus.textContent = "Idle";
+  }
+  // allow future runs
+  runCompleted = false;
 };
 
+
 const runCode = () => {
-  if (!editorView) return;
+  // reset run state
+  runCompleted = false;
   const lang = languageSelect.value;
   const config = LANGUAGE_CONFIG[lang];
-  const code = editorView.state.doc.toString() || "";
+  // Always get code from Monaco
+  const code = window.__getMonacoCode ? window.__getMonacoCode() : '';
   const timeoutMs = Number(timeoutSelect.value);
 
   clearOutputs();
@@ -228,6 +122,7 @@ const runCode = () => {
 
   activeWorker.onmessage = (event) => {
     const msg = event.data || {};
+    if (runCompleted && msg.type !== 'result') return;
     if (msg.type === "stdout") {
       consoleOutput.textContent += msg.text;
       return;
@@ -241,20 +136,26 @@ const runCode = () => {
       return;
     }
     if (msg.type === "result") {
+      // mark completed early to ignore any further stray messages
+      runCompleted = true;
+      if (runTimeoutId) {
+        clearTimeout(runTimeoutId);
+        runTimeoutId = null;
+      }
       const duration = performance.now() - startTime;
       timingEl.textContent = `time: ${duration.toFixed(1)} ms`;
       memoryEl.textContent = formatBytes(msg.memoryBytes);
       exitCodeEl.textContent = msg.exitCode ?? "--";
       setStatus(msg.ok ? "Completed" : "Failed", !msg.ok);
       runtimeStatus.textContent = "Idle";
-      stopBtn.disabled = true;
-      runBtn.disabled = false;
-      activeWorker.terminate();
-      activeWorker = null;
-      if (runTimeoutId) {
-        clearTimeout(runTimeoutId);
-        runTimeoutId = null;
+      // ensure worker is terminated immediately
+      if (activeWorker) {
+        try {
+          activeWorker.terminate();
+        } catch (e) {}
+        activeWorker = null;
       }
+      stopRun(false); // Do not overwrite status after successful completion
     }
   };
 
@@ -270,16 +171,18 @@ const runCode = () => {
 
   runTimeoutId = setTimeout(() => {
     errorOutput.textContent += `Timeout: exceeded ${timeoutMs} ms\n`;
-    stopRun();
+    stopRun(true);
   }, timeoutMs);
 };
 
 runBtn?.addEventListener("click", runCode);
 stopBtn?.addEventListener("click", stopRun);
 
+
+// No need to switch editor, Monaco handles language switching in Vue
 languageSelect?.addEventListener("change", (event) => {
-  const lang = event.target.value;
-  switchLanguage(lang);
+  currentLanguage = event.target.value;
+  runtimeStatus.textContent = `Ready: ${LANGUAGE_CONFIG[currentLanguage].label}`;
 });
 
 window.addEventListener("beforeunload", saveDraft);
@@ -331,13 +234,13 @@ copyErrorBtn?.addEventListener("click", () => {
   }
 });
 
+
 const init = async () => {
   try {
     const savedLang = localStorage.getItem("sandbox.lang");
     if (savedLang && LANGUAGE_CONFIG[savedLang]) {
       languageSelect.value = savedLang;
     }
-    initEditor();
     currentLanguage = languageSelect.value;
     runtimeStatus.textContent = `Ready: ${LANGUAGE_CONFIG[currentLanguage].label}`;
   } catch (err) {
