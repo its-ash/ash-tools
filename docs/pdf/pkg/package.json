@@ -1,0 +1,16 @@
+{
+  "name": "pdf-wasm",
+  "type": "module",
+  "description": "Browser-only PDF merge and compression powered by Rust and WebAssembly",
+  "version": "0.1.0",
+  "files": [
+    "pdf_wasm_bg.wasm",
+    "pdf_wasm.js",
+    "pdf_wasm.d.ts"
+  ],
+  "main": "pdf_wasm.js",
+  "types": "pdf_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
