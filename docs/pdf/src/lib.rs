@@ -1,9 +1,6 @@
 use wasm_bindgen::prelude::*;
-use lopdf::{Document, Object, ObjectId, Stream, dictionary};
+use lopdf::{Document, Object, ObjectId, dictionary};
 use std::collections::HashMap;
-use flate2::Compression;
-use flate2::write::DeflateEncoder;
-use std::io::Write;
 
 #[wasm_bindgen(start)]
 pub fn init() {
@@ -67,8 +64,8 @@ pub fn merge_and_compress(pdf_arrays: &JsValue, quality: u8) -> Result<js_sys::U
 }
 
 /// Apply multi-level compression to a PDF document.
-/// quality 0-30:  Aggressive — strip metadata, deduplicate, recompress streams at max deflate, remove thumbnails/outlines
-/// quality 31-60: Medium — strip metadata, deduplicate, recompress streams at level 6
+/// quality 0-30:  Aggressive — strip metadata, deduplicate, remove thumbnails/outlines, annotations
+/// quality 31-60: Medium — strip metadata, deduplicate, thumbnails
 /// quality 61-90: Light — deduplicate, basic compress
 /// quality 91-100: Minimal — just basic compress
 fn apply_compression(doc: &mut Document, quality: u8) {
@@ -85,30 +82,18 @@ fn apply_compression(doc: &mut Document, quality: u8) {
         prune_unreferenced_objects(doc);
     }
 
-    // 4. Recompress all streams with stronger deflate
-    if quality < 80 {
-        let level = if quality < 30 {
-            Compression::best()    // level 9
-        } else if quality < 60 {
-            Compression::new(7)
-        } else {
-            Compression::new(6)
-        };
-        recompress_all_streams(doc, level);
-    }
-
-    // 5. Strip metadata
+    // 4. Strip metadata
     if quality < 70 {
         strip_metadata(doc);
     }
 
-    // 6. Strip non-essential objects (thumbnails, outlines/bookmarks, viewer preferences)
+    // 5. Strip non-essential objects (thumbnails, outlines/bookmarks, viewer preferences)
     if quality < 50 {
         strip_thumbnails(doc);
         strip_outlines(doc);
     }
 
-    // 7. Aggressive: strip all annotations, form fields, JS actions
+    // 6. Aggressive: strip all annotations, form fields, JS actions
     if quality < 30 {
         strip_annotations(doc);
         strip_structure_tree(doc);
@@ -236,51 +221,6 @@ fn collect_refs_from_object(obj: &Object, cb: &mut dyn FnMut(ObjectId)) {
             for (_, val) in stream.dict.iter() { collect_refs_from_object(val, cb); }
         }
         _ => {}
-    }
-}
-
-/// Recompress all stream objects with the specified deflate compression level.
-fn recompress_all_streams(doc: &mut Document, level: Compression) {
-    let all_ids: Vec<ObjectId> = doc.objects.keys().cloned().collect();
-
-    for id in all_ids {
-        let should_recompress = if let Some(Object::Stream(ref stream)) = doc.objects.get(&id) {
-            // Don't touch image XObjects directly (could corrupt)
-            // but do recompress content streams, font programs, etc.
-            let is_image = stream.dict.get(b"Subtype")
-                .map(|v| matches!(v, Object::Name(ref n) if n == b"Image"))
-                .unwrap_or(false);
-            !is_image && stream.content.len() > 64
-        } else {
-            false
-        };
-
-        if should_recompress {
-            if let Some(Object::Stream(ref mut stream)) = doc.objects.get_mut(&id) {
-                // Decompress first (ignore errors — may already be raw)
-                let _ = stream.decompress();
-                let raw = stream.content.clone();
-
-                // Re-compress with our chosen level
-                let mut encoder = DeflateEncoder::new(Vec::new(), level);
-                if encoder.write_all(&raw).is_ok() {
-                    if let Ok(compressed) = encoder.finish() {
-                        if compressed.len() < raw.len() {
-                            stream.content = compressed;
-                            stream.dict.set("Filter", Object::Name(b"FlateDecode".to_vec()));
-                            stream.dict.set("Length", Object::Integer(stream.content.len() as i64));
-                            // Remove DecodeParms if present (we're using raw FlateDecode)
-                            stream.dict.remove(b"DecodeParms");
-                        } else {
-                            // Compressed is bigger; keep raw
-                            stream.content = raw;
-                            stream.dict.remove(b"Filter");
-                            stream.dict.set("Length", Object::Integer(stream.content.len() as i64));
-                        }
-                    }
-                }
-            }
-        }
     }
 }
 
