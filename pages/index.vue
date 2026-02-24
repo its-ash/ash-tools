@@ -85,6 +85,22 @@ useHead({
         <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-violet-500 to-purple-400 hover:shadow-lg hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5">Open view and zip files →</button>
       </NuxtLink>
 
+      <!-- PDF -->
+      <NuxtLink to="/pdf" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-rose-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-rose-500/10">
+        <div class="w-16 h-16 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-4xl">📄</div>
+        <div>
+          <h2 class="text-xl font-bold tracking-tight text-white">PDF Merger</h2>
+          <p class="text-sm text-slate-400 leading-relaxed mt-2">Merge, reorder, and compress PDF documents securely offline. Rust WASM ensures your documents never leave your browser.</p>
+        </div>
+        <ul class="text-xs text-slate-400 space-y-1">
+          <li>✓ Multi-file PDF merging</li>
+          <li>✓ Drag &amp; drop reordering</li>
+          <li>✓ Advanced flate2 compression</li>
+          <li>✓ High-res thumbnail previews</li>
+        </ul>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-rose-500 to-pink-500 hover:shadow-lg hover:shadow-rose-500/40 transition-all hover:-translate-y-0.5">Open PDF Merger →</button>
+      </NuxtLink>
+
       <!-- WebLLM -->
       <NuxtLink to="/webllm" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-orange-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-orange-500/10">
         <div class="w-16 h-16 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-4xl">🧠</div>

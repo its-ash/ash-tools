@@ -136,6 +136,17 @@ export class RegExpBuilder {
     withoutStartAnchor(): RegExpBuilder;
 }
 
+/**
+ * Exhaustive combinatorial search for the minimal regex that matches all inputs.
+ *
+ * Strategy:
+ * 1. Define a set of independent boolean grex options (conversion flags, anchors, etc.)
+ * 2. Enumerate all 2^N combinations of these flags (with pruning of conflicting combos)
+ * 3. For each combo, build a regex via grex
+ * 4. Validate each result against the original inputs using the `regex` crate
+ * 5. Pick the shortest valid regex
+ * 6. Apply post-processing simplifications to compress further
+ */
 export function generate_regex(match_strings: any): string;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;

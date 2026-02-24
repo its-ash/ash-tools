@@ -405,6 +405,7 @@ name = "regexp-wasm"
 version = "0.1.0"
 dependencies = [
  "grex",
+ "regex",
  "serde",
  "serde-wasm-bindgen",
  "wasm-bindgen",

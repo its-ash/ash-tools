@@ -24,11 +24,11 @@ export default defineNuxtConfig({
         },
         {
           name: 'author',
-          content: 'Ash Kumar'
+          content: 'Ashvini Jangid'
         },
         {
           name: 'creator',
-          content: 'Ash Kumar'
+          content: 'Ashvini Jangid'
         },
         {
           name: 'theme-color',
@@ -180,7 +180,7 @@ export default defineNuxtConfig({
         }
       ]
     },
-    baseURL: '/', 
+    baseURL: '/',
     buildAssetsDir: 'assets',
   },
 
@@ -192,7 +192,7 @@ export default defineNuxtConfig({
     preset: 'static',
     prerender: {
       crawlLinks: true,
-      routes: ['/', '/image', '/zip', '/video', '/webllm', '/speed', '/regexp', '/sandbox', '/sitemap.xml', '/robots.txt']
+      routes: ['/', '/image', '/zip', '/video', '/webllm', '/speed', '/regexp', '/sandbox', '/pdf', '/sitemap.xml', '/robots.txt']
     },
     output: {
       publicDir: './docs'

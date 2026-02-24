@@ -24,6 +24,7 @@ type ZipEntry = {
   name: string
   size: number
   isImage: boolean
+  mime: string
   bytes: Uint8Array
   previewUrl: string | null
 }
@@ -54,6 +55,14 @@ const acceptedImageExtensions = new Set([
   'svg',
   'bmp',
   'avif',
+])
+
+const acceptedVideoExtensions = new Set([
+  'mp4',
+  'webm',
+  'ogg',
+  'mov',
+  'mkv',
 ])
 
 const prettySize = (bytes: number) => {
@@ -108,6 +117,72 @@ const downloadBytes = (filename: string, bytes: Uint8Array, mime = 'application/
   anchor.click()
   anchor.remove()
   URL.revokeObjectURL(url)
+}
+
+const modalEntry = ref<ZipEntry | null>(null)
+const modalUrl = ref<string | null>(null)
+let modalCreatedUrl = false
+
+const openEntry = (entry: ZipEntry) => {
+  try {
+    const mime = entry.mime || 'application/octet-stream'
+
+    // Images: use existing preview URL if available, otherwise create one
+    if (entry.isImage || mime.startsWith('image/')) {
+      modalEntry.value = entry
+      if (entry.previewUrl) {
+        modalUrl.value = entry.previewUrl
+        modalCreatedUrl = false
+      } else {
+        modalUrl.value = URL.createObjectURL(new Blob([toArrayBuffer(entry.bytes)], { type: mime }))
+        modalCreatedUrl = true
+      }
+      return
+    }
+
+    // Videos: create an object URL and open in modal
+    if (mime.startsWith('video/')) {
+      modalEntry.value = entry
+      modalUrl.value = URL.createObjectURL(new Blob([toArrayBuffer(entry.bytes)], { type: mime }))
+      modalCreatedUrl = true
+      return
+    }
+
+    // Fallback: open other files in a new tab
+    const blob = new Blob([toArrayBuffer(entry.bytes)], { type: mime })
+    const url = URL.createObjectURL(blob)
+    const opened = window.open(url, '_blank')
+    if (!opened) {
+      const a = document.createElement('a')
+      a.href = url
+      a.target = '_blank'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+    }
+    setTimeout(() => {
+      try {
+        URL.revokeObjectURL(url)
+      } catch (e) {
+        // noop
+      }
+    }, 60000)
+  } catch (e) {
+    openStatus.value = `Error opening file: ${e instanceof Error ? e.message : String(e)}`
+  }
+}
+
+const closeModal = () => {
+  if (modalUrl.value && modalCreatedUrl) {
+    try {
+      URL.revokeObjectURL(modalUrl.value)
+    } catch (e) {
+      // noop
+    }
+  }
+  modalUrl.value = null
+  modalEntry.value = null
+  modalCreatedUrl = false
 }
 
 const ensureWasm = async () => {
@@ -221,16 +296,24 @@ const openZipFile = async (file: File) => {
         const name = entry.name
         const extension = getEntryExtension(name)
         const isImage = acceptedImageExtensions.has(extension)
-        const mime = isImage
-          ? extension === 'svg'
-            ? 'image/svg+xml'
-            : `image/${extension === 'jpg' ? 'jpeg' : extension}`
-          : 'application/octet-stream'
+        const isVideo = acceptedVideoExtensions.has(extension)
+
+        let mime = 'application/octet-stream'
+        if (isImage) {
+          mime = extension === 'svg' ? 'image/svg+xml' : `image/${extension === 'jpg' ? 'jpeg' : extension}`
+        } else if (isVideo) {
+          if (extension === 'mp4') mime = 'video/mp4'
+          else if (extension === 'webm') mime = 'video/webm'
+          else if (extension === 'ogg') mime = 'video/ogg'
+          else if (extension === 'mov') mime = 'video/quicktime'
+          else if (extension === 'mkv') mime = 'video/x-matroska'
+        }
 
         return {
           name,
           size: data.length,
           isImage,
+          mime,
           bytes: data,
           previewUrl: isImage ? URL.createObjectURL(new Blob([toArrayBuffer(data)], { type: mime })) : null,
         }
@@ -354,17 +437,40 @@ onUnmounted(() => {
                   <p class="text-xs text-slate-500">{{ prettySize(entry.size) }}</p>
                 </div>
               </div>
-              <button
-                class="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                @click="downloadBytes(entry.name.split('/').pop() || entry.name, entry.bytes)"
-              >
-                Download
-              </button>
+                <div class="flex items-center gap-2">
+                <button
+                  class="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  @click="openEntry(entry)"
+                >
+                  Open
+                </button>
+                <button
+                  class="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  @click="downloadBytes(entry.name.split('/').pop() || entry.name, entry.bytes, entry.mime)"
+                >
+                  Download
+                </button>
+              </div>
             </li>
           </ul>
         </div>
       </section>
     </main>
+    
+      <div v-if="modalEntry" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div class="bg-slate-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto relative">
+          <button @click="closeModal" class="absolute top-3 right-3 text-slate-200 bg-white/5 hover:bg-white/10 rounded-full p-2">✕</button>
+          <div class="p-4 flex items-center justify-center">
+            <template v-if="modalEntry && modalEntry.mime.startsWith('video/')">
+              <video v-if="modalUrl" :src="modalUrl" controls autoplay class="max-w-full max-h-[80vh] rounded"></video>
+            </template>
+            <template v-else>
+              <img v-if="modalUrl" :src="modalUrl" :alt="modalEntry?.name" class="max-w-full max-h-[80vh] rounded object-contain" />
+            </template>
+          </div>
+          <div class="p-3 border-t border-white/5 text-sm text-slate-400">{{ modalEntry?.name }}</div>
+        </div>
+      </div>
   </div>
 </template>
 

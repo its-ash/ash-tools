@@ -41,16 +41,14 @@ function updateMonacoLanguageAndCode(lang: string) {
 }
 
 onMounted(() => {
-  // respect ?lang=... in URL
   try {
     const params = new URLSearchParams(window.location.search);
-    const q = params.get('lang');
+    const q = params.get('lang') || "javascript";
     if (q && ['javascript','python','rust'].includes(q)) {
       selectedLanguage.value = q;
     }
   } catch(e) {}
   if (scriptEl) scriptEl.remove();
-  // Dynamically load Monaco Editor from CDN
   const monacoScript = document.createElement("script");
   monacoScript.src =
     "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js";
