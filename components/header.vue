@@ -8,6 +8,7 @@ const navLinks = [
   { name: 'Speed', href: '/speed/' },
   { name: 'Sandbox', href: '/sandbox/' },
   { name: 'WebLLM', href: '/webllm/' },
+  { name: 'PDF', href: '/pdf/' },
   { name: 'Resume', href: '/resume/' },
 ]
 
