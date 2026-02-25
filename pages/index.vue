@@ -34,8 +34,10 @@ useHead({
       </div>
     </header>
 
-    <!-- Grid -->
-    <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+    <!-- Tools -->
+    <div class="mb-16">
+      <h2 class="text-2xl font-bold text-white mb-6">Tools</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
       <!-- Video -->
       <NuxtLink to="/video" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-sky-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-sky-500/10">
@@ -118,7 +120,7 @@ useHead({
       </NuxtLink>
 
       <!-- Resume -->
-      <NuxtLink to="/resume" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-emerald-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-emerald-500/10">
+      <!-- <NuxtLink to="/resume" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-emerald-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-emerald-500/10">
         <div class="w-16 h-16 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-4xl">📄</div>
         <div>
           <h2 class="text-xl font-bold tracking-tight text-white">Resume Optimizer</h2>
@@ -131,7 +133,15 @@ useHead({
           <li>✓ LLM rewrite suggestions</li>
         </ul>
         <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:shadow-lg hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">Open Resume Optimizer →</button>
-      </NuxtLink>
+      </NuxtLink> -->
+
+      </div>
+    </div>
+
+    <!-- Dev Tools -->
+    <div class="mb-16">
+      <h2 class="text-2xl font-bold text-white mb-6">Dev Tools</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
       <!-- Speed -->
       <NuxtLink to="/speed" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-yellow-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-yellow-500/10">
@@ -181,7 +191,8 @@ useHead({
         <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-indigo-500 to-violet-500 hover:shadow-lg hover:shadow-indigo-500/40 transition-all hover:-translate-y-0.5">Open Code Sandbox →</button>
       </NuxtLink>
 
-    </main>
+      </div>
+    </div>
 
   </div>
 </template>

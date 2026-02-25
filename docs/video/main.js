@@ -62,9 +62,12 @@ const ensureFFmpeg = async () => {
 			setProcessingBadge("Loading engine…", true);
 			const instance = new FFmpeg();
 			instance.on("log", ({ message }) => console.debug("[ffmpeg]", message));
-			instance.on("progress", ({ ratio = 0 }) => {
-				const pct = Number.isFinite(ratio) ? ratio : 0;
-				updateProgress(10 + pct * 80, `FFmpeg ${(pct * 100).toFixed(0)}%`);
+			instance.on("progress", (event) => {
+				const val = event.progress ?? event.ratio ?? 0;
+				const pct = Number.isFinite(val) ? Math.max(0, Math.min(1, val)) : 0;
+				const pct100 = (pct * 100).toFixed(0);
+				updateProgress(10 + pct * 80);
+				setProcessingBadge(`Encoding ${pct100}%`, true);
 			});
 			await instance.load({
 				coreURL: "./ffmpeg-core.js",
@@ -185,9 +188,29 @@ const setProcessingBadge = (text, isActive = false) => {
 };
 
 const toggleProcessing = (disabled) => {
-	processBtn.disabled = disabled;
-	processBatchBtn.disabled = disabled;
-	videoInput.disabled = disabled;
+	const inputs = [
+		processBtn, processBatchBtn, videoInput, startInput, endInput,
+		resolutionSelect, presetSelect, crfInput,
+		cropWidthInput, cropHeightInput, cropXInput, cropYInput
+	];
+	inputs.forEach(el => {
+		if (el) el.disabled = disabled;
+	});
+
+	// Add visual feedback class to disabled inputs for tailwind
+	if (disabled) {
+		document.querySelectorAll('input:not(#videoInput), select').forEach(el => el.classList.add('opacity-50', 'pointer-events-none'));
+		processBtn.textContent = "Cancel Export";
+		processBtn.classList.replace("from-blue-500", "from-red-500");
+		processBtn.classList.replace("to-cyan-500", "to-orange-500");
+		processBtn.disabled = false; // Keep the process button enabled to allow cancellation
+	} else {
+		document.querySelectorAll('input:not(#videoInput), select').forEach(el => el.classList.remove('opacity-50', 'pointer-events-none'));
+		processBtn.textContent = "Export Video";
+		processBtn.classList.replace("from-red-500", "from-blue-500");
+		processBtn.classList.replace("to-orange-500", "to-cyan-500");
+	}
+
 	isProcessing = disabled;
 	setProcessingBadge(disabled ? "Processing…" : "Idle", disabled);
 };
@@ -734,12 +757,14 @@ const exportWithFFmpeg = async (entry, meta, useRatios = false) => {
 
 	const outputExt = determineOutputExt(entry.info);
 	const outputName = `output-${sanitizeFilename(entry.file.name) || "video"}.${outputExt}`;
-	const args = ["-y", "-i", inputName];
+	const args = ["-y"];
 
 	if (plan.trim?.is_valid) {
 		args.push("-ss", plan.trim.start_time.toFixed(3));
-		args.push("-to", plan.trim.end_time.toFixed(3));
+		args.push("-t", (plan.trim.end_time - plan.trim.start_time).toFixed(3));
 	}
+
+	args.push("-i", inputName);
 
 	if (plan.filters && plan.filters !== "null") {
 		args.push("-vf", plan.filters);
@@ -747,6 +772,7 @@ const exportWithFFmpeg = async (entry, meta, useRatios = false) => {
 
 	if (outputExt === "webm") {
 		args.push("-c:v", "libvpx-vp9");
+		args.push("-row-mt", "1");
 	} else {
 		args.push("-c:v", "libx264");
 		args.push("-movflags", "+faststart");
@@ -754,6 +780,10 @@ const exportWithFFmpeg = async (entry, meta, useRatios = false) => {
 
 	args.push("-preset", presetSelect.value || "medium");
 	args.push("-crf", String(crfInput.value || 25));
+
+	const threads = navigator.hardwareConcurrency ? navigator.hardwareConcurrency : 4;
+	args.push("-threads", String(threads));
+
 	args.push("-c:a", "copy");
 	args.push(outputName);
 
@@ -795,8 +825,24 @@ const probeMetadata = (file) =>
 		});
 	});
 
-const processActiveFile = async () => {
-	if (isProcessing) return;
+const handleProcessBtnClick = async () => {
+	if (isProcessing) {
+		if (ffmpegInstance) {
+			setStatus("Canceling export…");
+			try {
+				ffmpegInstance.terminate();
+				ffmpegPromise = null;
+				ffmpegInstance = null;
+			} catch (err) {
+				console.warn("Error terminating ffmpeg:", err);
+			}
+			setStatus("Export canceled.", true);
+			toggleProcessing(false);
+			setTimeout(resetProgress, 700);
+		}
+		return;
+	}
+
 	const entry = state.files[state.activeIndex];
 	if (!entry) {
 		setStatus("Select a video first.", true);
@@ -812,10 +858,15 @@ const processActiveFile = async () => {
 		});
 	} catch (err) {
 		console.error(err);
-		setStatus(err.message || "Failed to export", true);
+		if (err.message !== "ffmpeg is not running") {
+			setStatus(err.message || "Failed to export", true);
+		}
 	} finally {
-		toggleProcessing(false);
-		setTimeout(resetProgress, 700);
+		// Only untoggle if we haven't already cancelled (which resets state)
+		if (isProcessing) {
+			toggleProcessing(false);
+			setTimeout(resetProgress, 700);
+		}
 	}
 };
 
@@ -933,7 +984,7 @@ crfInput.addEventListener("input", () => {
 	crfValue.textContent = crfInput.value;
 });
 
-processBtn.addEventListener("click", processActiveFile);
+processBtn.addEventListener("click", handleProcessBtnClick);
 processBatchBtn.addEventListener("click", processBatch);
 videoInput.addEventListener("change", handleFileChange);
 

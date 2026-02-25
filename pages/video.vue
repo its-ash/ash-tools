@@ -42,7 +42,7 @@ onUnmounted(() => {
         <span class="inline-block w-2 h-2 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full"></span>
         WASM Video Studio
       </div>
-      <label class="flex items-center gap-2 px-4 py-2 border border-slate-700 rounded-lg bg-slate-900/50 text-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-500/10 transition-all">
+      <label for="videoInput" class="flex items-center gap-2 px-4 py-2 border border-slate-700 rounded-lg bg-slate-900/50 text-slate-200 cursor-pointer hover:border-blue-500 hover:bg-blue-500/10 transition-all">
         📁 Open Video
       </label>
       <input id="videoInput" type="file" accept="video/mp4,video/webm,video/ogg,video/mov,video/avi,video/mkv,video/flv,video/wmv,video/m4v,video/3gp,video/*" multiple class="hidden">
@@ -133,10 +133,12 @@ onUnmounted(() => {
             <div class="flex flex-col gap-1.5">
               <label for="presetSelect" class="text-xs font-medium text-slate-400">Encoding speed</label>
               <select id="presetSelect" class="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-900/50 text-slate-200 text-xs font-mono focus:outline-none focus:border-blue-500 hover:border-slate-600 transition-colors">
-                <option value="veryfast">Very fast</option>
+                <option value="ultrafast">Ultrafast (Fastest)</option>
+                <option value="superfast">Superfast</option>
+                <option value="veryfast" selected>Very fast</option>
                 <option value="faster">Faster</option>
                 <option value="medium">Balanced</option>
-                <option value="slow">Better quality</option>
+                <option value="slow">Better quality (Slowest)</option>
               </select>
             </div>
 
@@ -203,8 +205,8 @@ onUnmounted(() => {
         <div id="status" class="font-mono text-xs text-slate-400 min-h-5"></div>
 
         <!-- Progress bar -->
-        <div id="progress" class="w-full h-2.5 rounded-full bg-slate-800 border border-slate-700 overflow-hidden opacity-0">
-          <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all" style="width: 0%;"></div>
+        <div id="progress" class="w-full h-5 rounded-full bg-slate-800 border border-slate-700 overflow-hidden opacity-0">
+          <div id="progressBar" class="h-full flex items-center justify-center text-[10px] font-bold text-slate-950 whitespace-nowrap bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all tracking-wide" style="width: 0%;"></div>
         </div>
 
         <div id="fileCount" class="font-mono text-xs text-slate-400 min-h-5"></div>
