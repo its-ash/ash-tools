@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://ash-tools.store/sitemap.xml

@@ -73,6 +73,31 @@ const setStatus = (text, isError = false) => {
   statusEl.style.color = isError ? "#f87171" : "";
 };
 
+const escapeHtml = (unsafe) => {
+  return (unsafe || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+};
+
+const formatError = (text) => {
+  if (!text) return "";
+  const escaped = escapeHtml(text);
+  const lines = escaped.split('\n');
+  return lines.map(line => {
+    if (line.match(/Error:|Exception:|error:/i)) {
+      return `<strong class="text-red-400">${line}</strong>`;
+    }
+    if (line.match(/^\s*at\s+/) || line.includes('Traceback')) {
+      return `<span class="text-red-500/80">${line}</span>`;
+    }
+    if (line.match(/^\s*-+> /)) {
+      return `<span class="text-blue-400">${line}</span>`; // Rust pointers
+    }
+    if (line.match(/^\s*\|/)) {
+      return `<span class="text-slate-400">${line}</span>`; // Code snippets
+    }
+    return line;
+  }).join('\n');
+};
+
 const clearOutputs = () => {
   consoleOutput.textContent = "";
   errorOutput.textContent = "";
@@ -128,7 +153,7 @@ const runCode = () => {
       return;
     }
     if (msg.type === "stderr") {
-      errorOutput.textContent += msg.text;
+      errorOutput.innerHTML += formatError(msg.text);
       return;
     }
     if (msg.type === "compile") {
@@ -152,7 +177,7 @@ const runCode = () => {
       if (activeWorker) {
         try {
           activeWorker.terminate();
-        } catch (e) {}
+        } catch (e) { }
         activeWorker = null;
       }
       stopRun(false); // Do not overwrite status after successful completion
@@ -160,7 +185,7 @@ const runCode = () => {
   };
 
   activeWorker.onerror = (err) => {
-    errorOutput.textContent += `Worker error: ${err.message}\n`;
+    errorOutput.innerHTML += formatError(`Worker error: ${err.message}\n`);
     setStatus("Failed", true);
     runtimeStatus.textContent = "Idle";
     runBtn.disabled = false;
@@ -170,7 +195,7 @@ const runCode = () => {
   activeWorker.postMessage({ type: "run", code, language: lang, input: stdinInput.value });
 
   runTimeoutId = setTimeout(() => {
-    errorOutput.textContent += `Timeout: exceeded ${timeoutMs} ms\n`;
+    errorOutput.innerHTML += formatError(`Timeout: exceeded ${timeoutMs} ms\n`);
     stopRun(true);
   }, timeoutMs);
 };
@@ -260,7 +285,7 @@ const init = async () => {
     // ensure stdin has default value
     try {
       if (stdinInput && !stdinInput.value) stdinInput.value = 'Ash';
-    } catch (e) {}
+    } catch (e) { }
   } catch (err) {
     errorOutput.textContent = `Editor failed to load: ${err instanceof Error ? err.message : String(err)}`;
   }
