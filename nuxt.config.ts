@@ -130,7 +130,7 @@ export default defineNuxtConfig({
           content: 'English'
         },
         {
-          httpEquiv: 'X-UA-Compatible',
+          'http-equiv': 'X-UA-Compatible',
           content: 'IE=edge'
         }
       ],
@@ -208,6 +208,53 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
     assetsInclude: ['**/*.wasm'],
     base: '/',
+  },
+
+  modules: [
+    '@vite-pwa/nuxt'
+  ],
+
+  pwa: {
+    manifest: {
+      name: 'Local WASM Tools',
+      short_name: 'WASM Tools',
+      description: 'Privacy-first, in-browser WASM tools for image editing, video conversion, and more.',
+      theme_color: '#0f172a',
+      background_color: '#0f172a',
+      display: 'standalone',
+      orientation: 'portrait',
+      icons: [
+        {
+          src: 'pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any maskable'
+        }
+      ]
+    },
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,wasm}'],
+      maximumFileSizeToCacheInBytes: 64 * 1024 * 1024 // 64 MiB
+    },
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 3600
+    },
+    devOptions: {
+      enabled: true,
+      type: 'module'
+    }
   },
 
   compatibilityDate: '2024-11-01',

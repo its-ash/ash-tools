@@ -560,7 +560,7 @@ const attachPerspectiveInteractions = () => {
     activeHandle = key
     activeElement = event.target as Element
     event.preventDefault()
-    ;(event.target as HTMLElement).setPointerCapture?.(event.pointerId)
+      ; (event.target as HTMLElement).setPointerCapture?.(event.pointerId)
     updateFromEvent(event)
     document.addEventListener('pointermove', onMove)
     document.addEventListener('pointerup', stop)
@@ -684,10 +684,10 @@ const bindDropzone = () => {
     event.preventDefault()
     event.stopPropagation()
   }
-  ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
-    dropzone!.addEventListener(eventName, prevent, false)
-    document.body.addEventListener(eventName, prevent, false)
-  })
+    ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+      dropzone!.addEventListener(eventName, prevent, false)
+      document.body.addEventListener(eventName, prevent, false)
+    })
   dropzone.addEventListener('drop', (event: DragEvent) => {
     const [file] = event.dataTransfer?.files || []
     if (file) handleFile(file)
@@ -809,8 +809,10 @@ onMounted(async () => {
           <!-- Preview Card (Left on desktop) -->
           <div class="lg:order-1">
             <div class="bg-slate-900/80 border border-white/8 rounded-xl p-6 backdrop-blur-md h-full">
-              <div class="preview-stage mb-4 border border-white/10 rounded-lg overflow-hidden bg-black/40" id="previewStage">
-                <img id="preview" alt="Preview" class="w-full h-auto" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'%3E%3Crect width='1280' height='720' fill='%231e293b'/%3E%3Ctext x='640' y='360' text-anchor='middle' fill='%2338bdf8' font-size='48' font-family='monospace'%3EDrop or browse an image%3C/text%3E%3C/svg%3E" />
+              <div class="preview-stage mb-4 border border-white/10 rounded-lg overflow-hidden bg-black/40"
+                id="previewStage">
+                <img id="preview" alt="Preview" class="w-full h-auto"
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'%3E%3Crect width='1280' height='720' fill='%231e293b'/%3E%3Ctext x='640' y='360' text-anchor='middle' fill='%2338bdf8' font-size='48' font-family='monospace'%3EDrop or browse an image%3C/text%3E%3C/svg%3E" />
                 <!-- Crop Box (tool-specific markup) -->
                 <div id="cropBox" class="crop-box">
                   <div id="cropSize" class="crop-size" aria-live="polite"></div>
@@ -830,7 +832,8 @@ onMounted(async () => {
                   <span class="persp-handle" data-point="bl"></span>
                 </div>
               </div>
-              <div class="text-slate-400 text-sm mb-3">Use the crop box or adjust the four perspective points to refine the selection.</div>
+              <div class="text-slate-400 text-sm mb-3">Use the crop box or adjust the four perspective points to refine
+                the selection.</div>
               <div id="meta" class="font-mono text-xs text-slate-500"></div>
             </div>
           </div>
@@ -839,45 +842,61 @@ onMounted(async () => {
           <div class="lg:order-2">
             <div class="space-y-4">
               <!-- Upload Dropzone -->
-              <label id="dropzone" class="block border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-xl p-6 bg-cyan-500/5 cursor-pointer transition-all hover:-translate-y-0.5">
+              <label id="dropzone"
+                class="block border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-xl p-6 bg-cyan-500/5 cursor-pointer transition-all hover:-translate-y-0.5">
                 <div class="mb-3">
                   <div class="font-semibold text-base mb-1">Drop an image or browse</div>
                   <div class="text-slate-400 text-sm">PNG, JPEG, WebP, HEIC. Process stays local.</div>
                 </div>
-                <span class="inline-block px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg text-sm font-medium hover:bg-cyan-500/30 transition-colors">Browse</span>
+                <span
+                  class="inline-block px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg text-sm font-medium hover:bg-cyan-500/30 transition-colors">Browse</span>
               </label>
               <input id="fileInput" type="file" accept="image/*,.heic,.heif" class="hidden" />
 
               <!-- Mode Switch -->
               <div class="flex gap-2">
-                <button id="modeCrop" data-mode="crop" class="px-4 py-2 rounded-lg font-semibold text-sm active:bg-cyan-500/20 active:text-cyan-300 bg-white/5 text-slate-300 hover:bg-white/10 transition-colors active">Crop</button>
-                <button id="modePerspective" data-mode="perspective" class="px-4 py-2 rounded-lg font-semibold text-sm bg-white/5 text-slate-300 hover:bg-white/10 transition-colors">Perspective Crop</button>
+                <button id="modeCrop" data-mode="crop"
+                  class="px-4 py-2 rounded-lg font-semibold text-sm active:bg-cyan-500/20 active:text-cyan-300 bg-white/5 text-slate-300 hover:bg-white/10 transition-colors active">Crop</button>
+                <button id="modePerspective" data-mode="perspective"
+                  class="px-4 py-2 rounded-lg font-semibold text-sm bg-white/5 text-slate-300 hover:bg-white/10 transition-colors">Perspective
+                  Crop</button>
               </div>
 
               <!-- Process & Download -->
               <div class="space-y-3">
                 <div class="flex flex-col gap-2">
-                  <button id="processBtn" class="w-full px-4 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Process</button>
-                  <button id="downloadBtn" class="w-full px-4 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Download</button>
-                  <button id="resetBtn" class="w-full px-4 py-2.5 border border-white/20 text-slate-300 rounded-lg font-semibold text-sm hover:bg-white/5 transition-colors">Reset</button>
+                  <button id="processBtn"
+                    class="w-full px-4 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Process</button>
+                  <button id="downloadBtn"
+                    class="w-full px-4 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Download</button>
+                  <button id="resetBtn"
+                    class="w-full px-4 py-2.5 border border-white/20 text-slate-300 rounded-lg font-semibold text-sm hover:bg-white/5 transition-colors">Reset</button>
                 </div>
 
                 <!-- Compression Settings -->
                 <div class="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
                   <div id="qualityRow" class="flex items-center gap-4">
-                    <label for="qualityInput" class="text-sm font-semibold text-slate-300 whitespace-nowrap">Compression</label>
-                    <input id="qualityInput" type="range" min="10" max="100" value="80" class="flex-1 h-2 bg-white/10 rounded-full cursor-pointer">
+                    <label for="qualityInput"
+                      class="text-sm font-semibold text-slate-300 whitespace-nowrap">Compression</label>
+                    <input id="qualityInput" type="range" min="10" max="100" value="80"
+                      class="flex-1 h-2 bg-white/10 rounded-full cursor-pointer">
                     <span id="qualityValue" class="font-mono text-xs text-slate-400 min-w-12">80%</span>
                   </div>
                   <div class="flex items-center gap-4">
                     <label for="formatSelect" class="text-sm font-semibold text-slate-300">Output</label>
                     <div class="relative flex-1">
-                      <select id="formatSelect" class="w-full px-3 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-slate-200 text-sm font-medium appearance-none pr-8 cursor-pointer hover:bg-slate-800 transition-colors">
+                      <select id="formatSelect"
+                        class="w-full px-3 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-slate-200 text-sm font-medium appearance-none pr-8 cursor-pointer hover:bg-slate-800 transition-colors">
                         <option value="png">PNG</option>
                         <option value="jpeg">JPEG</option>
                         <option value="webp" selected>WebP</option>
                       </select>
-                      <svg class="absolute right-2 top-2.5 w-5 h-5 text-slate-400 pointer-events-none" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                      <svg class="absolute right-2 top-2.5 w-5 h-5 text-slate-400 pointer-events-none"
+                        fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clip-rule="evenodd" />
+                      </svg>
                     </div>
                   </div>
                   <div id="status" class="font-mono text-xs text-slate-500 min-h-5"></div>
@@ -930,19 +949,49 @@ onMounted(async () => {
 
 .handle {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 24px;
+  height: 24px;
   background: #22d3ee;
   border: 2px solid rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.4), 0 0 2px rgba(0, 0, 0, 0.8);
   border-radius: 50%;
   cursor: pointer;
-  z-index: 15;
+  z-index: 25;
+  transition: transform 0.15s ease, background-color 0.15s ease;
 }
 
-.handle.nw { top: -6px; left: -6px; cursor: nwse-resize; }
-.handle.ne { top: -6px; right: -6px; cursor: nesw-resize; }
-.handle.sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
-.handle.se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+.handle:hover {
+  transform: scale(1.1);
+  background: #67e8f9;
+}
+
+.handle:active {
+  transform: scale(0.95);
+}
+
+.handle.nw {
+  top: -12px;
+  left: -12px;
+  cursor: nwse-resize;
+}
+
+.handle.ne {
+  top: -12px;
+  right: -12px;
+  cursor: nesw-resize;
+}
+
+.handle.sw {
+  bottom: -12px;
+  left: -12px;
+  cursor: nesw-resize;
+}
+
+.handle.se {
+  bottom: -12px;
+  right: -12px;
+  cursor: nwse-resize;
+}
 
 .persp-overlay {
   position: absolute;
@@ -975,13 +1024,24 @@ onMounted(async () => {
 
 .persp-handle {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 24px;
+  height: 24px;
   background: #22d3ee;
   border: 2px solid rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.4), 0 0 2px rgba(0, 0, 0, 0.8);
   border-radius: 50%;
   cursor: pointer;
-  z-index: 20;
+  z-index: 30;
   transform: translate(-50%, -50%);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.persp-handle:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+  background: #67e8f9;
+}
+
+.persp-handle:active {
+  transform: translate(-50%, -50%) scale(0.95);
 }
 </style>
