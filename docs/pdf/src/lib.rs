@@ -1,6 +1,6 @@
-use wasm_bindgen::prelude::*;
-use lopdf::{Document, Object, ObjectId, dictionary};
+use lopdf::{dictionary, Document, Object, ObjectId};
 use std::collections::HashMap;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
 pub fn init() {
@@ -29,7 +29,10 @@ pub fn get_page_count(pdf_bytes: &[u8]) -> Result<u32, JsValue> {
 /// Merge multiple PDFs into one and compress based on quality.
 /// quality: 0–100 (100 = minimal compression, lower = more aggressive)
 #[wasm_bindgen]
-pub fn merge_and_compress(pdf_arrays: &JsValue, quality: u8) -> Result<js_sys::Uint8Array, JsValue> {
+pub fn merge_and_compress(
+    pdf_arrays: &JsValue,
+    quality: u8,
+) -> Result<js_sys::Uint8Array, JsValue> {
     let arrays = js_sys::Array::from(pdf_arrays);
     let count = arrays.length();
 
@@ -114,7 +117,9 @@ fn deduplicate_streams(doc: &mut Document) {
     for id in &all_ids {
         if let Some(Object::Stream(ref stream)) = doc.objects.get(id) {
             let content = &stream.content;
-            if content.len() < 32 { continue; } // skip tiny streams
+            if content.len() < 32 {
+                continue;
+            } // skip tiny streams
             if let Some(&original_id) = seen.get(content) {
                 if original_id != *id {
                     replacements.push((*id, original_id));
@@ -150,7 +155,9 @@ fn deduplicate_streams(doc: &mut Document) {
 fn replace_references_in_object(obj: &mut Object, from: ObjectId, to: ObjectId) {
     match obj {
         Object::Reference(ref mut r) => {
-            if *r == from { *r = to; }
+            if *r == from {
+                *r = to;
+            }
         }
         Object::Array(ref mut arr) => {
             for item in arr.iter_mut() {
@@ -184,7 +191,9 @@ fn prune_unreferenced_objects(doc: &mut Document) {
     let mut visited: std::collections::HashSet<ObjectId> = std::collections::HashSet::new();
 
     while let Some(id) = frontier.pop() {
-        if !visited.insert(id) { continue; }
+        if !visited.insert(id) {
+            continue;
+        }
         if let Some(obj) = doc.objects.get(&id) {
             collect_refs_from_object(obj, &mut |ref_id| {
                 referenced.insert(ref_id);
@@ -202,9 +211,14 @@ fn prune_unreferenced_objects(doc: &mut Document) {
     }
 }
 
-fn collect_refs_from_dict(dict: &lopdf::Dictionary, refs: &mut std::collections::HashSet<ObjectId>) {
+fn collect_refs_from_dict(
+    dict: &lopdf::Dictionary,
+    refs: &mut std::collections::HashSet<ObjectId>,
+) {
     for (_, val) in dict.iter() {
-        collect_refs_from_object(val, &mut |id| { refs.insert(id); });
+        collect_refs_from_object(val, &mut |id| {
+            refs.insert(id);
+        });
     }
 }
 
@@ -212,13 +226,19 @@ fn collect_refs_from_object(obj: &Object, cb: &mut dyn FnMut(ObjectId)) {
     match obj {
         Object::Reference(id) => cb(*id),
         Object::Array(arr) => {
-            for item in arr { collect_refs_from_object(item, cb); }
+            for item in arr {
+                collect_refs_from_object(item, cb);
+            }
         }
         Object::Dictionary(dict) => {
-            for (_, val) in dict.iter() { collect_refs_from_object(val, cb); }
+            for (_, val) in dict.iter() {
+                collect_refs_from_object(val, cb);
+            }
         }
         Object::Stream(stream) => {
-            for (_, val) in stream.dict.iter() { collect_refs_from_object(val, cb); }
+            for (_, val) in stream.dict.iter() {
+                collect_refs_from_object(val, cb);
+            }
         }
         _ => {}
     }
@@ -231,18 +251,21 @@ fn strip_metadata(doc: &mut Document) {
     let ids_to_check: Vec<ObjectId> = doc.objects.keys().cloned().collect();
     for id in ids_to_check {
         let is_metadata = match doc.objects.get(&id) {
-            Some(Object::Dictionary(dict)) => {
-                dict.get(b"Type")
-                    .map(|v| matches!(v, Object::Name(ref n) if n == b"Metadata"))
-                    .unwrap_or(false)
-            }
+            Some(Object::Dictionary(dict)) => dict
+                .get(b"Type")
+                .map(|v| matches!(v, Object::Name(ref n) if n == b"Metadata"))
+                .unwrap_or(false),
             Some(Object::Stream(stream)) => {
-                stream.dict.get(b"Type")
+                stream
+                    .dict
+                    .get(b"Type")
                     .map(|v| matches!(v, Object::Name(ref n) if n == b"Metadata"))
                     .unwrap_or(false)
-                || stream.dict.get(b"Subtype")
-                    .map(|v| matches!(v, Object::Name(ref n) if n == b"XML"))
-                    .unwrap_or(false)
+                    || stream
+                        .dict
+                        .get(b"Subtype")
+                        .map(|v| matches!(v, Object::Name(ref n) if n == b"XML"))
+                        .unwrap_or(false)
             }
             _ => false,
         };
@@ -279,7 +302,8 @@ fn strip_outlines(doc: &mut Document) {
     for id in all_ids {
         if let Some(Object::Dictionary(ref mut dict)) = doc.objects.get_mut(&id) {
             // Check if this is the catalog
-            let is_catalog = dict.get(b"Type")
+            let is_catalog = dict
+                .get(b"Type")
                 .map(|v| matches!(v, Object::Name(ref n) if n == b"Catalog"))
                 .unwrap_or(false);
             if is_catalog {
@@ -297,7 +321,8 @@ fn strip_annotations(doc: &mut Document) {
     let all_ids: Vec<ObjectId> = doc.objects.keys().cloned().collect();
     for id in all_ids {
         if let Some(Object::Dictionary(ref mut dict)) = doc.objects.get_mut(&id) {
-            let is_page = dict.get(b"Type")
+            let is_page = dict
+                .get(b"Type")
                 .map(|v| matches!(v, Object::Name(ref n) if n == b"Page"))
                 .unwrap_or(false);
             if is_page {
@@ -313,7 +338,8 @@ fn strip_structure_tree(doc: &mut Document) {
     let all_ids: Vec<ObjectId> = doc.objects.keys().cloned().collect();
     for id in all_ids {
         if let Some(Object::Dictionary(ref mut dict)) = doc.objects.get_mut(&id) {
-            let is_catalog = dict.get(b"Type")
+            let is_catalog = dict
+                .get(b"Type")
                 .map(|v| matches!(v, Object::Name(ref n) if n == b"Catalog"))
                 .unwrap_or(false);
             if is_catalog {
@@ -347,6 +373,7 @@ fn merge_documents(documents: Vec<Document>) -> Result<Document, JsValue> {
             merged_doc.objects.insert(id, object);
         }
     }
+    merged_doc.max_id = max_id - 1;
 
     let pages_id = merged_doc.new_object_id();
     let page_refs: Vec<Object> = all_page_refs
@@ -359,10 +386,14 @@ fn merge_documents(documents: Vec<Document>) -> Result<Document, JsValue> {
         "Count" => all_page_refs.len() as u32,
         "Kids" => page_refs,
     };
-    merged_doc.objects.insert(pages_id, Object::Dictionary(pages_dict));
+    merged_doc
+        .objects
+        .insert(pages_id, Object::Dictionary(pages_dict));
 
     for page_id in &all_page_refs {
-        if let Ok(page_obj) = merged_doc.objects.get_mut(page_id)
+        if let Ok(page_obj) = merged_doc
+            .objects
+            .get_mut(page_id)
             .ok_or_else(|| JsValue::from_str("Page object not found"))
         {
             if let Object::Dictionary(ref mut dict) = page_obj {
@@ -376,11 +407,17 @@ fn merge_documents(documents: Vec<Document>) -> Result<Document, JsValue> {
         "Type" => "Catalog",
         "Pages" => Object::Reference(pages_id),
     };
-    merged_doc.objects.insert(catalog_id, Object::Dictionary(catalog_dict));
+    merged_doc
+        .objects
+        .insert(catalog_id, Object::Dictionary(catalog_dict));
 
-    merged_doc.trailer.set("Root", Object::Reference(catalog_id));
+    merged_doc
+        .trailer
+        .set("Root", Object::Reference(catalog_id));
 
-    merged_doc.max_id = merged_doc.objects.keys()
+    merged_doc.max_id = merged_doc
+        .objects
+        .keys()
         .map(|(id, _)| *id)
         .max()
         .unwrap_or(0);
@@ -400,18 +437,22 @@ fn save_document(doc: &mut Document) -> Result<Vec<u8>, JsValue> {
 /// width: input image width in pixels
 /// height: input image height in pixels
 #[wasm_bindgen]
-pub fn img_to_pdf(image_bytes: &[u8], width: f64, height: f64) -> Result<js_sys::Uint8Array, JsValue> {
+pub fn img_to_pdf(
+    image_bytes: &[u8],
+    width: f64,
+    height: f64,
+) -> Result<js_sys::Uint8Array, JsValue> {
     let mut doc = Document::with_version("1.7");
     let pages_id = doc.new_object_id();
-    
+
     // PDF points: 1 inch = 72 points
-    // We'll treat the image as 72 DPI for simplicity in the PDF layout, 
+    // We'll treat the image as 72 DPI for simplicity in the PDF layout,
     // or we can just use the pixel dimensions as points.
     let pw = width;
     let ph = height;
 
     let image_id = doc.new_object_id();
-    
+
     // Create the image stream
     // Note: This assumes JPEG. For PNG we'd need more complex processing.
     // In the frontend, we'll convert images to JPEG before calling this.
@@ -430,14 +471,9 @@ pub fn img_to_pdf(image_bytes: &[u8], width: f64, height: f64) -> Result<js_sys:
     doc.objects.insert(image_id, image_stream);
 
     let content_id = doc.new_object_id();
-    let content_str = format!(
-        "q {} 0 0 {} 0 0 cm /Im1 Do Q",
-        pw, ph
-    );
-    let content_stream = Object::Stream(lopdf::Stream::new(
-        dictionary! {},
-        content_str.into_bytes(),
-    ));
+    let content_str = format!("q {} 0 0 {} 0 0 cm /Im1 Do Q", pw, ph);
+    let content_stream =
+        Object::Stream(lopdf::Stream::new(dictionary! {}, content_str.into_bytes()));
     doc.objects.insert(content_id, content_stream);
 
     let resources_id = doc.new_object_id();
@@ -446,7 +482,8 @@ pub fn img_to_pdf(image_bytes: &[u8], width: f64, height: f64) -> Result<js_sys:
             "Im1" => Object::Reference(image_id),
         },
     };
-    doc.objects.insert(resources_id, Object::Dictionary(resources_dict));
+    doc.objects
+        .insert(resources_id, Object::Dictionary(resources_dict));
 
     let page_id = doc.new_object_id();
     let page_dict = dictionary! {
@@ -470,7 +507,8 @@ pub fn img_to_pdf(image_bytes: &[u8], width: f64, height: f64) -> Result<js_sys:
         "Type" => "Catalog",
         "Pages" => Object::Reference(pages_id),
     };
-    doc.objects.insert(catalog_id, Object::Dictionary(catalog_dict));
+    doc.objects
+        .insert(catalog_id, Object::Dictionary(catalog_dict));
 
     doc.trailer.set("Root", Object::Reference(catalog_id));
     doc.max_id = doc.objects.keys().map(|(id, _)| *id).max().unwrap_or(0);
