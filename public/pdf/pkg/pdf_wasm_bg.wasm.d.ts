@@ -2,6 +2,7 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
 export const get_page_count: (a: number, b: number) => [number, number, number];
+export const img_to_pdf: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const init: () => void;
 export const merge_and_compress: (a: any, b: number) => [number, number, number];
 export const __wbindgen_free: (a: number, b: number, c: number) => void;

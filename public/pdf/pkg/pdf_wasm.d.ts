@@ -6,6 +6,14 @@
  */
 export function get_page_count(pdf_bytes: Uint8Array): number;
 
+/**
+ * Convert an image into a single-page PDF document.
+ * image_bytes: RAW JPEG/PNG bytes (it's best to pass JPEG for PDF)
+ * width: input image width in pixels
+ * height: input image height in pixels
+ */
+export function img_to_pdf(image_bytes: Uint8Array, width: number, height: number): Uint8Array;
+
 export function init(): void;
 
 /**
@@ -19,6 +27,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly get_page_count: (a: number, b: number) => [number, number, number];
+    readonly img_to_pdf: (a: number, b: number, c: number, d: number) => [number, number, number];
     readonly init: () => void;
     readonly merge_and_compress: (a: any, b: number) => [number, number, number];
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;

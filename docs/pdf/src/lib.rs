@@ -395,3 +395,88 @@ fn save_document(doc: &mut Document) -> Result<Vec<u8>, JsValue> {
         .map_err(|e| JsValue::from_str(&format!("Failed to save PDF: {}", e)))?;
     Ok(buf)
 }
+/// Convert an image into a single-page PDF document.
+/// image_bytes: RAW JPEG/PNG bytes (it's best to pass JPEG for PDF)
+/// width: input image width in pixels
+/// height: input image height in pixels
+#[wasm_bindgen]
+pub fn img_to_pdf(image_bytes: &[u8], width: f64, height: f64) -> Result<js_sys::Uint8Array, JsValue> {
+    let mut doc = Document::with_version("1.7");
+    let pages_id = doc.new_object_id();
+    
+    // PDF points: 1 inch = 72 points
+    // We'll treat the image as 72 DPI for simplicity in the PDF layout, 
+    // or we can just use the pixel dimensions as points.
+    let pw = width;
+    let ph = height;
+
+    let image_id = doc.new_object_id();
+    
+    // Create the image stream
+    // Note: This assumes JPEG. For PNG we'd need more complex processing.
+    // In the frontend, we'll convert images to JPEG before calling this.
+    let image_stream = Object::Stream(lopdf::Stream::new(
+        dictionary! {
+            "Type" => "XObject",
+            "Subtype" => "Image",
+            "Width" => width as i32,
+            "Height" => height as i32,
+            "ColorSpace" => "DeviceRGB",
+            "BitsPerComponent" => 8,
+            "Filter" => "DCTDecode", // DCTDecode is for JPEG
+        },
+        image_bytes.to_vec(),
+    ));
+    doc.objects.insert(image_id, image_stream);
+
+    let content_id = doc.new_object_id();
+    let content_str = format!(
+        "q {} 0 0 {} 0 0 cm /Im1 Do Q",
+        pw, ph
+    );
+    let content_stream = Object::Stream(lopdf::Stream::new(
+        dictionary! {},
+        content_str.into_bytes(),
+    ));
+    doc.objects.insert(content_id, content_stream);
+
+    let resources_id = doc.new_object_id();
+    let resources_dict = dictionary! {
+        "XObject" => dictionary! {
+            "Im1" => Object::Reference(image_id),
+        },
+    };
+    doc.objects.insert(resources_id, Object::Dictionary(resources_dict));
+
+    let page_id = doc.new_object_id();
+    let page_dict = dictionary! {
+        "Type" => "Page",
+        "Parent" => Object::Reference(pages_id),
+        "MediaBox" => vec![0.into(), 0.into(), pw.into(), ph.into()],
+        "Contents" => Object::Reference(content_id),
+        "Resources" => Object::Reference(resources_id),
+    };
+    doc.objects.insert(page_id, Object::Dictionary(page_dict));
+
+    let pages_dict = dictionary! {
+        "Type" => "Pages",
+        "Count" => 1,
+        "Kids" => vec![Object::Reference(page_id)],
+    };
+    doc.objects.insert(pages_id, Object::Dictionary(pages_dict));
+
+    let catalog_id = doc.new_object_id();
+    let catalog_dict = dictionary! {
+        "Type" => "Catalog",
+        "Pages" => Object::Reference(pages_id),
+    };
+    doc.objects.insert(catalog_id, Object::Dictionary(catalog_dict));
+
+    doc.trailer.set("Root", Object::Reference(catalog_id));
+    doc.max_id = doc.objects.keys().map(|(id, _)| *id).max().unwrap_or(0);
+
+    let bytes = save_document(&mut doc)?;
+    let result = js_sys::Uint8Array::new_with_length(bytes.len() as u32);
+    result.copy_from(&bytes);
+    Ok(result)
+}

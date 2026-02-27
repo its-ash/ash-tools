@@ -15,6 +15,26 @@ export function get_page_count(pdf_bytes) {
     return ret[0] >>> 0;
 }
 
+/**
+ * Convert an image into a single-page PDF document.
+ * image_bytes: RAW JPEG/PNG bytes (it's best to pass JPEG for PDF)
+ * width: input image width in pixels
+ * height: input image height in pixels
+ * @param {Uint8Array} image_bytes
+ * @param {number} width
+ * @param {number} height
+ * @returns {Uint8Array}
+ */
+export function img_to_pdf(image_bytes, width, height) {
+    const ptr0 = passArray8ToWasm0(image_bytes, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.img_to_pdf(ptr0, len0, width, height);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
 export function init() {
     wasm.init();
 }
