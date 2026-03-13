@@ -1,13 +1,13 @@
 <script setup lang="ts">
 useHead({
-  title: 'tools | Free Online Tools',
+  title: 'Ash Tools | Private Browser Tools for Media, Docs, and Dev',
   meta: [
-    { name: 'description', content: 'Free online tools for video compression, file zipping, AI chat, and code execution. Process everything locally in your browser - no uploads, works offline, complete privacy.' },
+    { name: 'description', content: 'Ash Tools is a privacy-first toolkit for media editing, PDF and ZIP workflows, AI chat, and developer utilities. Everything runs locally in your browser with no uploads.' },
     { name: 'keywords', content: 'free tools, video compressor, file zipper, online tools, web tools, compression, zip files, video editor, AI chat, code sandbox, rust execution, javascript runner, local processing, offline tools, privacy tools' },
     { property: 'og:type', content: 'website' },
     { property: 'og:url', content: 'https://ash-tools.store/' },
-    { property: 'og:title', content: 'tools | Free Online Tools' },
-    { property: 'og:description', content: 'Free online tools for video compression, file zipping, AI chat, and code execution. Everything processed locally in your browser.' },
+    { property: 'og:title', content: 'Ash Tools | Private Browser Tools for Media, Docs, and Dev' },
+    { property: 'og:description', content: 'Privacy-first browser tools for media, docs, AI, and developer workflows. Local processing, no uploads, offline-ready.' },
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'robots', content: 'index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1' },
   ],
@@ -20,11 +20,11 @@ useHead({
 
     <!-- Hero -->
     <header class="text-center mb-16">
-      <h1 class="text-7xl font-bold tracking-tighter mb-4 bg-gradient-to-r from-sky-400 via-cyan-400 to-violet-500 bg-clip-text text-transparent leading-tight">
-        tools
+      <h1 class="text-7xl font-bold tracking-tighter mb-4 bg-linear-to-r from-sky-400 via-cyan-400 to-violet-500 bg-clip-text text-transparent leading-tight">
+        ash tools
       </h1>
-      <p class="text-xl text-slate-400 max-w-lg mx-auto mb-8 leading-relaxed">
-        Free, private, and powerful tools that work entirely in your browser. No uploads, no data sharing, complete privacy.
+      <p class="text-xl text-slate-400 max-w-3xl mx-auto mb-8 leading-relaxed">
+        A single workspace for everyday file tasks and developer utilities. Edit media, merge documents, run code, and chat with local AI models directly in your browser.
       </p>
       <div class="flex flex-wrap justify-center gap-3">
         <span class="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-400 text-xs font-semibold">100% Local Processing</span>
@@ -34,9 +34,54 @@ useHead({
       </div>
     </header>
 
+    <!-- Self-Descriptive Overview -->
+    <section class="mb-16 grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <article class="rounded-2xl border border-slate-700 bg-slate-900/50 p-6">
+        <h2 class="text-2xl font-bold text-white mb-3">What is Ash Tools?</h2>
+        <p class="text-slate-300 leading-relaxed mb-4">
+          Ash Tools is a privacy-first collection of browser apps for media processing, document workflows, and coding utilities. It is built for people who want fast tools without sending files to external servers.
+        </p>
+        <ul class="text-sm text-slate-400 space-y-2">
+          <li>✓ Everything runs on your device using WebAssembly/WebGPU</li>
+          <li>✓ Sensitive files stay local and are never uploaded by default</li>
+          <li>✓ Most tools continue to work even when you are offline</li>
+        </ul>
+      </article>
+
+      <article class="rounded-2xl border border-slate-700 bg-slate-900/50 p-6">
+        <h2 class="text-2xl font-bold text-white mb-3">How does this help you?</h2>
+        <div class="space-y-3 text-slate-300">
+          <p><span class="text-white font-semibold">For creators:</span> Compress videos, optimize images, and package assets quickly.</p>
+          <p><span class="text-white font-semibold">For teams:</span> Merge PDFs, zip project folders, and share cleaner outputs.</p>
+          <p><span class="text-white font-semibold">For developers:</span> Benchmark snippets, generate regex, and run sandboxed code.</p>
+          <p><span class="text-white font-semibold">For privacy:</span> Process local files directly in-browser with no upload step.</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="mb-16 rounded-2xl border border-slate-700 bg-linear-to-r from-slate-900/70 to-slate-800/40 p-6">
+      <h2 class="text-2xl font-bold text-white mb-4">Start in 3 steps</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div class="rounded-xl border border-slate-700/80 bg-slate-900/50 p-4">
+          <p class="text-sky-400 font-bold mb-1">1. Pick a tool</p>
+          <p class="text-slate-300">Choose from media, docs, AI, or developer utilities below.</p>
+        </div>
+        <div class="rounded-xl border border-slate-700/80 bg-slate-900/50 p-4">
+          <p class="text-sky-400 font-bold mb-1">2. Add your files or code</p>
+          <p class="text-slate-300">Drag-and-drop files or paste snippets. Processing starts locally.</p>
+        </div>
+        <div class="rounded-xl border border-slate-700/80 bg-slate-900/50 p-4">
+          <p class="text-sky-400 font-bold mb-1">3. Export results</p>
+          <p class="text-slate-300">Download optimized outputs and continue working without leaving the browser.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- Tools -->
     <div class="mb-16">
-      <h2 class="text-2xl font-bold text-white mb-6">Tools</h2>
+      <h2 class="text-2xl font-bold text-white mb-2">Media &amp; Document Tools</h2>
+      <p class="text-slate-400 mb-6">Use these when you need to transform files quickly without cloud uploads.</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
       <!-- Video -->
@@ -52,7 +97,7 @@ useHead({
           <li>✓ Batch processing</li>
           <li>✓ FFmpeg integration</li>
         </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-gradient-to-r from-sky-400 to-cyan-400 hover:shadow-lg hover:shadow-sky-500/40 transition-all hover:-translate-y-0.5">Open Video Studio →</button>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-linear-to-r from-sky-400 to-cyan-400 hover:shadow-lg hover:shadow-sky-500/40 transition-all hover:-translate-y-0.5">Open Video Studio →</button>
       </NuxtLink>
 
       <!-- Image -->
@@ -68,14 +113,14 @@ useHead({
           <li>✓ Local compression previews</li>
           <li>✓ Offline-first workflow</li>
         </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-gradient-to-r from-cyan-400 to-teal-400 hover:shadow-lg hover:shadow-cyan-500/40 transition-all hover:-translate-y-0.5">Open Image Editor →</button>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-linear-to-r from-cyan-400 to-teal-400 hover:shadow-lg hover:shadow-cyan-500/40 transition-all hover:-translate-y-0.5">Open Image Editor →</button>
       </NuxtLink>
 
       <!-- ZIP -->
       <NuxtLink to="/zip" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-violet-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-violet-500/10">
         <div class="w-16 h-16 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-4xl">📦</div>
         <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">view and zip files</h2>
+          <h2 class="text-xl font-bold tracking-tight text-white">View and Zip Files</h2>
           <p class="text-sm text-slate-400 leading-relaxed mt-2">Create ZIP archives from your files and folders. Compress multiple items into organized archives with drag-and-drop simplicity.</p>
         </div>
         <ul class="text-xs text-slate-400 space-y-1">
@@ -84,7 +129,7 @@ useHead({
           <li>✓ Drag &amp; drop interface</li>
           <li>✓ Batch file processing</li>
         </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-violet-500 to-purple-400 hover:shadow-lg hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5">Open view and zip files →</button>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-linear-to-r from-violet-500 to-purple-400 hover:shadow-lg hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5">Open view and zip files →</button>
       </NuxtLink>
 
       <!-- PDF -->
@@ -100,7 +145,7 @@ useHead({
           <li>✓ Advanced flate2 compression</li>
           <li>✓ High-res thumbnail previews</li>
         </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-rose-500 to-pink-500 hover:shadow-lg hover:shadow-rose-500/40 transition-all hover:-translate-y-0.5">Open PDF Merger →</button>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-linear-to-r from-rose-500 to-pink-500 hover:shadow-lg hover:shadow-rose-500/40 transition-all hover:-translate-y-0.5">Open PDF Merger →</button>
       </NuxtLink>
 
       <!-- WebLLM -->
@@ -116,7 +161,7 @@ useHead({
           <li>✓ Rust-managed history</li>
           <li>✓ PWA ready</li>
         </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-gradient-to-r from-orange-400 to-amber-400 hover:shadow-lg hover:shadow-orange-500/40 transition-all hover:-translate-y-0.5">Open WebLLM Studio →</button>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-linear-to-r from-orange-400 to-amber-400 hover:shadow-lg hover:shadow-orange-500/40 transition-all hover:-translate-y-0.5">Open WebLLM Studio →</button>
       </NuxtLink>
 
       <!-- Resume -->
@@ -140,7 +185,8 @@ useHead({
 
     <!-- Dev Tools -->
     <div class="mb-16">
-      <h2 class="text-2xl font-bold text-white mb-6">Dev Tools</h2>
+      <h2 class="text-2xl font-bold text-white mb-2">Developer Tools</h2>
+      <p class="text-slate-400 mb-6">Build, test, and debug faster with in-browser utilities powered by workers and WASM.</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
       <!-- Speed -->
@@ -156,7 +202,7 @@ useHead({
           <li>✓ Visual performance charts</li>
           <li>✓ Worker-based isolation</li>
         </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-gradient-to-r from-yellow-400 to-amber-300 hover:shadow-lg hover:shadow-yellow-500/40 transition-all hover:-translate-y-0.5">Open Speed Runner →</button>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-linear-to-r from-yellow-400 to-amber-300 hover:shadow-lg hover:shadow-yellow-500/40 transition-all hover:-translate-y-0.5">Open Speed Runner →</button>
       </NuxtLink>
 
       <!-- Regex -->
@@ -172,7 +218,7 @@ useHead({
           <li>✓ Instant preview</li>
           <li>✓ Offline processing</li>
         </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-pink-500 to-rose-400 hover:shadow-lg hover:shadow-pink-500/40 transition-all hover:-translate-y-0.5">Open Regex Tool →</button>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-linear-to-r from-pink-500 to-rose-400 hover:shadow-lg hover:shadow-pink-500/40 transition-all hover:-translate-y-0.5">Open Regex Tool →</button>
       </NuxtLink>
 
       <!-- Sandbox -->
@@ -188,7 +234,7 @@ useHead({
           <li>✓ Stdin input support</li>
           <li>✓ Copy output to clipboard</li>
         </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-gradient-to-r from-indigo-500 to-violet-500 hover:shadow-lg hover:shadow-indigo-500/40 transition-all hover:-translate-y-0.5">Open Code Sandbox →</button>
+        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-linear-to-r from-indigo-500 to-violet-500 hover:shadow-lg hover:shadow-indigo-500/40 transition-all hover:-translate-y-0.5">Open Code Sandbox →</button>
       </NuxtLink>
 
       </div>
