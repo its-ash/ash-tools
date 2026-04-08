@@ -49,9 +49,17 @@ let formatSelect: HTMLSelectElement | null = null
 let qualityRow: HTMLElement | null = null
 let qualityInput: HTMLInputElement | null = null
 let qualityValue: HTMLElement | null = null
+let statsEl: HTMLElement | null = null
 
-let projectedSizeTimer: NodeJS.Timeout | null = null
+let projectedSizeTimer: ReturnType<typeof setTimeout> | null = null
 let projectedSizeToken = 0
+const cleanupFns: Array<() => void> = []
+
+type LoadedImageBytes = {
+  bytes: Uint8Array
+  dimensions?: { width: number; height: number }
+  note?: string
+}
 
 // HEIC detection constants
 const HEIC_MIME_TYPES = new Set([
@@ -108,7 +116,48 @@ const setStatus = (message?: string) => {
   if (statusEl) statusEl.textContent = message || ''
 }
 
+const setProcessingState = (isProcessing: boolean) => {
+  if (!processBtn) return
+  processBtn.disabled = isProcessing || !currentBytes
+  processBtn.textContent = isProcessing ? 'Processing...' : 'Process'
+  processBtn.setAttribute('aria-busy', isProcessing ? 'true' : 'false')
+}
+
+const updateStats = (currentSize?: number) => {
+  if (!statsEl) return
+  if (!originalBytes || !currentSize) {
+    statsEl.textContent = ''
+    return
+  }
+  if (currentSize === originalBytes.length) {
+    statsEl.textContent = `Original ${prettySize(originalBytes.length)} • No size change yet`
+    return
+  }
+  const ratio = ((originalBytes.length - currentSize) / originalBytes.length) * 100
+  if (ratio >= 0) {
+    statsEl.textContent = `Original ${prettySize(originalBytes.length)} -> Current ${prettySize(currentSize)} (${ratio.toFixed(1)}% smaller)`
+    return
+  }
+  statsEl.textContent = `Original ${prettySize(originalBytes.length)} -> Current ${prettySize(currentSize)} (${Math.abs(ratio).toFixed(1)}% larger)`
+}
+
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value))
+
+const bytesToBlobPart = (bytes: Uint8Array): ArrayBuffer => {
+  const cloned = new Uint8Array(bytes.byteLength)
+  cloned.set(bytes)
+  return cloned.buffer
+}
+
+const addListener = (
+  target: EventTarget,
+  eventName: string,
+  handler: EventListenerOrEventListenerObject,
+  options?: boolean | AddEventListenerOptions
+) => {
+  target.addEventListener(eventName, handler, options)
+  cleanupFns.push(() => target.removeEventListener(eventName, handler, options))
+}
 
 // ==================== File Reading ====================
 const readFileAsBytes = (file: File): Promise<Uint8Array> =>
@@ -123,7 +172,7 @@ const extractDimensions = (
   bytes: Uint8Array
 ): Promise<{ width: number; height: number }> =>
   new Promise((resolve, reject) => {
-    const blob = new Blob([bytes])
+    const blob = new Blob([bytesToBlobPart(bytes)])
     const url = URL.createObjectURL(blob)
     const img = new Image()
     img.onload = () => {
@@ -182,7 +231,10 @@ const drawSourceToPngBytes = async (
   return new Uint8Array(await blob.arrayBuffer())
 }
 
-const convertHeicWithImageDecoder = async (buffer: ArrayBuffer, type: string) => {
+const convertHeicWithImageDecoder = async (
+  buffer: ArrayBuffer,
+  type: string
+): Promise<LoadedImageBytes | null> => {
   if (typeof (globalThis as any).ImageDecoder === 'undefined') return null
   try {
     const decoder = new (globalThis as any).ImageDecoder({
@@ -201,7 +253,10 @@ const convertHeicWithImageDecoder = async (buffer: ArrayBuffer, type: string) =>
   }
 }
 
-const convertHeicWithBitmap = async (buffer: ArrayBuffer, type: string) => {
+const convertHeicWithBitmap = async (
+  buffer: ArrayBuffer,
+  type: string
+): Promise<LoadedImageBytes | null> => {
   if (typeof createImageBitmap === 'undefined') return null
   try {
     const blob = new Blob([buffer], { type })
@@ -214,7 +269,7 @@ const convertHeicWithBitmap = async (buffer: ArrayBuffer, type: string) => {
   }
 }
 
-const convertHeicFile = async (file: File) => {
+const convertHeicFile = async (file: File): Promise<LoadedImageBytes | null> => {
   const type = (file.type || 'image/heic').toLowerCase()
   const buffer = await file.arrayBuffer()
 
@@ -231,7 +286,7 @@ const convertHeicFile = async (file: File) => {
   return null
 }
 
-const loadImageBytes = async (file: File) => {
+const loadImageBytes = async (file: File): Promise<LoadedImageBytes | null> => {
   if (!file) return null
   if (isHeicFile(file)) {
     const converted = await convertHeicFile(file)
@@ -247,7 +302,7 @@ const loadImageBytes = async (file: File) => {
 // ==================== Preview & Display ====================
 const updatePreview = async (bytes: Uint8Array, providedDims?: any) => {
   if (previewUrl) URL.revokeObjectURL(previewUrl)
-  const blob = new Blob([bytes])
+  const blob = new Blob([bytesToBlobPart(bytes)])
   previewUrl = URL.createObjectURL(blob)
   if (previewImg) previewImg.src = previewUrl
   const dims = providedDims ?? (await extractDimensions(bytes).catch(() => null))
@@ -260,6 +315,7 @@ const updatePreview = async (bytes: Uint8Array, providedDims?: any) => {
   }
   cancelProjectedSize()
   setDownloadLabel(bytes.length)
+  updateStats(bytes.length)
   updateCropOverlay()
   updatePerspectiveOverlay()
 }
@@ -338,6 +394,7 @@ const requestProjectedDownloadSize = () => {
   if (!currentBytes) {
     cancelProjectedSize()
     setDownloadLabel(null)
+    updateStats(undefined)
     return
   }
   const { format, quality } = getOutputSettings()
@@ -480,7 +537,7 @@ const attachCropInteractions = () => {
     document.addEventListener('pointercancel', stop)
   }
 
-  cropBox.addEventListener('pointerdown', onDown as EventListener)
+  addListener(cropBox, 'pointerdown', onDown as EventListener)
 }
 
 // ==================== Perspective Overlay ====================
@@ -568,7 +625,7 @@ const attachPerspectiveInteractions = () => {
   }
 
   perspectiveHandleElements.forEach((element) => {
-    element.addEventListener('pointerdown', onDown as EventListener)
+    addListener(element, 'pointerdown', onDown as EventListener)
   })
 }
 
@@ -608,7 +665,7 @@ const runPipeline = async () => {
     setStatus('Add an image first.')
     return
   }
-  if (processBtn) processBtn.disabled = true
+  setProcessingState(true)
   setStatus('Preparing WebAssembly module...')
   try {
     await ensureWasm()
@@ -648,14 +705,14 @@ const runPipeline = async () => {
     console.error(err)
     setStatus(err instanceof Error ? err.message : String(err))
   } finally {
-    if (processBtn) processBtn.disabled = false
+    setProcessingState(false)
   }
 }
 
 const downloadResult = () => {
   if (!currentBytes) return
   const format = formatSelect?.value ?? 'png'
-  const blob = new Blob([currentBytes], { type: `image/${format}` })
+  const blob = new Blob([bytesToBlobPart(currentBytes)], { type: `image/${format}` })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   const ext = format === 'jpeg' ? 'jpg' : format
@@ -680,21 +737,61 @@ const resetImage = async () => {
 // ==================== Dropzone ====================
 const bindDropzone = () => {
   if (!dropzone) return
+
   const prevent = (event: DragEvent) => {
     event.preventDefault()
     event.stopPropagation()
   }
-    ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
-      dropzone!.addEventListener(eventName, prevent, false)
-      document.body.addEventListener(eventName, prevent, false)
-    })
-  dropzone.addEventListener('drop', (event: DragEvent) => {
+
+  const activate = () => dropzone!.classList.add('drop-active')
+  const deactivate = () => dropzone!.classList.remove('drop-active')
+
+  ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+    addListener(dropzone!, eventName, prevent as EventListener, false)
+    addListener(document.body, eventName, prevent as EventListener, false)
+  })
+
+  ;['dragenter', 'dragover'].forEach((eventName) => {
+    addListener(dropzone!, eventName, activate as EventListener, false)
+  })
+
+  ;['dragleave', 'drop'].forEach((eventName) => {
+    addListener(dropzone!, eventName, deactivate as EventListener, false)
+  })
+
+  const onDrop = (event: DragEvent) => {
     const [file] = event.dataTransfer?.files || []
     if (file) handleFile(file)
-  })
-  dropzone.addEventListener('click', () => {
+  }
+
+  const onClick = () => {
     if (fileInput) fileInput.click()
-  })
+  }
+
+  addListener(dropzone, 'drop', onDrop as EventListener)
+  addListener(dropzone, 'click', onClick as EventListener)
+}
+
+const bindKeyboardShortcuts = () => {
+  const onKeyDown = (event: KeyboardEvent) => {
+    const cmdOrCtrl = event.metaKey || event.ctrlKey
+    if (cmdOrCtrl && event.key.toLowerCase() === 'o') {
+      event.preventDefault()
+      fileInput?.click()
+      return
+    }
+    if (cmdOrCtrl && event.key === 'Enter') {
+      event.preventDefault()
+      if (!processBtn?.disabled) runPipeline()
+      return
+    }
+    if (cmdOrCtrl && event.key.toLowerCase() === 's' && currentBytes) {
+      event.preventDefault()
+      downloadResult()
+    }
+  }
+
+  addListener(window, 'keydown', onKeyDown as EventListener)
 }
 
 // ==================== Initialization ====================
@@ -712,8 +809,8 @@ const initializeTooling = () => {
   cropBox = document.getElementById('cropBox')
   cropSizeEl = document.getElementById('cropSize')
   perspOverlay = document.getElementById('perspOverlay')
-  perspSvg = document.getElementById('perspSvg') as SVGSVGElement
-  perspPolygon = document.getElementById('perspPolygon') as SVGPolygonElement
+  perspSvg = document.getElementById('perspSvg') as unknown as SVGSVGElement
+  perspPolygon = document.getElementById('perspPolygon') as unknown as SVGPolygonElement
   perspectiveHandleElements = Array.from(document.querySelectorAll('.persp-handle'))
   perspectiveHandles = perspectiveHandleElements.reduce(
     (acc, el) => {
@@ -727,50 +824,53 @@ const initializeTooling = () => {
   qualityRow = document.getElementById('qualityRow')
   qualityInput = document.getElementById('qualityInput') as HTMLInputElement
   qualityValue = document.getElementById('qualityValue')
+  statsEl = document.getElementById('stats')
 
   if (fileInput) {
-    fileInput.addEventListener('change', (event: Event) => {
+    addListener(fileInput, 'change', ((event: Event) => {
       const [file] = (event.target as HTMLInputElement).files || []
       if (file) handleFile(file)
-    })
+    }) as EventListener)
   }
 
-  if (processBtn) processBtn.addEventListener('click', runPipeline)
-  if (downloadBtn) downloadBtn.addEventListener('click', downloadResult)
-  if (resetBtn) resetBtn.addEventListener('click', resetImage)
+  if (processBtn) addListener(processBtn, 'click', runPipeline as EventListener)
+  if (downloadBtn) addListener(downloadBtn, 'click', downloadResult as EventListener)
+  if (resetBtn) addListener(resetBtn, 'click', resetImage as EventListener)
 
   if (modeCropBtn) {
-    modeCropBtn.addEventListener('click', (event: Event) => {
+    addListener(modeCropBtn, 'click', ((event: Event) => {
       event.preventDefault()
       setMode('crop')
-    })
+    }) as EventListener)
   }
 
   if (modePerspectiveBtn) {
-    modePerspectiveBtn.addEventListener('click', (event: Event) => {
+    addListener(modePerspectiveBtn, 'click', ((event: Event) => {
       event.preventDefault()
       setMode('perspective')
-    })
+    }) as EventListener)
   }
 
   if (qualityInput) {
-    qualityInput.addEventListener('input', handleQualityChange)
-    qualityInput.addEventListener('change', handleQualityChange)
+    addListener(qualityInput, 'input', handleQualityChange as EventListener)
+    addListener(qualityInput, 'change', handleQualityChange as EventListener)
   }
 
   if (formatSelect) {
-    formatSelect.addEventListener('change', () => {
+    addListener(formatSelect, 'change', (() => {
       updateQualityVisibility()
       requestProjectedDownloadSize()
-    })
+    }) as EventListener)
   }
 
   bindDropzone()
+  bindKeyboardShortcuts()
   setStatus('Drop an image or browse to get started.')
-  if (processBtn) processBtn.disabled = true
+  setProcessingState(false)
   if (downloadBtn) downloadBtn.disabled = true
   if (resetBtn) resetBtn.disabled = true
   setDownloadLabel(null)
+  updateStats(undefined)
   updateModeButtons()
   updateQualityLabel()
   updateQualityVisibility()
@@ -779,24 +879,33 @@ const initializeTooling = () => {
   attachCropInteractions()
   attachPerspectiveInteractions()
 
-  window.addEventListener('resize', () => {
+  addListener(window, 'resize', (() => {
     updateCropOverlay()
     updatePerspectiveOverlay()
-  })
+  }) as EventListener)
 
   if (previewImg) {
-    previewImg.addEventListener('load', () => {
+    addListener(previewImg, 'load', (() => {
       requestAnimationFrame(() => {
         updateCropOverlay()
         updatePerspectiveOverlay()
       })
-    })
+    }) as EventListener)
   }
 }
 
 onMounted(async () => {
   await nextTick()
   initializeTooling()
+})
+
+onUnmounted(() => {
+  cancelProjectedSize()
+  cleanupFns.splice(0).forEach((cleanup) => cleanup())
+  if (previewUrl) {
+    URL.revokeObjectURL(previewUrl)
+    previewUrl = null
+  }
 })
 </script>
 
@@ -835,6 +944,7 @@ onMounted(async () => {
               <div class="text-slate-400 text-sm mb-3">Use the crop box or adjust the four perspective points to refine
                 the selection.</div>
               <div id="meta" class="font-mono text-xs text-slate-500"></div>
+              <div id="stats" class="font-mono text-xs text-cyan-300/80 mt-2 min-h-5" aria-live="polite"></div>
             </div>
           </div>
 
@@ -843,10 +953,11 @@ onMounted(async () => {
             <div class="space-y-4">
               <!-- Upload Dropzone -->
               <label id="dropzone"
-                class="block border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-xl p-6 bg-cyan-500/5 cursor-pointer transition-all hover:-translate-y-0.5">
+                class="block border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-xl p-6 bg-cyan-500/5 cursor-pointer transition-all hover:-translate-y-0.5"
+                aria-label="Upload image by click or drag and drop">
                 <div class="mb-3">
                   <div class="font-semibold text-base mb-1">Drop an image or browse</div>
-                  <div class="text-slate-400 text-sm">PNG, JPEG, WebP, HEIC. Process stays local.</div>
+                  <div class="text-slate-400 text-sm">PNG, JPEG, WebP, HEIC. Process stays local. Shortcuts: Ctrl/Cmd+O upload, Ctrl/Cmd+Enter process, Ctrl/Cmd+S download.</div>
                 </div>
                 <span
                   class="inline-block px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg text-sm font-medium hover:bg-cyan-500/30 transition-colors">Browse</span>
@@ -866,9 +977,9 @@ onMounted(async () => {
               <div class="space-y-3">
                 <div class="flex flex-col gap-2">
                   <button id="processBtn"
-                    class="w-full px-4 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Process</button>
+                    class="w-full px-4 py-2.5 bg-linear-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Process</button>
                   <button id="downloadBtn"
-                    class="w-full px-4 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Download</button>
+                    class="w-full px-4 py-2.5 bg-linear-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Download</button>
                   <button id="resetBtn"
                     class="w-full px-4 py-2.5 border border-white/20 text-slate-300 rounded-lg font-semibold text-sm hover:bg-white/5 transition-colors">Reset</button>
                 </div>
@@ -879,7 +990,7 @@ onMounted(async () => {
                     <label for="qualityInput"
                       class="text-sm font-semibold text-slate-300 whitespace-nowrap">Compression</label>
                     <input id="qualityInput" type="range" min="10" max="100" value="80"
-                      class="flex-1 h-2 bg-white/10 rounded-full cursor-pointer">
+                      class="flex-1 h-2 bg-white/10 rounded-full cursor-pointer" aria-label="Compression quality">
                     <span id="qualityValue" class="font-mono text-xs text-slate-400 min-w-12">80%</span>
                   </div>
                   <div class="flex items-center gap-4">
@@ -1043,5 +1154,11 @@ onMounted(async () => {
 
 .persp-handle:active {
   transform: translate(-50%, -50%) scale(0.95);
+}
+
+#dropzone.drop-active {
+  border-color: rgba(34, 211, 238, 0.8);
+  background: rgba(34, 211, 238, 0.12);
+  transform: translateY(-2px);
 }
 </style>
