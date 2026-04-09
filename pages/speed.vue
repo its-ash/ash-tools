@@ -27,48 +27,48 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-slate-950 text-slate-200 flex justify-center p-3.5">
+  <div class="min-h-[calc(100vh-48px)] bg-[#FFFDF5] text-black flex justify-center p-3.5">
     <div class="w-full max-w-3xl flex flex-col gap-3.5">
 
       <!-- Hero Header -->
-      <header class="bg-slate-900/90 border border-white/10 rounded-xl p-4 backdrop-blur-md shadow-lg flex justify-between items-baseline gap-3 flex-wrap md:flex-nowrap">
+      <header class="neo-shell bg-[#FFD93D] p-4 flex justify-between items-baseline gap-3 flex-wrap md:flex-nowrap">
         <div>
-          <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Local only</p>
+          <p class="text-xs uppercase tracking-widest text-black font-semibold">Local only</p>
           <h1 class="text-2xl md:text-3xl font-bold tracking-tight -mt-1">Test case runner.</h1>
-          <p class="text-slate-400 text-sm leading-relaxed mt-1">Paste code, run it, and see elapsed time plus heap usage (when supported by the browser).</p>
+          <p class="text-black text-sm leading-relaxed mt-1">Paste code, run it, and see elapsed time plus heap usage (when supported by the browser).</p>
         </div>
-        <div id="stats" class="font-mono text-xs text-slate-500 text-right whitespace-nowrap">—</div>
+        <div id="stats" class="font-mono text-xs text-black text-right whitespace-nowrap">—</div>
       </header>
 
       <!-- Code & Controls Panel -->
-      <section class="bg-slate-900/90 border border-white/10 rounded-xl p-4 backdrop-blur-md shadow-lg flex flex-col gap-3">
+      <section class="neo-shell bg-white p-4 flex flex-col gap-3">
         
         <!-- Code Editor -->
         <label class="flex flex-col gap-2">
-          <span class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Code (Ctrl/Cmd + Enter to run)</span>
-          <div id="codeEditor" class="w-full min-h-64 rounded-lg border border-white/10 bg-white/2 overflow-hidden" aria-label="JavaScript code editor"></div>
+          <span class="text-xs uppercase tracking-widest text-black font-semibold">Code (Ctrl/Cmd + Enter to run)</span>
+          <div id="codeEditor" class="w-full min-h-64 rounded-lg border-4 border-black bg-white overflow-hidden" aria-label="JavaScript code editor"></div>
         </label>
 
         <!-- Run Button & Result -->
         <div class="flex items-center gap-3 flex-wrap">
-          <button id="runBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-cyan-400 to-violet-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+          <button id="runBtn" class="neo-button inline-flex items-center gap-2 bg-[#FF6B6B] text-black disabled:opacity-60 disabled:cursor-not-allowed">
             <span id="runLabel">Run 500x</span>
             <span id="runSpinner" class="w-4 h-4 border-2 border-slate-950/40 border-t-slate-950 rounded-full animate-spin hidden" aria-hidden="true"></span>
           </button>
-          <div id="result" class="flex-1 min-h-8 px-3 py-2 border border-dashed border-white/10 rounded-lg bg-white/2 font-mono text-xs text-slate-200" aria-live="polite">Result: —</div>
+          <div id="result" class="flex-1 min-h-8 px-3 py-2 border-4 border-dashed border-black rounded-lg bg-white font-mono text-xs text-black" aria-live="polite">Result: —</div>
         </div>
 
         <!-- Chart -->
-        <div class="mt-2 p-3 border border-white/10 rounded-lg bg-white/2">
-          <div class="flex justify-between items-baseline mb-2 text-xs text-slate-500 font-semibold">
+        <div class="mt-2 p-3 border-4 border-black rounded-lg bg-[#FFFDF5]">
+          <div class="flex justify-between items-baseline mb-2 text-xs text-black font-semibold">
             <span class="uppercase tracking-widest">Summary (ms)</span>
             <div class="flex gap-2.5 items-center">
-              <span id="chartCaption" class="font-mono bg-white/5 px-2 py-1 rounded border border-white/10 text-xs">—</span>
-              <span id="chartTime" class="font-mono bg-white/5 px-2 py-1 rounded border border-white/10 text-xs">avg —</span>
-              <span id="chartHeap" class="font-mono bg-white/5 px-2 py-1 rounded border border-white/10 text-xs">heap Δ —</span>
+              <span id="chartCaption" class="font-mono bg-white px-2 py-1 rounded border-2 border-black text-xs">—</span>
+              <span id="chartTime" class="font-mono bg-white px-2 py-1 rounded border-2 border-black text-xs">avg —</span>
+              <span id="chartHeap" class="font-mono bg-white px-2 py-1 rounded border-2 border-black text-xs">heap Δ —</span>
             </div>
           </div>
-          <canvas id="chart" width="640" height="180" class="w-full h-44 bg-black/20 rounded-lg border border-white/10" aria-label="Timing summary"></canvas>
+          <canvas id="chart" width="640" height="180" class="w-full h-44 bg-white rounded-lg border-4 border-black" aria-label="Timing summary"></canvas>
         </div>
       </section>
     </div>

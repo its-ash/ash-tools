@@ -20,29 +20,26 @@ const resources = [
 </script>
 
 <template>
-  <footer class="bg-slate-950 border-t border-slate-700 text-slate-200 py-12 md:py-16">
+  <footer class="mt-8 border-4 border-black bg-[#FFD93D] text-black shadow-[8px_8px_0px_0px_#000]">
     <div class="max-w-7xl mx-auto px-4 md:px-6">
-      <!-- Footer Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-        <!-- Brand Section -->
+      <div class="grid grid-cols-1 gap-6 py-8 md:grid-cols-3 md:py-10">
         <div class="flex flex-col gap-4">
           <div class="flex items-center gap-2">
-            <span class="inline-block w-2.5 h-2.5 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full"></span>
-            <h3 class="font-bold text-lg text-white">Ash Tools</h3>
+            <span class="inline-block h-3 w-3 border-2 border-black rounded-full bg-[#FF6B6B]"></span>
+            <h3 class="border-4 border-black bg-white px-3 py-1 text-lg font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">Ash Tools</h3>
           </div>
-          <p class="text-sm text-slate-400 leading-relaxed">
+          <p class="border-4 border-black bg-white p-4 text-sm leading-relaxed shadow-[4px_4px_0px_0px_#000]">
             A collection of powerful, privacy-focused web tools built with WebAssembly. Process everything locally in your browser. No uploads, 100% private.
           </p>
         </div>
 
-        <!-- Tools Links -->
         <div>
-          <h4 class="font-semibold text-sm text-white mb-4 uppercase tracking-wide">Tools</h4>
+          <h4 class="mb-4 inline-block border-4 border-black bg-[#FF6B6B] px-3 py-1 text-sm font-black uppercase tracking-[0.2em] shadow-[4px_4px_0px_0px_#000]">Tools</h4>
           <ul class="space-y-2">
             <li v-for="tool in tools" :key="tool.href">
               <NuxtLink
                 :to="tool.href"
-                class="text-sm text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block"
+                class="inline-block border-4 border-transparent px-2 py-1 text-sm font-bold uppercase tracking-wide transition-all duration-100 ease-linear hover:border-black hover:bg-white hover:shadow-[4px_4px_0px_0px_#000]"
               >
                 {{ tool.name }}
               </NuxtLink>
@@ -50,16 +47,15 @@ const resources = [
           </ul>
         </div>
 
-        <!-- Resources Links -->
         <div>
-          <h4 class="font-semibold text-sm text-white mb-4 uppercase tracking-wide">Resources</h4>
+          <h4 class="mb-4 inline-block border-4 border-black bg-[#C4B5FD] px-3 py-1 text-sm font-black uppercase tracking-[0.2em] shadow-[4px_4px_0px_0px_#000]">Resources</h4>
           <ul class="space-y-2">
             <li v-for="resource in resources" :key="resource.href">
               <a
                 :href="resource.href"
                 :target="resource.external ? '_blank' : undefined"
                 :rel="resource.external ? 'noopener noreferrer' : undefined"
-                class="text-sm text-slate-400 hover:text-white hover:translate-x-1 transition-all inline-block"
+                class="inline-block border-4 border-transparent px-2 py-1 text-sm font-bold uppercase tracking-wide transition-all duration-100 ease-linear hover:border-black hover:bg-white hover:shadow-[4px_4px_0px_0px_#000]"
               >
                 {{ resource.name }}
                 <span v-if="resource.external" class="ml-1">↗</span>
@@ -69,34 +65,27 @@ const resources = [
         </div>
       </div>
 
-      <!-- Divider -->
-      <div class="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent mb-8"></div>
-
-      <!-- Bottom Section -->
-      <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-        <!-- Copyright -->
-        <p class="text-xs text-slate-500 text-center md:text-left">
+      <div class="mb-6 border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_#000]">
+        <p class="text-xs font-bold text-center md:text-left">
           © {{ currentYear }} Ash Tools. All rights reserved. Built with 
-          <span class="text-blue-400">WebAssembly</span> • 
-          <span class="text-slate-400">Privacy First</span>
+          <span class="font-black">WebAssembly</span> • 
+          <span class="font-black">Privacy First</span>
         </p>
 
-        <!-- Tech Stack -->
-        <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500">
-          <span class="px-2 py-1 bg-slate-900/50 rounded-lg border border-slate-800">Nuxt 3</span>
-          <span class="px-2 py-1 bg-slate-900/50 rounded-lg border border-slate-800">Tailwind</span>
-          <span class="px-2 py-1 bg-slate-900/50 rounded-lg border border-slate-800">WASM</span>
-          <span class="px-2 py-1 bg-slate-900/50 rounded-lg border border-slate-800">VueJS</span>
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs md:justify-start">
+          <span class="border-4 border-black bg-[#FFFDF5] px-2 py-1 font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">Nuxt 3</span>
+          <span class="border-4 border-black bg-[#FFFDF5] px-2 py-1 font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">Tailwind</span>
+          <span class="border-4 border-black bg-[#FFFDF5] px-2 py-1 font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">WASM</span>
+          <span class="border-4 border-black bg-[#FFFDF5] px-2 py-1 font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">VueJS</span>
         </div>
       </div>
 
-      <!-- Creator Section -->
-      <div class="text-center text-xs text-slate-400 leading-relaxed">
+      <div class="mb-8 border-4 border-black bg-white p-4 text-center text-xs font-bold leading-relaxed shadow-[4px_4px_0px_0px_#000] md:text-left">
         <p>
           Built with ❤️ using WebAssembly, Rust, and modern web technologies.<br>
-          Created by <a href="https://its-ash.github.io/" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline transition-colors">Ashvini Jangid</a> •
-          <a href="https://github.com/its-ash/ash-tools" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline transition-colors">View on GitHub</a> •
-          <a href="https://ash-tools.store/" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline transition-colors">Learn More</a>
+          Created by <a href="https://its-ash.github.io/" target="_blank" rel="noopener noreferrer" class="border-b-4 border-black bg-[#C4B5FD] px-1 py-0.5 font-black uppercase tracking-wide">Ashvini Jangid</a> •
+          <a href="https://github.com/its-ash/ash-tools" target="_blank" rel="noopener noreferrer" class="border-b-4 border-black bg-[#FF6B6B] px-1 py-0.5 font-black uppercase tracking-wide">View on GitHub</a> •
+          <a href="https://ash-tools.store/" target="_blank" rel="noopener noreferrer" class="border-b-4 border-black bg-[#FFD93D] px-1 py-0.5 font-black uppercase tracking-wide">Learn More</a>
         </p>
       </div>
     </div>

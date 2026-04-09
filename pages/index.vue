@@ -13,232 +13,206 @@ useHead({
   ],
   link: [{ rel: 'canonical', href: 'https://ash-tools.store/' }],
 })
+
+const mediaTools = [
+  {
+    title: 'Video Studio',
+    route: '/video',
+    icon: '🎬',
+    color: '#FF6B6B',
+    description: 'Trim, crop, compress, and process videos locally with WebAssembly + FFmpeg.',
+    features: ['Trim and crop videos', 'Multiple format support', 'Batch processing', 'Local-first workflow'],
+    cta: 'Open Video Studio',
+  },
+  {
+    title: 'Image Editor',
+    route: '/image',
+    icon: '🖼️',
+    color: '#FFD93D',
+    description: 'Edit, warp, and optimize images in-browser without file uploads.',
+    features: ['Perspective crop tools', 'PNG, JPEG, WebP, HEIC', 'Compression previews', 'Offline-ready'],
+    cta: 'Open Image Editor',
+  },
+  {
+    title: 'View and Zip Files',
+    route: '/zip',
+    icon: '📦',
+    color: '#C4B5FD',
+    description: 'Create ZIP archives from files and folders with drag-and-drop convenience.',
+    features: ['ZIP archive creation', 'Folder compression', 'Drag and drop interface', 'Batch packaging'],
+    cta: 'Open ZIP Tool',
+  },
+  {
+    title: 'PDF Merger',
+    route: '/pdf',
+    icon: '📄',
+    color: '#FF6B6B',
+    description: 'Merge, reorder, and compress PDF documents securely offline.',
+    features: ['Multi-file merging', 'Drag reordering', 'Compression support', 'Thumbnail previews'],
+    cta: 'Open PDF Merger',
+  },
+  {
+    title: 'WebLLM Studio',
+    route: '/webllm',
+    icon: '🧠',
+    color: '#C4B5FD',
+    description: 'Run local AI chat sessions with custom context and prompts on-device.',
+    features: ['Context + prompt workflow', 'Local WebGPU inference', 'Private chat history', 'PWA support'],
+    cta: 'Open WebLLM Studio',
+  },
+]
+
+const devTools = [
+  {
+    title: 'Speed Runner',
+    route: '/speed',
+    icon: '⚡',
+    color: '#FFD93D',
+    description: 'Benchmark JavaScript execution and memory with visual performance output.',
+    features: ['Execution time analysis', 'Heap tracking', 'Visual charts', 'Worker isolation'],
+    cta: 'Open Speed Runner',
+  },
+  {
+    title: 'Regex Generator',
+    route: '/regexp',
+    icon: '.*',
+    color: '#FF6B6B',
+    description: 'Generate optimized regex patterns from examples using Rust-powered logic.',
+    features: ['Example-based generation', 'Rust/Grex engine', 'Instant preview', 'Offline processing'],
+    cta: 'Open Regex Tool',
+  },
+  {
+    title: 'Code Sandbox',
+    route: '/sandbox',
+    icon: '🧪',
+    color: '#C4B5FD',
+    description: 'Run and test multiple languages in an isolated browser execution environment.',
+    features: ['Multi-language support', 'WASI runtime', 'stdin support', 'Copy output tools'],
+    cta: 'Open Code Sandbox',
+  },
+]
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto px-6 py-16 pb-20">
+  <div class="mx-auto max-w-7xl px-2 py-10 sm:px-4 md:px-6 md:py-14">
+    <header class="neo-shell mb-12 px-5 py-10 text-center md:px-10 md:py-14">
+      <p class="inline-block -rotate-2 border-4 border-black bg-[#FFD93D] px-3 py-1 text-xs font-black uppercase tracking-[0.2em] shadow-[4px_4px_0px_0px_#000]">
+        Local-First Browser Toolkit
+      </p>
 
-    <!-- Hero -->
-    <header class="text-center mb-16">
-      <h1 class="text-7xl font-bold tracking-tighter mb-4 bg-linear-to-r from-sky-400 via-cyan-400 to-violet-500 bg-clip-text text-transparent leading-tight">
-        ash tools
-      </h1>
-      <p class="text-xl text-slate-400 max-w-3xl mx-auto mb-8 leading-relaxed">
+      <div class="mt-6">
+        <h1 class="neo-outline-title text-5xl leading-[0.9] tracking-tight sm:text-7xl md:text-8xl">ASH TOOLS</h1>
+        <h1 class="-mt-7 rotate-1 text-5xl font-black uppercase tracking-tight sm:text-7xl md:text-8xl">ASH TOOLS</h1>
+      </div>
+
+      <p class="mx-auto mt-6 max-w-3xl border-4 border-black bg-white p-4 text-lg font-bold leading-relaxed shadow-[8px_8px_0px_0px_#000]">
         A single workspace for everyday file tasks and developer utilities. Edit media, merge documents, run code, and chat with local AI models directly in your browser.
       </p>
-      <div class="flex flex-wrap justify-center gap-3">
-        <span class="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-400 text-xs font-semibold">100% Local Processing</span>
-        <span class="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-400 text-xs font-semibold">No Uploads Required</span>
-        <span class="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-400 text-xs font-semibold">Works Offline</span>
-        <span class="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/25 text-sky-400 text-xs font-semibold">WebAssembly Powered</span>
+
+      <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <span class="neo-badge bg-[#FF6B6B]">100% Local Processing</span>
+        <span class="neo-badge bg-[#FFD93D]">No Uploads Required</span>
+        <span class="neo-badge bg-[#C4B5FD]">Works Offline</span>
+        <span class="neo-badge bg-white">WebAssembly Powered</span>
       </div>
     </header>
 
-    <!-- Self-Descriptive Overview -->
-    <section class="mb-16 grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <article class="rounded-2xl border border-slate-700 bg-slate-900/50 p-6">
-        <h2 class="text-2xl font-bold text-white mb-3">What is Ash Tools?</h2>
-        <p class="text-slate-300 leading-relaxed mb-4">
-          Ash Tools is a privacy-first collection of browser apps for media processing, document workflows, and coding utilities. It is built for people who want fast tools without sending files to external servers.
-        </p>
-        <ul class="text-sm text-slate-400 space-y-2">
-          <li>✓ Everything runs on your device using WebAssembly/WebGPU</li>
-          <li>✓ Sensitive files stay local and are never uploaded by default</li>
-          <li>✓ Most tools continue to work even when you are offline</li>
-        </ul>
-      </article>
-
-      <article class="rounded-2xl border border-slate-700 bg-slate-900/50 p-6">
-        <h2 class="text-2xl font-bold text-white mb-3">How does this help you?</h2>
-        <div class="space-y-3 text-slate-300">
-          <p><span class="text-white font-semibold">For creators:</span> Compress videos, optimize images, and package assets quickly.</p>
-          <p><span class="text-white font-semibold">For teams:</span> Merge PDFs, zip project folders, and share cleaner outputs.</p>
-          <p><span class="text-white font-semibold">For developers:</span> Benchmark snippets, generate regex, and run sandboxed code.</p>
-          <p><span class="text-white font-semibold">For privacy:</span> Process local files directly in-browser with no upload step.</p>
+    <section class="neo-shell mb-14 bg-[#FFD93D] p-6 md:p-8">
+      <h2 class="mb-5 inline-block border-4 border-black bg-white px-3 py-1 text-3xl uppercase">Start in 3 Steps</h2>
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_#000]">
+          <p class="text-sm font-black uppercase tracking-wide">1. Pick a tool</p>
+          <p class="mt-2 text-sm">Choose from media, docs, AI, or developer utilities below.</p>
         </div>
-      </article>
-    </section>
-
-    <!-- Quick Start -->
-    <section class="mb-16 rounded-2xl border border-slate-700 bg-linear-to-r from-slate-900/70 to-slate-800/40 p-6">
-      <h2 class="text-2xl font-bold text-white mb-4">Start in 3 steps</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-        <div class="rounded-xl border border-slate-700/80 bg-slate-900/50 p-4">
-          <p class="text-sky-400 font-bold mb-1">1. Pick a tool</p>
-          <p class="text-slate-300">Choose from media, docs, AI, or developer utilities below.</p>
+        <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_#000]">
+          <p class="text-sm font-black uppercase tracking-wide">2. Add files or code</p>
+          <p class="mt-2 text-sm">Drag files or paste snippets. Processing starts locally.</p>
         </div>
-        <div class="rounded-xl border border-slate-700/80 bg-slate-900/50 p-4">
-          <p class="text-sky-400 font-bold mb-1">2. Add your files or code</p>
-          <p class="text-slate-300">Drag-and-drop files or paste snippets. Processing starts locally.</p>
-        </div>
-        <div class="rounded-xl border border-slate-700/80 bg-slate-900/50 p-4">
-          <p class="text-sky-400 font-bold mb-1">3. Export results</p>
-          <p class="text-slate-300">Download optimized outputs and continue working without leaving the browser.</p>
+        <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_#000]">
+          <p class="text-sm font-black uppercase tracking-wide">3. Export results</p>
+          <p class="mt-2 text-sm">Download optimized outputs and keep working in-browser.</p>
         </div>
       </div>
     </section>
 
-    <!-- Tools -->
-    <div class="mb-16">
-      <h2 class="text-2xl font-bold text-white mb-2">Media &amp; Document Tools</h2>
-      <p class="text-slate-400 mb-6">Use these when you need to transform files quickly without cloud uploads.</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section class="mb-14">
+      <h2 class="inline-block -rotate-1 border-4 border-black bg-[#FF6B6B] px-4 py-2 text-3xl uppercase shadow-[4px_4px_0px_0px_#000]">
+        Media and Document Tools
+      </h2>
+      <p class="mt-4 max-w-3xl border-4 border-black bg-white p-4 text-base shadow-[4px_4px_0px_0px_#000]">
+        Use these tools when you need to transform files quickly without cloud uploads.
+      </p>
 
-      <!-- Video -->
-      <NuxtLink to="/video" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-sky-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-sky-500/10">
-        <div class="w-16 h-16 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-4xl">🎬</div>
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">Video Studio</h2>
-          <p class="text-sm text-slate-400 leading-relaxed mt-2">Professional video editing tools powered by WebAssembly. Trim, crop, compress, and process videos locally in your browser.</p>
-        </div>
-        <ul class="text-xs text-slate-400 space-y-1">
-          <li>✓ Trim &amp; crop videos</li>
-          <li>✓ Multiple format support</li>
-          <li>✓ Batch processing</li>
-          <li>✓ FFmpeg integration</li>
-        </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-linear-to-r from-sky-400 to-cyan-400 hover:shadow-lg hover:shadow-sky-500/40 transition-all hover:-translate-y-0.5">Open Video Studio →</button>
-      </NuxtLink>
+      <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <article
+          v-for="tool in mediaTools"
+          :key="tool.route"
+          class="neo-card flex h-full flex-col p-5"
+        >
+          <div class="mb-3 flex items-center gap-3">
+            <div
+              class="flex h-14 w-14 items-center justify-center border-4 border-black text-2xl shadow-[4px_4px_0px_0px_#000]"
+              :style="{ backgroundColor: tool.color }"
+            >
+              {{ tool.icon }}
+            </div>
+            <h3 class="text-xl uppercase">{{ tool.title }}</h3>
+          </div>
 
-      <!-- Image -->
-      <NuxtLink to="/image" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-cyan-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-cyan-500/10">
-        <div class="w-16 h-16 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-4xl">🖼️</div>
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">Image Editor</h2>
-          <p class="text-sm text-slate-400 leading-relaxed mt-2">Crop, warp, compress, and optimise images with Rust + WebAssembly. Everything stays on your device, including HEIC imports.</p>
-        </div>
-        <ul class="text-xs text-slate-400 space-y-1">
-          <li>✓ Interactive crop &amp; perspective</li>
-          <li>✓ PNG, JPEG, WebP, HEIC</li>
-          <li>✓ Local compression previews</li>
-          <li>✓ Offline-first workflow</li>
-        </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-linear-to-r from-cyan-400 to-teal-400 hover:shadow-lg hover:shadow-cyan-500/40 transition-all hover:-translate-y-0.5">Open Image Editor →</button>
-      </NuxtLink>
+          <p class="mb-4 text-sm leading-relaxed">{{ tool.description }}</p>
+          <ul class="mb-5 space-y-1 text-xs font-bold uppercase tracking-wide">
+            <li v-for="feature in tool.features" :key="feature">✓ {{ feature }}</li>
+          </ul>
 
-      <!-- ZIP -->
-      <NuxtLink to="/zip" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-violet-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-violet-500/10">
-        <div class="w-16 h-16 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-4xl">📦</div>
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">View and Zip Files</h2>
-          <p class="text-sm text-slate-400 leading-relaxed mt-2">Create ZIP archives from your files and folders. Compress multiple items into organized archives with drag-and-drop simplicity.</p>
-        </div>
-        <ul class="text-xs text-slate-400 space-y-1">
-          <li>✓ ZIP archive creation</li>
-          <li>✓ Folder compression</li>
-          <li>✓ Drag &amp; drop interface</li>
-          <li>✓ Batch file processing</li>
-        </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-linear-to-r from-violet-500 to-purple-400 hover:shadow-lg hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5">Open view and zip files →</button>
-      </NuxtLink>
-
-      <!-- PDF -->
-      <NuxtLink to="/pdf" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-rose-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-rose-500/10">
-        <div class="w-16 h-16 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-4xl">📄</div>
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">PDF Merger</h2>
-          <p class="text-sm text-slate-400 leading-relaxed mt-2">Merge, reorder, and compress PDF documents securely offline. Rust WASM ensures your documents never leave your browser.</p>
-        </div>
-        <ul class="text-xs text-slate-400 space-y-1">
-          <li>✓ Multi-file PDF merging</li>
-          <li>✓ Drag &amp; drop reordering</li>
-          <li>✓ Advanced flate2 compression</li>
-          <li>✓ High-res thumbnail previews</li>
-        </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-linear-to-r from-rose-500 to-pink-500 hover:shadow-lg hover:shadow-rose-500/40 transition-all hover:-translate-y-0.5">Open PDF Merger →</button>
-      </NuxtLink>
-
-      <!-- WebLLM -->
-      <NuxtLink to="/webllm" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-orange-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-orange-500/10">
-        <div class="w-16 h-16 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-4xl">🧠</div>
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">WebLLM Studio</h2>
-          <p class="text-sm text-slate-400 leading-relaxed mt-2">Pair custom context with prompts and chat with WebLLM fully offline. Rust &amp; WebGPU keep every token on your device.</p>
-        </div>
-        <ul class="text-xs text-slate-400 space-y-1">
-          <li>✓ Context + prompt workflow</li>
-          <li>✓ Local WebGPU inference</li>
-          <li>✓ Rust-managed history</li>
-          <li>✓ PWA ready</li>
-        </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-linear-to-r from-orange-400 to-amber-400 hover:shadow-lg hover:shadow-orange-500/40 transition-all hover:-translate-y-0.5">Open WebLLM Studio →</button>
-      </NuxtLink>
-
-      <!-- Resume -->
-      <!-- <NuxtLink to="/resume" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-emerald-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-emerald-500/10">
-        <div class="w-16 h-16 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-4xl">📄</div>
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">Resume Optimizer</h2>
-          <p class="text-sm text-slate-400 leading-relaxed mt-2">Upload your PDF resume, compare it against a job description, and get ATS-focused rewrites from the same local WebLLM model.</p>
-        </div>
-        <ul class="text-xs text-slate-400 space-y-1">
-          <li>✓ PDF resume parsing</li>
-          <li>✓ Rust WASM ATS scoring</li>
-          <li>✓ Missing keyword detection</li>
-          <li>✓ LLM rewrite suggestions</li>
-        </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-300 hover:shadow-lg hover:shadow-emerald-500/40 transition-all hover:-translate-y-0.5">Open Resume Optimizer →</button>
-      </NuxtLink> -->
-
+          <NuxtLink
+            :to="tool.route"
+            class="neo-button mt-auto"
+            :style="{ backgroundColor: tool.color }"
+          >
+            {{ tool.cta }}
+          </NuxtLink>
+        </article>
       </div>
-    </div>
+    </section>
 
-    <!-- Dev Tools -->
-    <div class="mb-16">
-      <h2 class="text-2xl font-bold text-white mb-2">Developer Tools</h2>
-      <p class="text-slate-400 mb-6">Build, test, and debug faster with in-browser utilities powered by workers and WASM.</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section>
+      <h2 class="inline-block rotate-1 border-4 border-black bg-[#C4B5FD] px-4 py-2 text-3xl uppercase shadow-[4px_4px_0px_0px_#000]">
+        Developer Tools
+      </h2>
+      <p class="mt-4 max-w-3xl border-4 border-black bg-white p-4 text-base shadow-[4px_4px_0px_0px_#000]">
+        Build, test, and debug faster with in-browser utilities powered by workers and WASM.
+      </p>
 
-      <!-- Speed -->
-      <NuxtLink to="/speed" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-yellow-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-yellow-500/10">
-        <div class="w-16 h-16 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-4xl">⚡</div>
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">Speed Runner</h2>
-          <p class="text-sm text-slate-400 leading-relaxed mt-2">Benchmark JavaScript code execution and memory usage. Run snippets in an isolated worker with visual performance graphs.</p>
-        </div>
-        <ul class="text-xs text-slate-400 space-y-1">
-          <li>✓ Execution time analysis</li>
-          <li>✓ Heap memory tracking (Chrome)</li>
-          <li>✓ Visual performance charts</li>
-          <li>✓ Worker-based isolation</li>
-        </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-slate-950 bg-linear-to-r from-yellow-400 to-amber-300 hover:shadow-lg hover:shadow-yellow-500/40 transition-all hover:-translate-y-0.5">Open Speed Runner →</button>
-      </NuxtLink>
+      <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <article
+          v-for="tool in devTools"
+          :key="tool.route"
+          class="neo-card flex h-full flex-col p-5"
+        >
+          <div class="mb-3 flex items-center gap-3">
+            <div
+              class="flex h-14 w-14 items-center justify-center border-4 border-black text-2xl font-black shadow-[4px_4px_0px_0px_#000]"
+              :style="{ backgroundColor: tool.color }"
+            >
+              {{ tool.icon }}
+            </div>
+            <h3 class="text-xl uppercase">{{ tool.title }}</h3>
+          </div>
 
-      <!-- Regex -->
-      <NuxtLink to="/regexp" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-pink-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-pink-500/10">
-        <div class="w-16 h-16 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center font-mono font-bold text-pink-400 text-xl">.*</div>
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">Regex Generator</h2>
-          <p class="text-sm text-slate-400 leading-relaxed mt-2">Generate optimized Regular Expressions from examples. Match patterns instantly with WASM-powered engine.</p>
-        </div>
-        <ul class="text-xs text-slate-400 space-y-1">
-          <li>✓ Example-based generation</li>
-          <li>✓ Rust/Grex powered</li>
-          <li>✓ Instant preview</li>
-          <li>✓ Offline processing</li>
-        </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-linear-to-r from-pink-500 to-rose-400 hover:shadow-lg hover:shadow-pink-500/40 transition-all hover:-translate-y-0.5">Open Regex Tool →</button>
-      </NuxtLink>
+          <p class="mb-4 text-sm leading-relaxed">{{ tool.description }}</p>
+          <ul class="mb-5 space-y-1 text-xs font-bold uppercase tracking-wide">
+            <li v-for="feature in tool.features" :key="feature">✓ {{ feature }}</li>
+          </ul>
 
-      <!-- Sandbox -->
-      <NuxtLink to="/sandbox" class="group flex flex-col gap-4 p-6 rounded-xl border border-slate-700 bg-slate-900/50 hover:border-indigo-500/50 hover:bg-slate-900/80 transition-all hover:shadow-lg hover:shadow-indigo-500/10">
-        <div class="w-16 h-16 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-4xl">🧪</div>
-        <div>
-          <h2 class="text-xl font-bold tracking-tight text-white">Code Sandbox</h2>
-          <p class="text-sm text-slate-400 leading-relaxed mt-2">Run and test code in multiple languages with WebAssembly. Execute Rust, JavaScript, Python, and C++ in an isolated browser environment.</p>
-        </div>
-        <ul class="text-xs text-slate-400 space-y-1">
-          <li>✓ Multi-language support</li>
-          <li>✓ WASI runtime execution</li>
-          <li>✓ Stdin input support</li>
-          <li>✓ Copy output to clipboard</li>
-        </ul>
-        <button class="mt-auto px-4 py-2.5 rounded-lg font-bold text-sm text-white bg-linear-to-r from-indigo-500 to-violet-500 hover:shadow-lg hover:shadow-indigo-500/40 transition-all hover:-translate-y-0.5">Open Code Sandbox →</button>
-      </NuxtLink>
-
+          <NuxtLink
+            :to="tool.route"
+            class="neo-button mt-auto"
+            :style="{ backgroundColor: tool.color }"
+          >
+            {{ tool.cta }}
+          </NuxtLink>
+        </article>
       </div>
-    </div>
-
+    </section>
   </div>
 </template>

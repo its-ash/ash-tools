@@ -33,49 +33,49 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div id="webllm-page" class="min-h-[calc(100vh-48px)] text-[#ececec] flex flex-col px-3 pb-3 bg-slate-950">
+  <div id="webllm-page" class="min-h-[calc(100vh-48px)] text-black flex flex-col px-3 pb-3 bg-[#FFFDF5]">
     <div class="w-full max-w-4xl mx-auto flex flex-col min-h-[calc(100vh-68px)] pb-4">
 
       <!-- Header -->
-      <header class="sticky top-2 z-20 border border-white/10 rounded-2xl px-4 py-3 backdrop-blur-xl mt-2 mb-3 bg-slate-900/70 shadow-xl shadow-slate-950/40">
-        <div id="status-indicator" data-state="loading" class="inline-flex items-center gap-2 w-fit px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-[11px] font-medium text-[#b5b5b5] mt-2">Model warming up…</div>
-        <div class="progress-track h-1 bg-white/10 rounded-full overflow-hidden mt-2" aria-label="Model download progress">
+      <header class="sticky top-2 z-20 border-4 border-black rounded-2xl px-4 py-3 mt-2 mb-3 bg-[#FFD93D] shadow-[8px_8px_0px_0px_#000]">
+        <div id="status-indicator" data-state="loading" class="inline-flex items-center gap-2 w-fit px-3 py-1.5 rounded-full border-2 border-black bg-white text-[11px] font-medium text-black mt-2">Model warming up…</div>
+        <div class="progress-track h-1 bg-white border border-black rounded-full overflow-hidden mt-2" aria-label="Model download progress">
           <div id="model-progress" class="h-full w-0 bg-[#10a37f] transition-all duration-300"></div>
         </div>
-        <small id="progress-label" class="text-[#8f8f8f] text-[11px] mt-1">Initializing WebLLM…</small>
+        <small id="progress-label" class="text-black text-[11px] mt-1">Initializing WebLLM…</small>
       </header>
 
       <!-- History Panel -->
       <section class="flex-1 min-h-0 px-1 md:px-2">
-        <div id="history-empty" class="text-[#8f8f8f] text-sm py-10 text-center">Start a conversation with your local model.</div>
+        <div id="history-empty" class="text-black text-sm py-10 text-center">Start a conversation with your local model.</div>
         <ul id="history-list" class="flex flex-col gap-3 overflow-y-auto flex-1" hidden></ul>
       </section>
 
       <!-- Input Panel -->
-      <form id="prompt-form" class="mt-3 w-full border border-white/10 rounded-3xl p-3 md:p-4 backdrop-blur-xl shadow-2xl bg-slate-900/75">
+      <form id="prompt-form" class="mt-3 w-full border-4 border-black rounded-3xl p-3 md:p-4 shadow-[8px_8px_0px_0px_#000] bg-white">
         <!-- Context Field (Toggle) -->
         <div class="context-field mb-3 hidden">
-          <label for="context-input" class="text-[11px] uppercase tracking-wide text-[#a8a8a8] font-semibold mb-2 block">Context</label>
-          <textarea id="context-input" name="context" placeholder="e.g. You are a helpful assistant that speaks in concise checklists." class="w-full min-h-20 rounded-2xl border border-white/10 bg-[#3a3a3a] text-[#ececec] text-sm p-3 font-mono resize-y outline-none focus:border-[#10a37f]/50 focus:ring-2 focus:ring-[#10a37f]/25 transition-all"></textarea>
+          <label for="context-input" class="text-[11px] uppercase tracking-wide text-black font-semibold mb-2 block">Context</label>
+          <textarea id="context-input" name="context" placeholder="e.g. You are a helpful assistant that speaks in concise checklists." class="w-full min-h-20 rounded-2xl border-4 border-black bg-white text-black text-sm p-3 font-mono resize-y outline-none transition-all"></textarea>
         </div>
 
         <!-- Prompt -->
         <div class="mb-3">
           <label for="prompt-input" class="sr-only">Prompt</label>
-          <textarea id="prompt-input" name="prompt" placeholder="Message WebLLM…" class="w-full min-h-24 rounded-2xl border border-white/10 bg-slate-800/90 text-[#ececec] text-[15px] p-4 font-sans resize-y outline-none focus:border-[#10a37f]/50 focus:ring-2 focus:ring-[#10a37f]/25 transition-all"></textarea>
+          <textarea id="prompt-input" name="prompt" placeholder="Message WebLLM…" class="w-full min-h-24 rounded-2xl border-4 border-black bg-white text-black text-[15px] p-4 font-sans resize-y outline-none transition-all"></textarea>
         </div>
 
         <!-- Buttons -->
         <div class="flex items-center gap-2 flex-wrap mb-3">
-          <button type="button" @click="toggleContext" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-[#e7e7e7] text-xs md:text-sm font-medium hover:bg-white/10 transition-colors">Context</button>
-          <button type="button" id="reset-btn" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-[#cfcfcf] text-xs md:text-sm font-medium hover:bg-white/10 transition-colors">Reset</button>
-          <button type="submit" id="submit-btn" class="ml-auto inline-flex items-center justify-center px-5 py-2.5 bg-[#10a37f] text-white rounded-xl font-semibold text-sm hover:bg-[#0e906f] transition-colors">Send</button>
+          <button type="button" @click="toggleContext" class="px-3 py-2 rounded-xl border-2 border-black bg-[#C4B5FD] text-black text-xs md:text-sm font-medium transition-colors">Context</button>
+          <button type="button" id="reset-btn" class="px-3 py-2 rounded-xl border-2 border-black bg-[#FFD93D] text-black text-xs md:text-sm font-medium transition-colors">Reset</button>
+          <button type="submit" id="submit-btn" class="ml-auto inline-flex items-center justify-center px-5 py-2.5 bg-[#FF6B6B] border-2 border-black text-black rounded-xl font-semibold text-sm transition-colors">Send</button>
         </div>
 
         <!-- Context Preview -->
         <div>
-          <label class="text-[11px] uppercase tracking-wide text-[#a8a8a8] font-semibold mb-2 block">Active context preview</label>
-          <div id="context-preview" class="text-xs text-[#a0a0a0] font-mono p-2.5 bg-[#3a3a3a] border border-white/10 rounded-xl">No context captured yet.</div>
+          <label class="text-[11px] uppercase tracking-wide text-black font-semibold mb-2 block">Active context preview</label>
+          <div id="context-preview" class="text-xs text-black font-mono p-2.5 bg-[#FFFDF5] border-4 border-black rounded-xl">No context captured yet.</div>
         </div>
       </form>
     </div>
@@ -85,9 +85,9 @@ onUnmounted(() => {
 <style>
 #webllm-page {
   background:
-    radial-gradient(1200px 450px at 20% -10%, rgba(14, 165, 233, 0.12), transparent 60%),
-    radial-gradient(900px 350px at 85% 0%, rgba(16, 185, 129, 0.1), transparent 60%),
-    #020617;
+    radial-gradient(1200px 450px at 20% -10%, rgba(255, 107, 107, 0.2), transparent 60%),
+    radial-gradient(900px 350px at 85% 0%, rgba(196, 181, 253, 0.2), transparent 60%),
+    #fffdf5;
 }
 
 #webllm-page .message {

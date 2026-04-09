@@ -358,94 +358,94 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-slate-950 text-slate-200 p-8">
+  <div class="min-h-[calc(100vh-48px)] bg-[#FFFDF5] text-black p-8">
     <main class="mx-auto w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <section class="bg-slate-900/80 border border-white/8 rounded-2xl p-7 backdrop-blur-md flex flex-col gap-4">
-        <div class="inline-flex items-center gap-2 uppercase tracking-wide text-xs text-slate-500 before:content-[''] before:w-4 before:h-0.5 before:bg-gradient-to-r before:from-violet-500 before:to-cyan-400 before:rounded">
+      <section class="neo-shell bg-white p-7 flex flex-col gap-4">
+        <div class="inline-flex items-center gap-2 uppercase tracking-wide text-xs text-black before:content-[''] before:w-4 before:h-0.5 before:bg-black before:rounded">
           Create ZIP
         </div>
         <h1 class="text-3xl font-bold tracking-tight leading-tight">Zip files and folders locally.</h1>
-        <p class="text-slate-400 leading-relaxed text-sm">Choose a folder or files and create a ZIP archive in your browser.</p>
+        <p class="text-black leading-relaxed text-sm">Choose a folder or files and create a ZIP archive in your browser.</p>
 
-        <label for="folder-input" class="border border-dashed border-white/10 rounded-xl p-5 bg-gradient-to-br from-violet-500/8 to-cyan-400/5 cursor-pointer hover:border-violet-500/50 transition-all duration-150 hover:-translate-y-0.5 flex justify-between items-center gap-2">
+        <label for="folder-input" class="border-4 border-dashed border-black rounded-xl p-5 bg-[#FFFDF5] cursor-pointer transition-all duration-150 hover:-translate-y-0.5 flex justify-between items-center gap-2">
           <div>
             <div class="font-semibold text-sm">Choose folder</div>
-            <div class="text-slate-500 text-xs">Nested files are preserved.</div>
+            <div class="text-black text-xs">Nested files are preserved.</div>
           </div>
-          <span class="text-violet-500 font-semibold text-xs whitespace-nowrap">Browse folder</span>
+          <span class="text-black font-semibold text-xs whitespace-nowrap">Browse folder</span>
         </label>
         <input id="folder-input" type="file" webkitdirectory multiple class="hidden" @change="onFolderChange">
 
-        <label for="file-input" class="border border-dashed border-white/10 rounded-xl p-5 bg-gradient-to-br from-violet-500/8 to-cyan-400/5 cursor-pointer hover:border-violet-500/50 transition-all duration-150 hover:-translate-y-0.5 flex justify-between items-center gap-2">
+        <label for="file-input" class="border-4 border-dashed border-black rounded-xl p-5 bg-[#FFFDF5] cursor-pointer transition-all duration-150 hover:-translate-y-0.5 flex justify-between items-center gap-2">
           <div>
             <div class="font-semibold text-sm">Choose files</div>
-            <div class="text-slate-500 text-xs">You can combine with folder files.</div>
+            <div class="text-black text-xs">You can combine with folder files.</div>
           </div>
-          <span class="text-violet-500 font-semibold text-xs whitespace-nowrap">Browse files</span>
+          <span class="text-black font-semibold text-xs whitespace-nowrap">Browse files</span>
         </label>
         <input id="file-input" type="file" multiple class="hidden" @change="onFileChange">
 
         <button
-          class="w-full bg-gradient-to-r from-violet-500 to-cyan-400 text-slate-950 font-bold py-3 px-4 rounded-xl transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          class="neo-button w-full bg-[#FF6B6B] text-black disabled:opacity-50 disabled:cursor-not-allowed"
           :disabled="compressing"
           @click="buildZipFromSelectedFiles"
         >
           {{ compressing ? 'Compressing...' : 'Create ZIP' }}
         </button>
 
-        <div class="font-mono text-xs text-slate-500 min-h-5">{{ createStatus }}</div>
-        <div class="w-full h-2.5 rounded-full bg-white/5 border border-white/10 overflow-hidden" :class="createProgress === 0 ? 'opacity-0' : 'opacity-100'">
-          <div class="h-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-150" :style="{ width: `${createProgress}%` }" />
+        <div class="font-mono text-xs text-black min-h-5">{{ createStatus }}</div>
+        <div class="w-full h-2.5 rounded-full bg-white border-2 border-black overflow-hidden" :class="createProgress === 0 ? 'opacity-0' : 'opacity-100'">
+          <div class="h-full bg-linear-to-r from-violet-500 to-cyan-400 transition-all duration-150" :style="{ width: `${createProgress}%` }" />
         </div>
-        <div class="font-mono text-xs text-slate-500 min-h-5">{{ selectedFilesSummary }}</div>
+        <div class="font-mono text-xs text-black min-h-5">{{ selectedFilesSummary }}</div>
       </section>
 
-      <section class="bg-slate-900/80 border border-white/8 rounded-2xl p-7 backdrop-blur-md flex flex-col gap-4">
-        <div class="inline-flex items-center gap-2 uppercase tracking-wide text-xs text-slate-500 before:content-[''] before:w-4 before:h-0.5 before:bg-gradient-to-r before:from-violet-500 before:to-cyan-400 before:rounded">
+      <section class="neo-shell bg-white p-7 flex flex-col gap-4">
+        <div class="inline-flex items-center gap-2 uppercase tracking-wide text-xs text-black before:content-[''] before:w-4 before:h-0.5 before:bg-black before:rounded">
           Open ZIP
         </div>
         <h2 class="text-3xl font-bold tracking-tight leading-tight">Drop a ZIP to view files.</h2>
-        <p class="text-slate-400 leading-relaxed text-sm">Inspect image and file entries, then download each file directly.</p>
+        <p class="text-black leading-relaxed text-sm">Inspect image and file entries, then download each file directly.</p>
 
         <label
           for="zip-input"
-          class="border border-dashed border-white/10 rounded-xl p-6 bg-gradient-to-br from-violet-500/8 to-cyan-400/5 transition-all duration-150 flex flex-col items-center justify-center text-center gap-2"
+          class="border-4 border-dashed border-black rounded-xl p-6 bg-[#FFFDF5] transition-all duration-150 flex flex-col items-center justify-center text-center gap-2"
           @drop="onZipDrop"
           @dragover="onZipDragOver"
         >
           <span class="font-semibold text-sm">Drop ZIP file here</span>
-          <span class="text-slate-500 text-xs">or click to browse</span>
+          <span class="text-black text-xs">or click to browse</span>
           <input id="zip-input" type="file" accept=".zip,application/zip" class="hidden" @change="onZipFileChange">
         </label>
 
-        <div class="font-mono text-xs text-slate-500 min-h-5">{{ openStatus }}</div>
-        <div v-if="zipInputFile" class="text-xs text-slate-400">Opened: {{ zipInputFile.name }}</div>
+        <div class="font-mono text-xs text-black min-h-5">{{ openStatus }}</div>
+        <div v-if="zipInputFile" class="text-xs text-black">Opened: {{ zipInputFile.name }}</div>
 
-        <div class="max-h-[420px] overflow-auto rounded-xl border border-white/10 bg-slate-950/40">
-          <div v-if="!zipEntries.length" class="p-4 text-sm text-slate-500">No files to display yet.</div>
-          <ul v-else class="divide-y divide-white/10">
+        <div class="max-h-105 overflow-auto rounded-xl border-4 border-black bg-white">
+          <div v-if="!zipEntries.length" class="p-4 text-sm text-black">No files to display yet.</div>
+          <ul v-else class="divide-y divide-black">
             <li v-for="entry in zipEntries" :key="entry.name" class="p-3 flex items-center justify-between gap-3">
               <div class="min-w-0 flex items-center gap-3">
                 <img
                   v-if="entry.isImage && entry.previewUrl"
                   :src="entry.previewUrl"
                   :alt="entry.name"
-                  class="w-12 h-12 rounded object-cover border border-white/10"
+                  class="w-12 h-12 rounded object-cover border-2 border-black"
                 >
                 <div class="min-w-0">
                   <p class="text-sm font-medium truncate">{{ entry.name }}</p>
-                  <p class="text-xs text-slate-500">{{ prettySize(entry.size) }}</p>
+                  <p class="text-xs text-black">{{ prettySize(entry.size) }}</p>
                 </div>
               </div>
                 <div class="flex items-center gap-2">
                 <button
-                  class="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  class="shrink-0 px-3 py-1.5 text-xs font-semibold border-2 border-black bg-[#FFD93D] transition-colors"
                   @click="openEntry(entry)"
                 >
                   Open
                 </button>
                 <button
-                  class="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  class="shrink-0 px-3 py-1.5 text-xs font-semibold border-2 border-black bg-[#C4B5FD] transition-colors"
                   @click="downloadBytes(entry.name.split('/').pop() || entry.name, entry.bytes, entry.mime)"
                 >
                   Download
@@ -458,8 +458,8 @@ onUnmounted(() => {
     </main>
     
       <div v-if="modalEntry" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-        <div class="bg-slate-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto relative">
-          <button @click="closeModal" class="absolute top-3 right-3 text-slate-200 bg-white/5 hover:bg-white/10 rounded-full p-2">✕</button>
+        <div class="bg-white border-4 border-black rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto relative">
+          <button @click="closeModal" class="absolute top-3 right-3 text-black bg-[#FF6B6B] border-2 border-black rounded-full p-2">✕</button>
           <div class="p-4 flex items-center justify-center">
             <template v-if="modalEntry && modalEntry.mime.startsWith('video/')">
               <video v-if="modalUrl" :src="modalUrl" controls autoplay class="max-w-full max-h-[80vh] rounded"></video>
@@ -468,7 +468,7 @@ onUnmounted(() => {
               <img v-if="modalUrl" :src="modalUrl" :alt="modalEntry?.name" class="max-w-full max-h-[80vh] rounded object-contain" />
             </template>
           </div>
-          <div class="p-3 border-t border-white/5 text-sm text-slate-400">{{ modalEntry?.name }}</div>
+          <div class="p-3 border-t-4 border-black text-sm text-black">{{ modalEntry?.name }}</div>
         </div>
       </div>
   </div>

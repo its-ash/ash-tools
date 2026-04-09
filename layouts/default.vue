@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-slate-950 text-slate-200 flex flex-col">
+  <div class="neo-canvas min-h-screen bg-[#FFFDF5] text-black flex flex-col">
     <Header />
-    <main class="flex-1">
+    <main class="flex-1 px-4 py-4 md:px-6 md:py-6">
       <slot />
     </main>
     <Footer />

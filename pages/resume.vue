@@ -380,51 +380,51 @@ const runOptimization = async () => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-slate-950 text-slate-200 p-6">
+  <div class="min-h-[calc(100vh-48px)] bg-[#FFFDF5] text-black p-6">
     <main class="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <section class="bg-slate-900/80 border border-white/10 rounded-2xl p-6 space-y-4">
+      <section class="neo-shell bg-white p-6 space-y-4">
         <h1 class="text-3xl font-bold tracking-tight">Resume Optimizer</h1>
-        <p class="text-sm text-slate-400">
+        <p class="text-sm text-black">
           Upload your PDF resume and compare it with a job description. Rust WebAssembly computes ATS metrics, and the same WebLLM model suggests improvements.
         </p>
 
-        <label for="resume-input" class="block text-xs uppercase tracking-wider text-slate-500 font-semibold">Resume PDF</label>
-        <input id="resume-input" type="file" accept="application/pdf" class="block w-full text-sm text-slate-300" @change="onResumeChange">
+        <label for="resume-input" class="block text-xs uppercase tracking-wider text-black font-semibold">Resume PDF</label>
+        <input id="resume-input" type="file" accept="application/pdf" class="block w-full text-sm text-black" @change="onResumeChange">
 
-        <label for="job-desc" class="block text-xs uppercase tracking-wider text-slate-500 font-semibold">Target Job Description <span class="text-xs text-slate-400">(optional)</span></label>
+        <label for="job-desc" class="block text-xs uppercase tracking-wider text-black font-semibold">Target Job Description <span class="text-xs text-black">(optional)</span></label>
         <textarea
           id="job-desc"
           v-model="jobDescription"
-          class="w-full min-h-56 rounded-xl border border-white/10 bg-slate-800/80 text-slate-100 text-sm p-3 outline-none focus:border-cyan-400/50"
+          class="w-full min-h-56 border-4 border-black bg-white text-black text-sm p-3 outline-none"
           placeholder="Paste job description here (optional)..."
         />
 
         <button
-          class="w-full rounded-xl px-4 py-3 font-semibold text-slate-950 bg-gradient-to-r from-cyan-400 to-teal-400 disabled:opacity-50"
+          class="neo-button w-full bg-[#FF6B6B] text-black disabled:opacity-50"
           :disabled="analyzing"
           @click="runOptimization"
         >
           {{ analyzing ? 'Analyzing...' : 'Analyze Resume' }}
         </button>
 
-        <div class="text-xs text-slate-400">{{ status }}</div>
-        <div class="h-2 rounded-full bg-white/10 overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-cyan-400 to-teal-400 transition-all" :style="{ width: `${progress}%` }" />
+        <div class="text-xs text-black">{{ status }}</div>
+        <div class="h-2 rounded-full border-2 border-black bg-white overflow-hidden">
+          <div class="h-full bg-linear-to-r from-cyan-400 to-teal-400 transition-all" :style="{ width: `${progress}%` }" />
         </div>
       </section>
 
-      <section class="bg-slate-900/80 border border-white/10 rounded-2xl p-6 space-y-4">
+      <section class="neo-shell bg-white p-6 space-y-4">
         <h2 class="text-xl font-semibold">Results</h2>
 
         <div v-if="atsResult" class="space-y-3 text-sm">
-          <div class="rounded-xl border border-white/10 bg-slate-800/70 p-3">
-              <div class="text-xs text-slate-400">Enhanced ATS Score</div>
+          <div class="rounded-xl border-4 border-black bg-[#FFD93D] p-3">
+              <div class="text-xs text-black">Enhanced ATS Score</div>
               <div class="text-3xl font-bold text-emerald-300">{{ enhancedScore ? enhancedScore.final : '-' }}/100</div>
-              <div class="text-xs text-slate-400 mt-1">Breakdown: Keywords {{ enhancedScore?.breakdown.keywords }} • Format {{ enhancedScore?.breakdown.format }} • Contact {{ enhancedScore?.breakdown.contact }} • Length {{ enhancedScore?.breakdown.length }}</div>
+              <div class="text-xs text-black mt-1">Breakdown: Keywords {{ enhancedScore?.breakdown.keywords }} • Format {{ enhancedScore?.breakdown.format }} • Contact {{ enhancedScore?.breakdown.contact }} • Length {{ enhancedScore?.breakdown.length }}</div>
           </div>
 
-          <div class="rounded-xl border border-white/10 bg-slate-800/70 p-3">
-            <div class="text-xs uppercase tracking-wider text-slate-400 mb-2">Missing Keywords</div>
+          <div class="rounded-xl border-4 border-black bg-white p-3">
+            <div class="text-xs uppercase tracking-wider text-black mb-2">Missing Keywords</div>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="keyword in atsResult.missing_keywords"
@@ -436,38 +436,38 @@ const runOptimization = async () => {
             </div>
           </div>
 
-          <div class="rounded-xl border border-white/10 bg-slate-800/70 p-3">
-            <div class="text-xs uppercase tracking-wider text-slate-400 mb-2">Rust WASM Suggestions</div>
-            <ul class="list-disc pl-5 space-y-1 text-slate-200">
+          <div class="rounded-xl border-4 border-black bg-white p-3">
+            <div class="text-xs uppercase tracking-wider text-black mb-2">Rust WASM Suggestions</div>
+            <ul class="list-disc pl-5 space-y-1 text-black">
               <li v-for="item in atsResult.suggestions" :key="item">{{ item }}</li>
             </ul>
           </div>
         </div>
 
         <!-- LLM suggestions moved to full-width panel below -->
-        <div class="text-xs text-slate-400">LLM suggestions are shown in the full-width Suggestions panel below.</div>
+        <div class="text-xs text-black">LLM suggestions are shown in the full-width Suggestions panel below.</div>
       </section>
     </main>
 
     <!-- Full-width Suggestions Panel -->
-    <section class="mx-auto max-w-6xl mt-6 bg-slate-900/80 border border-white/10 rounded-2xl p-6">
+    <section class="mx-auto max-w-6xl mt-6 neo-shell bg-white p-6">
       <div class="flex items-start justify-between gap-3 mb-4">
         <div>
           <h3 class="text-lg font-semibold">LLM Rewrite Suggestions</h3>
-          <div class="text-sm text-slate-400">AI-generated, ATS-focused rewrite suggestions and checklist.</div>
+          <div class="text-sm text-black">AI-generated, ATS-focused rewrite suggestions and checklist.</div>
         </div>
         <div class="flex items-center gap-2">
-          <button @click="downloadSuggestions" :disabled="!llmSuggestions" class="px-3 py-1 bg-white/5 rounded text-sm disabled:opacity-40">Download .md</button>
-          <button @click="copySuggestions" :disabled="!llmSuggestions" class="px-3 py-1 bg-white/5 rounded text-sm disabled:opacity-40">Copy</button>
-          <button @click="showRaw = !showRaw" :disabled="!llmSuggestions" class="px-3 py-1 bg-white/5 rounded text-sm disabled:opacity-40">{{ showRaw ? 'Formatted' : 'Raw' }}</button>
+          <button @click="downloadSuggestions" :disabled="!llmSuggestions" class="px-3 py-1 bg-[#FFD93D] border-2 border-black rounded text-sm disabled:opacity-40">Download .md</button>
+          <button @click="copySuggestions" :disabled="!llmSuggestions" class="px-3 py-1 bg-[#C4B5FD] border-2 border-black rounded text-sm disabled:opacity-40">Copy</button>
+          <button @click="showRaw = !showRaw" :disabled="!llmSuggestions" class="px-3 py-1 bg-[#FF6B6B] border-2 border-black rounded text-sm disabled:opacity-40">{{ showRaw ? 'Formatted' : 'Raw' }}</button>
         </div>
       </div>
 
-      <div v-if="!llmSuggestions" class="text-sm text-slate-400">Run analysis to generate personalized rewrite suggestions.</div>
+      <div v-if="!llmSuggestions" class="text-sm text-black">Run analysis to generate personalized rewrite suggestions.</div>
 
       <div v-else>
         <div v-show="!showRaw" v-html="llmSuggestionsHtml" class="text-sm leading-relaxed max-w-none [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mt-2 [&_li]:mb-2 [&_h2]:text-lg [&_h3]:text-base [&_strong]:font-semibold" />
-        <pre v-show="showRaw" class="whitespace-pre-wrap text-sm bg-slate-800/60 p-4 rounded mt-2 text-slate-200">{{ llmSuggestions }}</pre>
+        <pre v-show="showRaw" class="whitespace-pre-wrap text-sm bg-[#FFFDF5] border-4 border-black p-4 rounded mt-2 text-black">{{ llmSuggestions }}</pre>
       </div>
     </section>
   </div>

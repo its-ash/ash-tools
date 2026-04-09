@@ -175,44 +175,44 @@ function escapeHtml(text: string) {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-slate-950 text-slate-200 flex justify-center p-3.5">
+  <div class="min-h-[calc(100vh-48px)] bg-[#FFFDF5] text-black flex justify-center p-3.5">
     <div class="w-full max-w-6xl flex flex-col gap-3.5">
 
       <!-- Hero Header -->
-      <header class="bg-slate-900/90 border border-white/10 rounded-xl p-4 backdrop-blur-md shadow-lg">
-        <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">Local only</p>
+      <header class="neo-shell p-4 bg-[#FFD93D]">
+        <p class="text-xs uppercase tracking-widest text-black font-semibold mb-1">Local only</p>
         <h1 class="text-2xl md:text-3xl font-bold tracking-tight -mt-0.5 mb-2">Regex Generator</h1>
-        <p class="text-slate-400 text-sm leading-relaxed">Generate optimized Regular Expressions from examples. Enter text and the parts you want to match.</p>
+        <p class="text-black text-sm leading-relaxed">Generate optimized Regular Expressions from examples. Enter text and the parts you want to match.</p>
       </header>
 
       <!-- Input & Controls -->
-      <section class="bg-slate-900/90 border border-white/10 rounded-xl p-5 backdrop-blur-md shadow-lg flex flex-col gap-4">
+      <section class="neo-shell p-5 bg-white flex flex-col gap-4">
         
         <!-- Two-Column Input -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label class="flex flex-col gap-2">
-            <span class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Input Text (Source)</span>
-              <textarea id="inputText" ref="inputTextEl" placeholder="Paste your source text here..." class="w-full min-h-48 p-3 bg-white/2 border border-white/10 rounded-lg text-slate-200 font-mono text-sm resize-vertical focus:outline-none focus:border-pink-500/50 transition-colors"></textarea>
+            <span class="text-xs uppercase tracking-widest text-black font-semibold">Input Text (Source)</span>
+              <textarea id="inputText" ref="inputTextEl" placeholder="Paste your source text here..." class="w-full min-h-48 p-3 border-4 border-black bg-white text-black font-mono text-sm resize-vertical focus:outline-none"></textarea>
           </label>
 
           <label class="flex flex-col gap-2">
-            <span class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Desired Matches (Output)</span>
-            <textarea id="targetText" ref="targetTextEl" placeholder="Paste the exact strings you want to match from the input (one per line)..." class="w-full min-h-48 p-3 bg-white/2 border border-white/10 rounded-lg text-slate-200 font-mono text-sm resize-vertical focus:outline-none focus:border-pink-500/50 transition-colors"></textarea>
+            <span class="text-xs uppercase tracking-widest text-black font-semibold">Desired Matches (Output)</span>
+            <textarea id="targetText" ref="targetTextEl" placeholder="Paste the exact strings you want to match from the input (one per line)..." class="w-full min-h-48 p-3 border-4 border-black bg-white text-black font-mono text-sm resize-vertical focus:outline-none"></textarea>
           </label>
         </div>
 
         <!-- Generate Button -->
         <div class="flex justify-end">
-          <button id="generateBtn" @click="handleGenerate" class="px-6 py-2.5 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Generate Regex</button>
+          <button id="generateBtn" @click="handleGenerate" class="neo-button bg-[#FF6B6B] text-black">Generate Regex</button>
         </div>
 
         <!-- Output -->
-        <div id="resultBox" v-show="showResult" class="bg-white/2 p-5 rounded-lg border border-white/10">
-          <h3 class="text-sm uppercase tracking-wider font-bold text-pink-400 mb-4">Generated Regex</h3>
-          <div id="regexOutput" ref="regexOutputEl" class="min-h-auto p-5 text-pink-400 font-mono text-base bg-black/20 rounded-lg border border-white/5 mb-4"></div>
+        <div id="resultBox" v-show="showResult" class="border-4 border-black bg-[#FFFDF5] p-5">
+          <h3 class="text-sm uppercase tracking-wider font-bold text-black mb-4">Generated Regex</h3>
+          <div id="regexOutput" ref="regexOutputEl" class="min-h-auto p-5 text-black font-mono text-base bg-white border-4 border-black mb-4"></div>
 
-          <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-2.5">Preview matches in Input Text:</p>
-          <div id="preview" ref="previewEl" class="font-mono text-xs text-slate-300 whitespace-pre-wrap bg-black/20 p-3 rounded-lg border border-white/5 max-h-60 overflow-y-auto"></div>
+          <p class="text-xs uppercase tracking-widest text-black font-semibold mb-2.5">Preview matches in Input Text:</p>
+          <div id="preview" ref="previewEl" class="font-mono text-xs text-black whitespace-pre-wrap bg-white p-3 border-4 border-black max-h-60 overflow-y-auto"></div>
         </div>
       </section>
     </div>

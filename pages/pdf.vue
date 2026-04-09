@@ -383,14 +383,14 @@ const exportButtonLabel = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-slate-950 text-slate-200 flex justify-center p-3.5">
+  <div class="min-h-[calc(100vh-48px)] bg-[#FFFDF5] text-black flex justify-center p-3.5">
     <div class="w-full max-w-6xl flex flex-col gap-3.5">
 
       <!-- Hero Header -->
-      <header class="bg-slate-900/90 border border-white/10 rounded-xl p-4 backdrop-blur-md shadow-lg">
-        <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">Local only</p>
+      <header class="neo-shell p-4 bg-[#FFD93D]">
+        <p class="text-xs uppercase tracking-widest text-black font-semibold mb-1">Local only</p>
         <h1 class="text-2xl md:text-3xl font-bold tracking-tight -mt-0.5 mb-2">PDF Merger & Compressor</h1>
-        <p class="text-slate-400 text-sm leading-relaxed">Upload multiple PDFs, drag to reorder, adjust compression, and
+        <p class="text-black text-sm leading-relaxed">Upload multiple PDFs, drag to reorder, adjust compression, and
           export a single merged file. Everything happens locally in your browser.</p>
       </header>
 
@@ -399,20 +399,20 @@ const exportButtonLabel = computed(() => {
 
         <!-- Upload + File List (left 2 cols) -->
         <section
-          class="lg:col-span-2 bg-slate-900/90 border border-white/10 rounded-xl p-5 backdrop-blur-md shadow-lg flex flex-col gap-4">
+          class="lg:col-span-2 neo-shell bg-white p-5 flex flex-col gap-4">
 
           <!-- Upload Area -->
           <label for="pdf-input"
-            class="border-2 border-dashed border-white/10 rounded-xl p-8 bg-gradient-to-br from-violet-500/5 to-cyan-400/3 cursor-pointer hover:border-violet-500/40 transition-all duration-200 flex flex-col items-center justify-center text-center gap-2"
+            class="border-4 border-dashed border-black rounded-xl p-8 bg-[#FFFDF5] cursor-pointer hover:-translate-y-0.5 transition-all duration-200 flex flex-col items-center justify-center text-center gap-2"
             @drop="onDrop" @dragover="onDragOver">
-            <div class="w-12 h-12 rounded-full bg-violet-500/10 flex items-center justify-center mb-1">
-              <svg class="w-6 h-6 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            <div class="w-12 h-12 rounded-full bg-[#C4B5FD] border-4 border-black flex items-center justify-center mb-1">
+              <svg class="w-6 h-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
               </svg>
             </div>
             <span class="font-semibold text-sm">Drop PDF or Image files here</span>
-            <span class="text-slate-500 text-xs">or click to browse</span>
+            <span class="text-black text-xs">or click to browse</span>
             <input id="pdf-input" type="file" accept=".pdf,application/pdf,image/*" multiple class="hidden"
               @change="onFileInput">
           </label>
@@ -420,7 +420,7 @@ const exportButtonLabel = computed(() => {
           <!-- File List -->
           <div v-if="pdfFiles.length > 0" class="flex flex-col gap-1.5">
             <div class="flex items-center justify-between mb-1">
-              <p class="text-xs uppercase tracking-widest text-slate-500 font-semibold">
+              <p class="text-xs uppercase tracking-widest text-black font-semibold">
                 {{ pdfFiles.length }} file{{ pdfFiles.length > 1 ? 's' : '' }} • {{ totalPages }} page{{ totalPages !==
                   1 ? 's' : '' }} • {{ prettySize(totalSize) }}
               </p>
@@ -430,20 +430,20 @@ const exportButtonLabel = computed(() => {
 
             <div v-for="(file, index) in pdfFiles" :key="file.id"
               class="group flex items-start gap-3 rounded-lg px-3 py-3 border transition-all duration-150 cursor-grab active:cursor-grabbing"
-              :class="dragOverIndex === index ? 'border-violet-500/50 bg-violet-500/5' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04]'"
+              :class="dragOverIndex === index ? 'border-black bg-[#C4B5FD]' : 'border-black bg-white'"
               draggable="true" @dragstart="onItemDragStart($event, index)" @dragover="onItemDragOver($event, index)"
               @dragleave="onItemDragLeave" @drop="onItemDrop($event, index)" @dragend="onItemDragEnd">
               <!-- Drag Handle -->
               <span
-                class="text-slate-600 group-hover:text-slate-400 transition-colors select-none text-lg leading-none mt-6"
+                class="text-black transition-colors select-none text-lg leading-none mt-6"
                 aria-hidden="true">⠿</span>
 
               <!-- Thumbnail / File Icon -->
               <div
-                class="w-24 h-32 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shadow-sm">
+                class="w-24 h-32 shrink-0 rounded-lg bg-[#FFFDF5] border-4 border-black flex items-center justify-center overflow-hidden shadow-sm">
                 <img v-if="file.thumbnail" :src="file.thumbnail" :alt="file.name"
                   class="w-full h-full object-contain bg-white" />
-                <svg v-else class="w-8 h-8 text-rose-400/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                <svg v-else class="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                   stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -453,70 +453,70 @@ const exportButtonLabel = computed(() => {
               <!-- File Info -->
               <div class="min-w-0 flex-1 pt-1">
                 <p class="text-sm font-medium truncate">{{ file.name }}</p>
-                <p class="text-xs text-slate-500 mt-0.5">{{ file.pageCount }} page{{ file.pageCount !== 1 ? 's' : '' }}
+                <p class="text-xs text-black mt-0.5">{{ file.pageCount }} page{{ file.pageCount !== 1 ? 's' : '' }}
                   • {{ prettySize(file.size) }}</p>
               </div>
 
               <!-- Order Badge -->
-              <span class="text-xs font-mono text-slate-600 bg-white/5 rounded px-1.5 py-0.5 mt-1">{{ index + 1
+              <span class="text-xs font-mono text-black bg-[#FFD93D] border-2 border-black rounded px-1.5 py-0.5 mt-1">{{ index + 1
                 }}</span>
 
               <!-- Remove Button -->
               <button @click.stop="removeFile(index)"
-                class="shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-slate-600 hover:text-rose-400 hover:bg-rose-400/10 transition-all opacity-0 group-hover:opacity-100 mt-1"
+                class="shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-black hover:bg-[#FF6B6B] transition-all opacity-0 group-hover:opacity-100 mt-1"
                 title="Remove">✕</button>
             </div>
           </div>
 
           <!-- Empty State -->
-          <div v-else class="py-8 text-center text-slate-500 text-sm">
+          <div v-else class="py-8 text-center text-black text-sm">
             No PDF files added yet. Upload or drop files above.
           </div>
         </section>
 
         <!-- Export Panel (right col) -->
         <section
-          class="bg-slate-900/90 border border-white/10 rounded-xl p-5 backdrop-blur-md shadow-lg flex flex-col gap-4">
+          class="neo-shell bg-white p-5 flex flex-col gap-4">
           <div
-            class="inline-flex items-center gap-2 uppercase tracking-wide text-xs text-slate-500 before:content-[''] before:w-4 before:h-0.5 before:bg-gradient-to-r before:from-violet-500 before:to-cyan-400 before:rounded">
+            class="inline-flex items-center gap-2 uppercase tracking-wide text-xs text-black before:content-[''] before:w-4 before:h-0.5 before:bg-black before:rounded">
             Export Settings
           </div>
 
           <!-- Compression Slider -->
           <div class="flex flex-col gap-2">
-            <label class="text-xs uppercase tracking-widest text-slate-500 font-semibold" for="compression-slider">
+            <label class="text-xs uppercase tracking-widest text-black font-semibold" for="compression-slider">
               Compression Level
             </label>
             <input id="compression-slider" type="range" min="10" max="100" step="5" v-model.number="compressionLevel"
               class="w-full h-2 rounded-full appearance-none cursor-pointer accent-violet-500"
               style="background: linear-gradient(to right, #8b5cf6, #06b6d4)">
-            <div class="flex justify-between text-xs text-slate-500">
+            <div class="flex justify-between text-xs text-black">
               <span>Smaller file</span>
-              <span class="font-mono text-violet-400 font-semibold">{{ compressionLevel }}%</span>
+              <span class="font-mono text-black font-semibold">{{ compressionLevel }}%</span>
               <span>Higher quality</span>
             </div>
           </div>
 
           <!-- Summary -->
           <div v-if="pdfFiles.length > 0"
-            class="bg-white/[0.02] rounded-lg border border-white/5 p-3 text-sm space-y-1.5">
+            class="bg-[#FFFDF5] rounded-lg border-4 border-black p-3 text-sm space-y-1.5">
             <div class="flex justify-between">
-              <span class="text-slate-500">Files</span>
+              <span class="text-black">Files</span>
               <span class="font-medium">{{ pdfFiles.length }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-slate-500">Total pages</span>
+              <span class="text-black">Total pages</span>
               <span class="font-medium">{{ totalPages }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-slate-500">Input size</span>
+              <span class="text-black">Input size</span>
               <span class="font-medium">{{ prettySize(totalSize) }}</span>
             </div>
           </div>
 
           <!-- Export Button -->
           <button id="exportBtn" :disabled="pdfFiles.length === 0 || processing" @click="handleExport"
-            class="w-full bg-gradient-to-r from-violet-500 to-cyan-400 text-slate-950 font-bold py-3 px-4 rounded-xl transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+            class="w-full bg-linear-to-r from-violet-500 to-cyan-400 text-slate-950 font-bold py-3 px-4 rounded-xl transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
             {{ exportButtonLabel }}
           </button>
 
@@ -524,7 +524,7 @@ const exportButtonLabel = computed(() => {
           <div
             class="w-full h-2.5 rounded-full bg-white/5 border border-white/10 overflow-hidden transition-opacity duration-300"
             :class="progressPercent === 0 ? 'opacity-0' : 'opacity-100'">
-            <div class="h-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all duration-200 rounded-full"
+            <div class="h-full bg-linear-to-r from-violet-500 to-cyan-400 transition-all duration-200 rounded-full"
               :style="{ width: `${progressPercent}%` }" />
           </div>
 

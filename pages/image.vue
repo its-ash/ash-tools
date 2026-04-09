@@ -910,18 +910,33 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-slate-950 text-slate-200 flex flex-col">
+  <div class="min-h-[calc(100vh-48px)] bg-[#FFFDF5] text-black flex flex-col">
     <!-- Main Workspace -->
     <section class="flex-1 p-6 overflow-y-auto">
       <div class="max-w-7xl mx-auto">
+        <div class="mb-6 neo-shell bg-[#FFE8A3] p-4">
+          <h2 class="text-xl font-black uppercase tracking-wide">Image Editor</h2>
+          <p class="text-sm mt-1">Edit locally in your browser. Nothing is uploaded to a server.</p>
+          <div class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs font-semibold">
+            <div class="border-2 border-black rounded-lg bg-white px-3 py-2">1. Upload</div>
+            <div class="border-2 border-black rounded-lg bg-white px-3 py-2">2. Adjust Crop</div>
+            <div class="border-2 border-black rounded-lg bg-white px-3 py-2">3. Process</div>
+            <div class="border-2 border-black rounded-lg bg-white px-3 py-2">4. Download</div>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Preview Card (Left on desktop) -->
           <div class="lg:order-1">
-            <div class="bg-slate-900/80 border border-white/8 rounded-xl p-6 backdrop-blur-md h-full">
-              <div class="preview-stage mb-4 border border-white/10 rounded-lg overflow-hidden bg-black/40"
+            <div class="neo-shell bg-white p-6 h-full">
+              <div class="mb-3">
+                <h3 class="text-base font-black uppercase tracking-wide">Preview</h3>
+                <p class="text-sm text-black/80">Use handles directly on the image to choose the exact area you want.</p>
+              </div>
+              <div class="preview-stage mb-4 border-4 border-black rounded-lg overflow-hidden bg-[#FFF7D6]"
                 id="previewStage">
                 <img id="preview" alt="Preview" class="w-full h-auto"
-                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'%3E%3Crect width='1280' height='720' fill='%231e293b'/%3E%3Ctext x='640' y='360' text-anchor='middle' fill='%2338bdf8' font-size='48' font-family='monospace'%3EDrop or browse an image%3C/text%3E%3C/svg%3E" />
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'%3E%3Crect width='1280' height='720' fill='%23FFF7D6'/%3E%3Crect x='60' y='60' width='1160' height='600' rx='20' fill='%23FFFFFF' stroke='%23000000' stroke-width='8'/%3E%3Crect x='130' y='135' width='180' height='180' rx='16' fill='%23FFD93D' stroke='%23000000' stroke-width='6'/%3E%3Cpath d='M170 260l45-55 35 40 25-30 45 45' stroke='%23000000' stroke-width='10' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='250' cy='180' r='16' fill='%23000000'/%3E%3Ctext x='380' y='220' fill='%23000000' font-size='56' font-family='monospace' font-weight='700'%3EDrop or browse an image%3C/text%3E%3Ctext x='380' y='288' fill='%23333333' font-size='34' font-family='monospace'%3EEverything runs locally on your device%3C/text%3E%3C/svg%3E" />
                 <!-- Crop Box (tool-specific markup) -->
                 <div id="cropBox" class="crop-box">
                   <div id="cropSize" class="crop-size" aria-live="polite"></div>
@@ -941,9 +956,9 @@ onUnmounted(() => {
                   <span class="persp-handle" data-point="bl"></span>
                 </div>
               </div>
-              <div class="text-slate-400 text-sm mb-3">Use the crop box or adjust the four perspective points to refine
+              <div class="text-black text-sm mb-3">Use the crop box or adjust the four perspective points to refine
                 the selection.</div>
-              <div id="meta" class="font-mono text-xs text-slate-500"></div>
+              <div id="meta" class="font-mono text-xs text-black"></div>
               <div id="stats" class="font-mono text-xs text-cyan-300/80 mt-2 min-h-5" aria-live="polite"></div>
             </div>
           </div>
@@ -953,56 +968,60 @@ onUnmounted(() => {
             <div class="space-y-4">
               <!-- Upload Dropzone -->
               <label id="dropzone"
-                class="block border-2 border-dashed border-white/10 hover:border-cyan-500/50 rounded-xl p-6 bg-cyan-500/5 cursor-pointer transition-all hover:-translate-y-0.5"
+                class="block border-4 border-dashed border-black rounded-xl p-6 bg-white cursor-pointer transition-all hover:-translate-y-0.5"
                 aria-label="Upload image by click or drag and drop">
                 <div class="mb-3">
-                  <div class="font-semibold text-base mb-1">Drop an image or browse</div>
-                  <div class="text-slate-400 text-sm">PNG, JPEG, WebP, HEIC. Process stays local. Shortcuts: Ctrl/Cmd+O upload, Ctrl/Cmd+Enter process, Ctrl/Cmd+S download.</div>
+                  <div class="font-black uppercase tracking-wide text-base mb-1">Drop an image or browse</div>
+                  <div class="text-black text-sm">Supported: PNG, JPEG, WebP, HEIC. Tip: start with Crop mode for quick framing.</div>
                 </div>
                 <span
-                  class="inline-block px-4 py-2 bg-cyan-500/20 text-cyan-300 rounded-lg text-sm font-medium hover:bg-cyan-500/30 transition-colors">Browse</span>
+                  class="inline-block px-4 py-2 bg-[#FFD93D] border-2 border-black text-black rounded-lg text-sm font-medium transition-colors">Browse</span>
+                <p class="mt-3 text-xs text-black/70">Shortcuts: Ctrl/Cmd+O upload, Ctrl/Cmd+Enter process, Ctrl/Cmd+S download.</p>
               </label>
               <input id="fileInput" type="file" accept="image/*,.heic,.heif" class="hidden" />
 
               <!-- Mode Switch -->
-              <div class="flex gap-2">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wide mb-2">Adjustment Mode</p>
+                <div class="flex gap-2">
                 <button id="modeCrop" data-mode="crop"
-                  class="px-4 py-2 rounded-lg font-semibold text-sm active:bg-cyan-500/20 active:text-cyan-300 bg-white/5 text-slate-300 hover:bg-white/10 transition-colors active">Crop</button>
+                  class="px-4 py-2 rounded-lg font-semibold text-sm border-2 border-black bg-[#FF6B6B] text-black transition-colors active">Crop</button>
                 <button id="modePerspective" data-mode="perspective"
-                  class="px-4 py-2 rounded-lg font-semibold text-sm bg-white/5 text-slate-300 hover:bg-white/10 transition-colors">Perspective
+                  class="px-4 py-2 rounded-lg font-semibold text-sm border-2 border-black bg-[#C4B5FD] text-black transition-colors">Perspective
                   Crop</button>
+                </div>
               </div>
 
               <!-- Process & Download -->
               <div class="space-y-3">
                 <div class="flex flex-col gap-2">
                   <button id="processBtn"
-                    class="w-full px-4 py-2.5 bg-linear-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Process</button>
+                    class="neo-button w-full bg-[#FF6B6B] text-black">Process</button>
                   <button id="downloadBtn"
-                    class="w-full px-4 py-2.5 bg-linear-to-r from-cyan-400 to-cyan-500 text-slate-950 rounded-lg font-bold text-sm hover:-translate-y-0.5 transition-all hover:shadow-lg">Download</button>
+                    class="neo-button w-full bg-[#FFD93D] text-black">Download</button>
                   <button id="resetBtn"
-                    class="w-full px-4 py-2.5 border border-white/20 text-slate-300 rounded-lg font-semibold text-sm hover:bg-white/5 transition-colors">Reset</button>
+                    class="w-full px-4 py-2.5 border-4 border-black bg-white text-black rounded-lg font-semibold text-sm transition-colors">Reset</button>
                 </div>
 
                 <!-- Compression Settings -->
-                <div class="bg-white/5 border border-white/10 rounded-lg p-4 space-y-3">
+                <div class="bg-[#FFFDF5] border-4 border-black rounded-lg p-4 space-y-3">
                   <div id="qualityRow" class="flex items-center gap-4">
                     <label for="qualityInput"
-                      class="text-sm font-semibold text-slate-300 whitespace-nowrap">Compression</label>
+                      class="text-sm font-semibold text-black whitespace-nowrap">Quality (JPEG)</label>
                     <input id="qualityInput" type="range" min="10" max="100" value="80"
-                      class="flex-1 h-2 bg-white/10 rounded-full cursor-pointer" aria-label="Compression quality">
-                    <span id="qualityValue" class="font-mono text-xs text-slate-400 min-w-12">80%</span>
+                      class="flex-1 h-2 bg-white border-2 border-black rounded-full cursor-pointer" aria-label="Compression quality">
+                    <span id="qualityValue" class="font-mono text-xs text-black min-w-12">80%</span>
                   </div>
                   <div class="flex items-center gap-4">
-                    <label for="formatSelect" class="text-sm font-semibold text-slate-300">Output</label>
+                    <label for="formatSelect" class="text-sm font-semibold text-black">Output</label>
                     <div class="relative flex-1">
                       <select id="formatSelect"
-                        class="w-full px-3 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-slate-200 text-sm font-medium appearance-none pr-8 cursor-pointer hover:bg-slate-800 transition-colors">
+                        class="w-full px-3 py-2 bg-white border-4 border-black rounded-lg text-black text-sm font-medium appearance-none pr-8 cursor-pointer transition-colors">
                         <option value="png">PNG</option>
                         <option value="jpeg">JPEG</option>
                         <option value="webp" selected>WebP</option>
                       </select>
-                      <svg class="absolute right-2 top-2.5 w-5 h-5 text-slate-400 pointer-events-none"
+                      <svg class="absolute right-2 top-2.5 w-5 h-5 text-black pointer-events-none"
                         fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
                           d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
@@ -1010,7 +1029,8 @@ onUnmounted(() => {
                       </svg>
                     </div>
                   </div>
-                  <div id="status" class="font-mono text-xs text-slate-500 min-h-5"></div>
+                  <p class="text-xs text-black/70">Choose output format first, then adjust quality if JPEG is selected.</p>
+                  <div id="status" class="font-mono text-xs text-black min-h-5"></div>
                 </div>
               </div>
             </div>
@@ -1027,6 +1047,21 @@ onUnmounted(() => {
   position: relative;
   max-width: 100%;
   height: auto;
+  background-color: #fff7d6;
+  background-image: radial-gradient(#f3e2a9 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+#modeCrop.active,
+#modePerspective.active {
+  background: #000;
+  color: #fff;
+  box-shadow: 4px 4px 0 #000;
+}
+
+#modeCrop:not(.active),
+#modePerspective:not(.active) {
+  opacity: 0.9;
 }
 
 .crop-box {
@@ -1157,8 +1192,8 @@ onUnmounted(() => {
 }
 
 #dropzone.drop-active {
-  border-color: rgba(34, 211, 238, 0.8);
-  background: rgba(34, 211, 238, 0.12);
+  border-color: #000;
+  background: #ffe8a3;
   transform: translateY(-2px);
 }
 </style>

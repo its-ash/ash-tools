@@ -132,7 +132,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-200">
+  <div class="min-h-[calc(100vh-48px)] bg-[#FFFDF5] text-black">
     <!-- Gradient overlays for depth -->
     <div class="fixed inset-0 pointer-events-none">
       <div class="absolute top-0 left-[12%] w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
@@ -140,15 +140,15 @@ onUnmounted(() => {
     </div>
 
     <main class="relative flex flex-col h-[calc(100vh-48px)]">
-      <section class="flex flex-col gap-2 p-2 md:p-3 flex-1 min-h-0 bg-slate-900/40 backdrop-blur-xs">
+      <section class="flex flex-col gap-2 p-2 md:p-3 flex-1 min-h-0 bg-[#FFFDF5]">
         <!-- Toolbar -->
         <div class="flex flex-wrap items-center justify-between gap-3 md:gap-4">
           <div class="flex flex-wrap items-center gap-2">
             <label
-              class="flex items-center gap-2 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 backdrop-blur-sm">
-              <span class="text-xs font-bold uppercase tracking-wide text-slate-400">Language</span>
+              class="flex items-center gap-2 bg-white border-4 border-black rounded-xl px-3 py-2">
+              <span class="text-xs font-bold uppercase tracking-wide text-black">Language</span>
               <select id="languageSelect" aria-label="Language"
-                class="bg-transparent text-slate-200 border-0 font-mono text-xs outline-none"
+                class="bg-transparent text-black border-0 font-mono text-xs outline-none"
                 v-model="selectedLanguage">
                 <option value="javascript">JavaScript</option>
                 <option value="python">Python (Pyodide)</option>
@@ -156,10 +156,10 @@ onUnmounted(() => {
               </select>
             </label>
             <label
-              class="flex items-center gap-2 bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 backdrop-blur-sm">
-              <span class="text-xs font-bold uppercase tracking-wide text-slate-400">Timeout</span>
+              class="flex items-center gap-2 bg-white border-4 border-black rounded-xl px-3 py-2">
+              <span class="text-xs font-bold uppercase tracking-wide text-black">Timeout</span>
               <select id="timeoutSelect" aria-label="Timeout"
-                class="bg-transparent text-slate-200 border-0 font-mono text-xs outline-none">
+                class="bg-transparent text-black border-0 font-mono text-xs outline-none">
                 <option value="3000">3s</option>
                 <option value="5000" selected>5s</option>
                 <option value="10000">10s</option>
@@ -169,18 +169,18 @@ onUnmounted(() => {
 
           <div class="flex items-center gap-2">
             <button id="runBtn"
-              class="px-4 py-2 font-bold text-xs rounded-lg bg-gradient-to-r from-teal-500 to-orange-500 text-slate-950 hover:shadow-lg hover:-translate-y-0.5 transition-all">
+              class="neo-button bg-[#FF6B6B] text-black">
               Run
             </button>
             <button id="stopBtn" disabled
-              class="px-4 py-2 font-bold text-xs rounded-lg bg-slate-800/50 border border-slate-700 text-slate-200 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+              class="px-4 py-2 font-bold text-xs rounded-lg bg-white border-4 border-black text-black disabled:opacity-50 disabled:cursor-not-allowed transition-all">
               Stop
             </button>
             <div
-              class="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-slate-700 bg-slate-900/50 backdrop-blur-sm"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-full border-4 border-black bg-[#FFD93D]"
               aria-live="polite">
-              <span class="text-xs font-bold uppercase tracking-wide text-slate-400">Runtime</span>
-              <span id="runtimeStatus" class="text-xs font-mono text-slate-200">Idle</span>
+              <span class="text-xs font-bold uppercase tracking-wide text-black">Runtime</span>
+              <span id="runtimeStatus" class="text-xs font-mono text-black">Idle</span>
             </div>
           </div>
         </div>
@@ -189,41 +189,41 @@ onUnmounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3 flex-1 min-h-0">
           <!-- Code editor card -->
           <div
-            class="md:col-span-2 flex flex-col border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm min-h-0">
+            class="md:col-span-2 flex flex-col border-4 border-black rounded-xl bg-white p-2 min-h-0">
             <div class="flex items-baseline justify-between mb-3">
-              <span class="text-xs font-bold uppercase tracking-wide text-slate-400">Code Editor</span>
-              <span class="text-xs text-slate-400">Monaco Editor (Dracula)</span>
+              <span class="text-xs font-bold uppercase tracking-wide text-black">Code Editor</span>
+              <span class="text-xs text-black">Monaco Editor (Dracula)</span>
             </div>
-            <div id="codeEditor" class="flex-1 rounded-xl overflow-hidden bg-slate-950 border border-slate-800"
+            <div id="codeEditor" class="flex-1 rounded-xl overflow-hidden bg-white border-4 border-black"
               aria-label="Code editor"></div>
           </div>
 
           <!-- Side panel: 5 cards stacked -->
           <div class="flex flex-col gap-2 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
             <!-- Execution card -->
-            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm flex-shrink-0">
+            <div class="border-4 border-black rounded-xl bg-white p-2 shrink-0">
               <div class="flex items-baseline justify-between mb-2">
-                <span class="text-xs font-bold uppercase tracking-wide text-slate-400">Execution</span>
-                <span class="text-xs text-slate-400" id="timing">time: --</span>
+                <span class="text-xs font-bold uppercase tracking-wide text-black">Execution</span>
+                <span class="text-xs text-black" id="timing">time: --</span>
               </div>
               <div class="grid grid-cols-2 gap-2 text-[11px] mb-2">
                 <div>
-                  <span class="block text-xs text-slate-400 mb-1">Memory</span>
-                  <span class="font-mono text-slate-200" id="memory">--</span>
+                  <span class="block text-xs text-black mb-1">Memory</span>
+                  <span class="font-mono text-black" id="memory">--</span>
                 </div>
                 <div>
-                  <span class="block text-xs text-slate-400 mb-1">Exit</span>
-                  <span class="font-mono text-slate-200" id="exitCode">--</span>
+                  <span class="block text-xs text-black mb-1">Exit</span>
+                  <span class="font-mono text-black" id="exitCode">--</span>
                 </div>
               </div>
               <div id="status"
-                class="px-2 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/25 text-teal-400 text-xs font-bold uppercase tracking-wide">
+                class="px-2 py-1.5 rounded-lg bg-[#C4B5FD] border-2 border-black text-black text-xs font-bold uppercase tracking-wide">
                 Idle
               </div>
             </div>
 
             <!-- Input card -->
-            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm flex-shrink-0">
+            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm shrink-0">
               <div class="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">
                 Input (stdin)
               </div>
@@ -232,7 +232,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Console Output card -->
-            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm flex-shrink-0">
+            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm shrink-0">
               <div class="flex items-center justify-between mb-2">
                 <div>
                   <span class="text-xs font-bold uppercase tracking-wide text-slate-400 block">Console Output</span>
@@ -244,12 +244,12 @@ onUnmounted(() => {
                 </button>
               </div>
               <pre id="consoleOutput"
-                class="h-20 w-full bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-[11px] text-slate-200 overflow-auto whitespace-pre-wrap break-words"></pre>
+                class="h-20 w-full bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-[11px] text-slate-200 overflow-auto whitespace-pre-wrap wrap-break-word"></pre>
             </div>
 
             <!-- Errors card -->
             <div
-              class="border border-red-900/30 bg-red-950/10 rounded-xl p-2 backdrop-blur-sm flex-1 flex flex-col min-h-[160px]">
+              class="border border-red-900/30 bg-red-950/10 rounded-xl p-2 backdrop-blur-sm flex-1 flex flex-col min-h-40">
               <div class="flex items-center justify-between mb-2">
                 <div>
                   <span class="text-xs font-bold uppercase tracking-wide text-slate-400 block">Errors</span>
@@ -261,17 +261,17 @@ onUnmounted(() => {
                 </button>
               </div>
               <pre id="errorOutput"
-                class="flex-1 w-full bg-slate-950/50 border border-red-900/30 rounded-lg p-2 font-mono text-[11px] leading-relaxed text-red-400 overflow-auto whitespace-pre-wrap break-words"></pre>
+                class="flex-1 w-full bg-slate-950/50 border border-red-900/30 rounded-lg p-2 font-mono text-[11px] leading-relaxed text-red-400 overflow-auto whitespace-pre-wrap wrap-break-word"></pre>
             </div>
 
             <!-- Compile Logs card -->
-            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm flex-shrink-0">
+            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm shrink-0">
               <div class="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">
                 Compile Logs
               </div>
               <span class="text-xs text-slate-400 block mb-2">wasm toolchain</span>
               <pre id="compileOutput"
-                class="h-16 w-full bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-[11px] text-slate-400 overflow-auto whitespace-pre-wrap break-words"></pre>
+                class="h-16 w-full bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-[11px] text-slate-400 overflow-auto whitespace-pre-wrap wrap-break-word"></pre>
             </div>
           </div>
         </div>

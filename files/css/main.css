@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&display=block');
 @import "tailwindcss";
 
 @layer base {
@@ -7,22 +8,25 @@
     --font-family-sans: 'Space Grotesk', system-ui, sans-serif;
     --font-family-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-    --color-sky-400: #38bdf8;
-    --color-sky-500: #0ea5e9;
-    --color-cyan-400: #22d3ee;
-    --color-violet-500: #8b5cf6;
-    --color-violet-400: #a78bfa;
-    --color-slate-50: #f8fafc;
-    --color-slate-100: #f1f5f9;
-    --color-slate-200: #e2e8f0;
-    --color-slate-400: #94a3b8;
-    --color-slate-500: #64748b;
-    --color-slate-700: #334155;
-    --color-slate-800: #1e293b;
-    --color-slate-900: #0f172a;
-    --color-slate-950: #020617;
+    --neo-bg: #fffdf5;
+    --neo-fg: #000000;
+    --neo-accent: #ff6b6b;
+    --neo-secondary: #ffd93d;
+    --neo-muted: #c4b5fd;
+    --neo-white: #ffffff;
+
+    --neo-shadow-sm: 4px 4px 0px 0px #000;
+    --neo-shadow-md: 8px 8px 0px 0px #000;
+    --neo-shadow-lg: 12px 12px 0px 0px #000;
   }
 }
+
+@layer base {
+  * {
+    border-color: var(--neo-fg);
+  }
+}
+
 /* Global base styles */
 @layer base {
   *,
@@ -39,21 +43,80 @@
 
   body {
     font-family: var(--font-sans);
-    background: #0b1220;
-    color: #e2e8f0;
+    background: var(--neo-bg);
+    color: var(--neo-fg);
     min-height: 100vh;
+    font-weight: 700;
+    line-height: 1.5;
+    background-image:
+      radial-gradient(#000 1.4px, transparent 1.4px),
+      linear-gradient(to right, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+    background-size: 22px 22px, 44px 44px, 44px 44px;
   }
 
-  @media (prefers-color-scheme: light) {
-    body {
-      background: #f8fafc;
-      color: #0f172a;
-    }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 900;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer components {
   .nav-link {
     @apply whitespace-nowrap;
+  }
+
+  .neo-canvas {
+    @apply relative overflow-hidden;
+  }
+
+  .neo-shell {
+    @apply border-4 border-black bg-[#FFFDF5];
+    box-shadow: var(--neo-shadow-md);
+  }
+
+  .neo-card {
+    @apply border-4 border-black bg-white transition-transform duration-200 ease-linear;
+    box-shadow: var(--neo-shadow-md);
+  }
+
+  .neo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--neo-shadow-lg);
+  }
+
+  .neo-button {
+    @apply inline-flex items-center justify-center border-4 border-black px-5 py-3 text-sm font-bold uppercase tracking-wide transition-all duration-100 ease-linear;
+    box-shadow: var(--neo-shadow-sm);
+  }
+
+  .neo-button:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+
+  .neo-badge {
+    @apply inline-flex items-center rounded-full border-4 border-black px-4 py-2 text-xs font-black uppercase tracking-[0.2em];
+    box-shadow: var(--neo-shadow-sm);
+  }
+
+  .neo-outline-title {
+    -webkit-text-stroke: 2px #000;
+    color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
   }
 }
