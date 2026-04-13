@@ -159,6 +159,37 @@ const addListener = (
   cleanupFns.push(() => target.removeEventListener(eventName, handler, options))
 }
 
+// ==================== Orientation Normalization ====================
+const normalizeImageOrientation = (bytes: Uint8Array): Promise<{ bytes: Uint8Array; dims: { width: number; height: number } }> =>
+  new Promise((resolve, reject) => {
+    const blob = new Blob([bytesToBlobPart(bytes)])
+    const url = URL.createObjectURL(blob)
+    const img = new Image()
+    img.onload = async () => {
+      const w = img.naturalWidth
+      const h = img.naturalHeight
+      URL.revokeObjectURL(url)
+      try {
+        // Drawing to canvas applies EXIF orientation, giving normalized pixel data
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Canvas context unavailable')
+        ctx.drawImage(img, 0, 0)
+        const normalizedBlob = await canvasToBlob(canvas, 'image/png')
+        resolve({ bytes: new Uint8Array(await normalizedBlob.arrayBuffer()), dims: { width: w, height: h } })
+      } catch (err) {
+        reject(err)
+      }
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('Failed to load image for orientation normalization'))
+    }
+    img.src = url
+  })
+
 // ==================== File Reading ====================
 const readFileAsBytes = (file: File): Promise<Uint8Array> =>
   new Promise((resolve, reject) => {
@@ -335,11 +366,26 @@ const handleFile = async (file: File) => {
   try {
     const loaded = await loadImageBytes(file)
     if (!loaded || !loaded.bytes) throw new Error('Unable to read image bytes')
-    const bytes = loaded.bytes
+    let bytes = loaded.bytes
+    let dims: { width: number; height: number } | null = loaded.dimensions || null
+
+    // Normalize EXIF orientation so the preview and WASM crop both see the same pixels.
+    // HEIC files are already normalized via their canvas conversion path.
+    if (!heicCandidate) {
+      try {
+        const normalized = await normalizeImageOrientation(bytes)
+        bytes = normalized.bytes
+        dims = normalized.dims
+      } catch (err) {
+        console.warn('Orientation normalization failed, using raw bytes', err)
+        if (!dims) dims = await extractDimensions(bytes)
+      }
+    } else {
+      if (!dims) dims = await extractDimensions(bytes)
+    }
+
     originalBytes = bytes
     currentBytes = bytes
-    let dims = loaded.dimensions || null
-    if (!dims) dims = await extractDimensions(bytes)
     setMode('crop', { silent: true })
     setDefaultsFromDims(dims)
     await updatePreview(bytes, dims)
