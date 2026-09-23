@@ -1,34 +1,56 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&display=block');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @layer base {
   :root {
-    --font-sans: 'Space Grotesk', system-ui, sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-    --font-family-sans: 'Space Grotesk', system-ui, sans-serif;
-    --font-family-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-display: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --font-family-sans: 'Inter', system-ui, sans-serif;
+    --font-family-display: 'Inter', system-ui, sans-serif;
+    --font-family-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-    --neo-bg: #fffdf5;
-    --neo-fg: #000000;
-    --neo-accent: #ff6b6b;
-    --neo-secondary: #ffd93d;
-    --neo-muted: #c4b5fd;
-    --neo-white: #ffffff;
+    /* Stark neutral surface scale */
+    --surface-0: #ffffff;
+    --surface-1: #ffffff;
+    --surface-2: #f5f5f5;
+    --surface-3: #ececec;
 
-    --neo-shadow-sm: 4px 4px 0px 0px #000;
-    --neo-shadow-md: 8px 8px 0px 0px #000;
-    --neo-shadow-lg: 12px 12px 0px 0px #000;
+    --ink-1: #0a0a0a;
+    --ink-2: #404040;
+    --ink-3: #737373;
+    --border: #000000;
+    --border-strong: #000000;
+
+    /* Single accent: ink-black itself is the accent on interactive elements */
+    --accent: #000000;
+    --accent-hover: #262626;
+    --accent-soft: #f0f0f0;
+    --accent-ink: #ffffff;
+
+    --success: #16a34a;
+    --success-soft: #e8f5ec;
+    --danger: #dc2626;
+    --danger-soft: #fbe9e9;
+
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+
+    --radius-sm: 0px;
+    --radius-md: 0px;
+    --radius-lg: 0px;
+
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   }
 }
 
 @layer base {
   * {
-    border-color: var(--neo-fg);
+    border-color: var(--border);
   }
-}
 
-/* Global base styles */
-@layer base {
   *,
   *::before,
   *::after {
@@ -43,26 +65,41 @@
 
   body {
     font-family: var(--font-sans);
-    background: var(--neo-bg);
-    color: var(--neo-fg);
+    background: var(--surface-0);
+    color: var(--ink-1);
     min-height: 100vh;
-    font-weight: 700;
-    line-height: 1.5;
-    background-image:
-      radial-gradient(#000 1.4px, transparent 1.4px),
-      linear-gradient(to right, rgba(0, 0, 0, 0.08) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 1px, transparent 1px);
-    background-size: 22px 22px, 44px 44px, 44px 44px;
+    font-weight: 500;
+    line-height: 1.55;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-weight: 900;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 800;
     letter-spacing: -0.02em;
+    color: var(--ink-1);
+  }
+
+  ::selection {
+    background: var(--ink-1);
+    color: #ffffff;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+    border-radius: 0;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a3a3a3;
   }
 }
 
@@ -71,50 +108,130 @@
     @apply whitespace-nowrap;
   }
 
-  .neo-canvas {
-    @apply relative overflow-hidden;
+  /* Card surface for panels/sections — bordered, no shadow */
+  .ui-panel {
+    @apply bg-[var(--surface-1)] rounded-none;
+    border: 1px solid var(--border);
   }
 
-  .neo-shell {
-    @apply border-4 border-black bg-[#FFFDF5];
-    box-shadow: var(--neo-shadow-md);
+  .ui-card {
+    @apply bg-[var(--surface-1)] rounded-none transition-colors duration-150;
+    border: 1px solid var(--border);
+    transition-timing-function: var(--ease-out);
   }
 
-  .neo-card {
-    @apply border-4 border-black bg-white transition-transform duration-200 ease-linear;
-    box-shadow: var(--neo-shadow-md);
+  .ui-card:hover {
+    background: var(--surface-2);
   }
 
-  .neo-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--neo-shadow-lg);
+  .ui-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-none px-4 py-2.5 text-sm font-bold transition-all duration-150;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: 1px solid var(--border);
+    transition-timing-function: var(--ease-out);
   }
 
-  .neo-button {
-    @apply inline-flex items-center justify-center border-4 border-black px-5 py-3 text-sm font-bold uppercase tracking-wide transition-all duration-100 ease-linear;
-    box-shadow: var(--neo-shadow-sm);
+  .ui-button:hover {
+    background: var(--accent-hover);
   }
 
-  .neo-button:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
+  .ui-button:active {
+    transform: scale(0.97);
   }
 
-  .neo-badge {
-    @apply inline-flex items-center rounded-full border-4 border-black px-4 py-2 text-xs font-black uppercase tracking-[0.2em];
-    box-shadow: var(--neo-shadow-sm);
+  .ui-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
-  .neo-outline-title {
-    -webkit-text-stroke: 2px #000;
-    color: transparent;
+  .ui-button-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-none px-4 py-2.5 text-sm font-bold transition-all duration-150;
+    background: var(--surface-1);
+    color: var(--ink-1);
+    border: 1px solid var(--border);
+    transition-timing-function: var(--ease-out);
+  }
+
+  .ui-button-secondary:hover {
+    background: var(--surface-2);
+  }
+
+  .ui-button-secondary:active {
+    transform: scale(0.97);
+  }
+
+  .ui-badge {
+    @apply inline-flex items-center rounded-none px-2.5 py-1 text-xs font-bold uppercase tracking-wide;
+    background: var(--surface-2);
+    color: var(--ink-2);
+    border: 1px solid var(--border);
+  }
+
+  .ui-badge-accent {
+    background: var(--ink-1);
+    color: #ffffff;
+    border: 1px solid var(--border);
+  }
+
+  .ui-input {
+    @apply w-full rounded-none px-3 py-2 text-sm transition-colors duration-150;
+    background: var(--surface-1);
+    color: var(--ink-1);
+    border: 1px solid var(--border);
+  }
+
+  .ui-input::placeholder {
+    color: var(--ink-3);
+  }
+
+  .ui-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .ui-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ui-dropzone {
+    @apply rounded-none transition-colors duration-200 cursor-pointer;
+    border: 1.5px dashed var(--border);
+    background: var(--surface-2);
+    transition-timing-function: var(--ease-out);
+  }
+
+  .ui-dropzone:hover,
+  .ui-dropzone.drop-active {
+    border-color: var(--accent);
+    background: var(--surface-3);
+  }
+
+  input[type='range'].ui-range {
+    accent-color: var(--accent);
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+  }
+
+  .status-dot {
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .status-dot.ok {
+    background: var(--success);
+  }
+
+  .status-dot.err {
+    background: var(--danger);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;

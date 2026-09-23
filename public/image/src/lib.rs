@@ -280,6 +280,30 @@ pub fn perspective_crop(
 }
 
 #[wasm_bindgen]
+pub fn rotate_image(data: &[u8], degrees: i32, flip_h: bool, flip_v: bool) -> Result<Uint8Array, JsValue> {
+    let img = decode_rgba(data)?;
+
+    let normalized = ((degrees % 360) + 360) % 360;
+    let mut rotated = match normalized {
+        90 => imageops::rotate90(&img),
+        180 => imageops::rotate180(&img),
+        270 => imageops::rotate270(&img),
+        0 => img,
+        _ => return Err(JsValue::from_str("degrees must be 0, 90, 180, or 270")),
+    };
+
+    if flip_h {
+        imageops::flip_horizontal_in_place(&mut rotated);
+    }
+    if flip_v {
+        imageops::flip_vertical_in_place(&mut rotated);
+    }
+
+    let encoded = encode_rgba(&rotated, EncodeFormat::Png, 90)?;
+    Ok(Uint8Array::from(encoded.as_slice()))
+}
+
+#[wasm_bindgen]
 pub fn resize_image(
     data: &[u8],
     width: u32,

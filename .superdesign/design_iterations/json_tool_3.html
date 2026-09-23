@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Formatter — Ash Tools</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+  .cursor-blink::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: #000;
+    margin-left: 4px;
+    animation: blink 1s steps(1) infinite;
+    vertical-align: middle;
+  }
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  .scanline-dot { width: 8px; height: 8px; border: 1.5px solid #000; border-radius: 9999px; }
+
+  ::selection { background: #000; color: #fff; }
+
+  .json-key { color: #000; font-weight: 700; }
+  .json-str { color: #000; }
+  .json-num { color: #000; font-weight: 600; }
+  .json-bool { color: #000; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+  .json-null { color: #000; font-weight: 700; opacity: 0.5; }
+  .json-punc { color: #000; opacity: 0.4; }
+
+  .btn-press { transition: transform 0.05s ease; }
+  .btn-press:active { transform: translateY(1px); }
+
+  .dot-grid {
+    background-image: radial-gradient(#000 0.6px, transparent 0.6px);
+    background-size: 16px 16px;
+    opacity: 0.05;
+  }
+
+  textarea::placeholder { color: #00000055; }
+
+  .scrollbar-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: #fff; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #000; }
+</style>
+</head>
+<body class="bg-white text-black min-h-screen flex flex-col">
+
+  <!-- ambient dot grid -->
+  <div class="fixed inset-0 dot-grid pointer-events-none"></div>
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="relative z-10 border-b-[1.5px] border-black bg-white">
+    <div class="max-w-[1440px] mx-auto">
+      <!-- window chrome bar -->
+      <div class="flex items-center justify-between px-4 py-2 border-b border-black/10">
+        <div class="flex items-center gap-2">
+          <span class="scanline-dot"></span>
+          <span class="scanline-dot"></span>
+          <span class="scanline-dot"></span>
+          <span class="ml-4 text-xs opacity-50 hidden sm:inline">ash-tools — /json — zsh</span>
+        </div>
+        <div class="flex items-center gap-1 text-xs opacity-50">
+          <span>UTF-8</span>
+          <span>·</span>
+          <span>LF</span>
+        </div>
+      </div>
+
+      <!-- nav -->
+      <div class="flex items-center justify-between px-4 sm:px-8 py-4">
+        <a href="#" class="flex items-center gap-3 group">
+          <span class="w-8 h-8 border-[1.5px] border-black flex items-center justify-center text-sm font-bold group-hover:bg-black group-hover:text-white transition-colors">&gt;_</span>
+          <span class="text-lg font-bold tracking-tight">ash<span class="opacity-40">/</span>tools</span>
+        </a>
+        <a href="#" class="flex items-center gap-2 text-sm font-semibold border-[1.5px] border-black px-3 py-1.5 hover:bg-black hover:text-white transition-colors btn-press">
+          <span aria-hidden="true">&lt;</span>
+          <span>cd ~</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="relative z-10 flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-8 py-8 sm:py-10 flex flex-col gap-6 sm:gap-8">
+
+    <!-- page title -->
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-2 text-xs uppercase tracking-widest opacity-50">
+        <span>[</span><span>tool</span><span>]</span>
+        <span class="opacity-30">/</span>
+        <span>json-formatter</span>
+      </div>
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <h1 class="text-2xl sm:text-4xl font-bold tracking-tight flex items-center">
+          <span class="opacity-40 mr-2">$</span>JSON Formatter<span class="cursor-blink"></span>
+        </h1>
+        <p class="text-xs sm:text-sm opacity-60 max-w-md leading-relaxed">
+          Format, validate &amp; minify JSON entirely in your browser. Nothing you paste ever leaves this device — no server, no upload, no logs.
+        </p>
+      </div>
+    </div>
+
+    <!-- toolbar -->
+    <div class="border-[1.5px] border-black">
+      <div class="flex flex-wrap items-center gap-3 p-3 sm:p-4 border-b-[1.5px] border-black bg-black/[0.02]">
+        <button class="btn-press flex items-center gap-2 border-[1.5px] border-black bg-black text-white px-4 py-2 text-xs sm:text-sm font-semibold hover:bg-white hover:text-black transition-colors">
+          <span aria-hidden="true">$</span> format
+        </button>
+        <button class="btn-press flex items-center gap-2 border-[1.5px] border-black px-4 py-2 text-xs sm:text-sm font-semibold hover:bg-black hover:text-white transition-colors">
+          <span aria-hidden="true">$</span> minify
+        </button>
+
+        <div class="w-px h-6 bg-black/20 mx-1 hidden sm:block"></div>
+
+        <!-- indent selector -->
+        <div class="flex items-center border-[1.5px] border-black text-xs sm:text-sm font-semibold overflow-hidden">
+          <span class="px-3 py-2 opacity-50 border-r border-black/20 select-none">indent</span>
+          <button class="px-3 py-2 bg-black text-white">2</button>
+          <button class="px-3 py-2 border-l border-black/20 hover:bg-black hover:text-white transition-colors">4</button>
+          <button class="px-3 py-2 border-l border-black/20 hover:bg-black hover:text-white transition-colors">tab</button>
+        </div>
+
+        <div class="w-px h-6 bg-black/20 mx-1 hidden sm:block"></div>
+
+        <button class="btn-press flex items-center gap-2 border-[1.5px] border-black px-4 py-2 text-xs sm:text-sm font-semibold hover:bg-black hover:text-white transition-colors">
+          <span aria-hidden="true">$</span> load-sample
+        </button>
+
+        <div class="flex-1"></div>
+
+        <button class="btn-press flex items-center gap-2 border-[1.5px] border-black px-4 py-2 text-xs sm:text-sm font-semibold hover:bg-black hover:text-white transition-colors">
+          <span aria-hidden="true">$</span> open-file
+        </button>
+        <button class="btn-press flex items-center gap-2 border-[1.5px] border-black px-4 py-2 text-xs sm:text-sm font-semibold hover:bg-black hover:text-white transition-colors" title="clear">
+          <span aria-hidden="true">$</span> clear
+        </button>
+      </div>
+
+      <!-- status + stats readout -->
+      <div class="flex flex-wrap items-center justify-between gap-3 px-3 sm:px-4 py-2.5 text-xs sm:text-sm">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-black inline-block"></span>
+          <span class="font-semibold">valid json</span>
+          <span class="opacity-40">·</span>
+          <span class="opacity-60">parsed without errors</span>
+        </div>
+        <div class="flex items-center gap-4 opacity-70">
+          <span><span class="font-semibold">keys</span>&nbsp;12</span>
+          <span class="opacity-30">|</span>
+          <span><span class="font-semibold">size</span>&nbsp;486&nbsp;B</span>
+          <span class="opacity-30">|</span>
+          <span><span class="font-semibold">lines</span>&nbsp;28</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- editor panes -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+
+      <!-- INPUT -->
+      <div class="border-[1.5px] border-black flex flex-col">
+        <div class="flex items-center justify-between px-4 py-2.5 border-b-[1.5px] border-black bg-black/[0.02]">
+          <span class="text-xs sm:text-sm font-bold flex items-center gap-2">
+            <span class="opacity-40">[</span>input<span class="opacity-40">]</span>
+          </span>
+          <span class="text-xs opacity-50">raw.json</span>
+        </div>
+        <textarea
+          class="scrollbar-thin flex-1 min-h-[320px] sm:min-h-[420px] resize-none p-4 text-xs sm:text-sm leading-relaxed outline-none bg-white placeholder:italic"
+          placeholder="paste raw json here_"
+        >{"user":{"id":8841,"name":"Ada Lovelace","active":true,"roles":["admin","editor"],"meta":{"lastLogin":"2026-09-14T10:22:00Z","tags":null},"score":97.5}}</textarea>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="border-[1.5px] border-black flex flex-col">
+        <div class="flex items-center justify-between px-4 py-2.5 border-b-[1.5px] border-black bg-black/[0.02]">
+          <span class="text-xs sm:text-sm font-bold flex items-center gap-2">
+            <span class="opacity-40">[</span>output<span class="opacity-40">]</span>
+          </span>
+          <div class="flex items-center gap-2">
+            <button class="btn-press flex items-center gap-1.5 border border-black px-2.5 py-1 text-xs font-semibold hover:bg-black hover:text-white transition-colors">
+              <span aria-hidden="true">$</span> copy
+            </button>
+            <button class="btn-press flex items-center gap-1.5 border border-black px-2.5 py-1 text-xs font-semibold hover:bg-black hover:text-white transition-colors">
+              <span aria-hidden="true">$</span> download
+            </button>
+          </div>
+        </div>
+        <pre class="scrollbar-thin flex-1 min-h-[320px] sm:min-h-[420px] overflow-auto p-4 text-xs sm:text-sm leading-relaxed bg-white"><code><span class="json-punc">{</span>
+  <span class="json-key">"user"</span><span class="json-punc">:</span> <span class="json-punc">{</span>
+    <span class="json-key">"id"</span><span class="json-punc">:</span> <span class="json-num">8841</span><span class="json-punc">,</span>
+    <span class="json-key">"name"</span><span class="json-punc">:</span> <span class="json-str">"Ada Lovelace"</span><span class="json-punc">,</span>
+    <span class="json-key">"active"</span><span class="json-punc">:</span> <span class="json-bool">true</span><span class="json-punc">,</span>
+    <span class="json-key">"roles"</span><span class="json-punc">:</span> <span class="json-punc">[</span>
+      <span class="json-str">"admin"</span><span class="json-punc">,</span>
+      <span class="json-str">"editor"</span>
+    <span class="json-punc">]</span><span class="json-punc">,</span>
+    <span class="json-key">"meta"</span><span class="json-punc">:</span> <span class="json-punc">{</span>
+      <span class="json-key">"lastLogin"</span><span class="json-punc">:</span> <span class="json-str">"2026-09-14T10:22:00Z"</span><span class="json-punc">,</span>
+      <span class="json-key">"tags"</span><span class="json-punc">:</span> <span class="json-null">null</span>
+    <span class="json-punc">}</span><span class="json-punc">,</span>
+    <span class="json-key">"score"</span><span class="json-punc">:</span> <span class="json-num">97.5</span>
+  <span class="json-punc">}</span>
+<span class="json-punc">}</span></code></pre>
+      </div>
+    </div>
+
+    <!-- error example row (static demonstration of error state convention) -->
+    <div class="border-[1.5px] border-black flex items-center gap-3 px-4 py-3 text-xs sm:text-sm">
+      <span class="w-2 h-2 rounded-full bg-red-600 inline-block shrink-0"></span>
+      <span class="opacity-50">example error state:</span>
+      <span class="font-semibold">Unexpected token <span class="font-mono bg-black/5 px-1">,</span> at position 142 — expected value</span>
+    </div>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="relative z-10 border-t-[1.5px] border-black">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-8 py-6 flex flex-wrap items-center justify-between gap-4 text-xs">
+      <div class="flex items-center gap-2 opacity-60">
+        <span>[</span><span>privacy-first</span><span>]</span>
+        <span class="opacity-30">·</span>
+        <span>0 bytes leave your browser</span>
+      </div>
+      <div class="opacity-40">ash-tools/json-formatter</div>
+    </div>
+  </footer>
+
+</body>
+</html>

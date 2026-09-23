@@ -1,5 +1,5 @@
 <template>
-  <div class="neo-canvas min-h-screen bg-[#FFFDF5] text-black flex flex-col">
+  <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
     <Header />
     <main class="flex-1 px-4 py-4 md:px-6 md:py-6">
       <slot />

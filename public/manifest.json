@@ -1,11 +1,11 @@
 {
-  "name": "Local WASM Tools",
-  "short_name": "WASM Tools",
-  "description": "Free online WASM tools for image, video, regex, compression, and more. Runs locally in your browser.",
+  "name": "Ash Tools",
+  "short_name": "Ash Tools",
+  "description": "Free, privacy-first browser tools for media, docs, and developer workflows. Runs locally, no uploads.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#faf8f5",
+  "theme_color": "#faf8f5",
   "icons": [
     {
       "src": "/pwa-192x192.png",

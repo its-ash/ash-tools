@@ -6,6 +6,7 @@ export const crop_image: (a: number, b: number, c: number, d: number, e: number,
 export const optimize_image: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number];
 export const perspective_crop: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
 export const resize_image: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+export const rotate_image: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
 export const init_console_panic_hook: () => void;
 export const __wbindgen_free: (a: number, b: number, c: number) => void;
 export const __wbindgen_malloc: (a: number, b: number) => number;

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ash Tools — Privacy-first browser toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --accent:#FF6B4A;
+    --accent-soft:#FFE7DE;
+  }
+  html{scroll-behavior:smooth;}
+  body{font-family:'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;}
+  .ease-soft{transition-timing-function:cubic-bezier(.22,1,.36,1);}
+
+  .blob{
+    position:absolute;
+    border-radius:9999px;
+    filter:blur(60px);
+    pointer-events:none;
+    z-index:0;
+  }
+  .blob-1{
+    width:520px;height:520px;
+    background:radial-gradient(circle at 30% 30%, #FFB199 0%, #FFE7DE 55%, transparent 75%);
+    top:-160px; left:-140px;
+    opacity:.9;
+  }
+  .blob-2{
+    width:460px;height:460px;
+    background:radial-gradient(circle at 60% 40%, #C9E6FF 0%, #EAF5FF 55%, transparent 75%);
+    top:-80px; right:-160px;
+    opacity:.85;
+  }
+  .blob-3{
+    width:380px;height:380px;
+    background:radial-gradient(circle at 50% 50%, #FFE29A 0%, #FFF6DE 55%, transparent 75%);
+    bottom:-180px; left:35%;
+    opacity:.7;
+  }
+
+  .card-lift{
+    transition:transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s cubic-bezier(.22,1,.36,1), border-color .35s ease;
+  }
+  .card-lift:hover{
+    transform:translateY(-6px);
+    box-shadow:0 24px 48px -20px rgba(0,0,0,.18);
+  }
+
+  .pill-tab{
+    transition:background-color .25s ease, color .25s ease, transform .2s ease;
+  }
+  .pill-tab:active{ transform:scale(.97); }
+
+  .search-shadow{
+    box-shadow:0 20px 50px -18px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.06);
+  }
+
+  ::selection{ background:var(--accent-soft); color:#000; }
+</style>
+</head>
+<body class="bg-[#FBF9F7] text-black antialiased">
+
+<!-- ===== NAV ===== -->
+<header class="sticky top-0 z-50 bg-[#FBF9F7]/80 backdrop-blur-md border-b border-black/[0.06]">
+  <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20">
+      <a href="#" class="flex items-center gap-3">
+        <span class="w-10 h-10 rounded-2xl bg-black flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L3 7V17L12 22L21 17V7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M12 12L21 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 12V22" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 12L3 7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="text-xl font-800 font-extrabold tracking-tight">Ash Tools</span>
+      </a>
+
+      <nav class="hidden lg:flex items-center gap-8 text-sm font-semibold">
+        <a href="#tools" class="hover:opacity-60 transition-opacity ease-soft">All Tools</a>
+        <a href="#categories" class="hover:opacity-60 transition-opacity ease-soft">Categories</a>
+        <a href="#privacy" class="hover:opacity-60 transition-opacity ease-soft">Privacy</a>
+        <a href="#faq" class="hover:opacity-60 transition-opacity ease-soft">FAQ</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="#tools" class="hidden sm:inline-flex items-center h-11 px-5 rounded-full bg-black text-white text-sm font-semibold hover:bg-black/80 transition-colors ease-soft">
+          Open Toolkit
+        </a>
+        <button class="lg:hidden w-11 h-11 rounded-full border border-black/10 flex items-center justify-center" aria-label="Menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 6H21M3 12H21M3 18H21" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="relative overflow-hidden">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="relative z-10 max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 sm:pt-28 sm:pb-32">
+    <div class="max-w-3xl mx-auto text-center">
+      <div class="inline-flex items-center gap-2 h-9 px-4 rounded-full bg-white border border-black/[0.08] text-xs font-semibold mb-8">
+        <span class="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
+        20+ tools, zero uploads
+      </div>
+
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.08]">
+        Every tool you need.<br class="hidden sm:block"> None of your data leaves.
+      </h1>
+
+      <p class="mt-6 text-base sm:text-lg font-medium leading-relaxed max-w-2xl mx-auto">
+        20+ media, document, and developer tools that run entirely in your browser. No uploads, no accounts.
+      </p>
+
+      <!-- Hero Search -->
+      <div class="mt-12 max-w-xl mx-auto">
+        <div class="search-shadow bg-white rounded-full flex items-center gap-3 p-2 border border-black/[0.06]">
+          <div class="w-12 h-12 rounded-full bg-[var(--accent-soft)] flex items-center justify-center shrink-0 ml-1">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="var(--accent)" stroke-width="2"/><path d="M21 21L16.65 16.65" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <input type="text" placeholder="Search tools — try 'PDF' or 'JSON'" class="flex-1 bg-transparent outline-none text-sm sm:text-base font-medium placeholder:text-black/40 min-w-0">
+          <button class="hidden sm:inline-flex items-center h-12 px-6 rounded-full bg-black text-white text-sm font-semibold hover:bg-black/80 transition-colors ease-soft shrink-0">
+            Search
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs font-semibold">
+        <span class="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17L4 12" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> 100% client-side</span>
+        <span class="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17L4 12" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> No sign-up required</span>
+        <span class="flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17L4 12" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Free forever</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CATEGORY PILLS + TOOL GRID ===== -->
+<section id="tools" class="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pb-28">
+
+  <div id="categories" class="flex items-center justify-center flex-wrap gap-3 mb-16">
+    <button class="pill-tab h-11 px-6 rounded-full bg-black text-white text-sm font-semibold">All Tools</button>
+    <button class="pill-tab h-11 px-6 rounded-full bg-white border border-black/[0.08] text-sm font-semibold hover:bg-[var(--accent-soft)]">Media</button>
+    <button class="pill-tab h-11 px-6 rounded-full bg-white border border-black/[0.08] text-sm font-semibold hover:bg-[var(--accent-soft)]">Documents</button>
+    <button class="pill-tab h-11 px-6 rounded-full bg-white border border-black/[0.08] text-sm font-semibold hover:bg-[var(--accent-soft)]">Developer</button>
+    <button class="pill-tab h-11 px-6 rounded-full bg-white border border-black/[0.08] text-sm font-semibold hover:bg-[var(--accent-soft)]">Converters</button>
+    <button class="pill-tab h-11 px-6 rounded-full bg-white border border-black/[0.08] text-sm font-semibold hover:bg-[var(--accent-soft)]">Text</button>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <!-- Video Studio -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFE7DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 10L20 7V17L15 14" stroke="black" stroke-width="2" stroke-linejoin="round"/><rect x="3" y="6" width="12" height="12" rx="2" stroke="black" stroke-width="2"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Media</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Video Studio</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Trim, compress, and convert video files instantly — nothing ever leaves your device.</p>
+    </article>
+
+    <!-- Image Editor -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#EAF5FF] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="black" stroke-width="2"/><circle cx="9" cy="10" r="2" stroke="black" stroke-width="2"/><path d="M21 16L15 11L5 20" stroke="black" stroke-width="2" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Media</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Image Editor</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Crop, resize, filter, and export images in any format with zero quality loss.</p>
+    </article>
+
+    <!-- ZIP Compressor -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFF6DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3V21M12 3L8 7M12 3L16 7" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="14" width="16" height="7" rx="2" stroke="black" stroke-width="2"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Documents</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">ZIP Compressor</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Bundle and compress files into a ZIP archive right in your browser tab.</p>
+    </article>
+
+    <!-- PDF Merger -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFE7DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="11" height="14" rx="2" stroke="black" stroke-width="2"/><rect x="9" y="7" width="11" height="14" rx="2" fill="#FBF9F7" stroke="black" stroke-width="2"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Documents</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">PDF Merger</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Combine, reorder, and split PDF files without ever touching a server.</p>
+    </article>
+
+    <!-- Code Sandbox -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#EAF5FF] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8 9L4 12L8 15" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 9L20 12L16 15" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 7L11 17" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Developer</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Code Sandbox</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Run and test JS, HTML, and CSS snippets in a live, isolated preview.</p>
+    </article>
+
+    <!-- JSON Formatter -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFF6DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8 4C6 4 6 6 6 8C6 10 4 10 4 12C4 14 6 14 6 16C6 18 6 20 8 20" stroke="black" stroke-width="2" stroke-linecap="round"/><path d="M16 4C18 4 18 6 18 8C18 10 20 10 20 12C20 14 18 14 18 16C18 18 18 20 16 20" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Developer</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">JSON Formatter</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Beautify, validate, and minify JSON with instant syntax highlighting.</p>
+    </article>
+
+    <!-- Encode / Decode / Hash -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFE7DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="10" rx="2" stroke="black" stroke-width="2"/><path d="M8 10V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V10" stroke="black" stroke-width="2"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Developer</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Encode / Decode / Hash</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Base64, URL, JWT, MD5, and SHA — encode, decode, and hash on the fly.</p>
+    </article>
+
+    <!-- Color Picker -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#EAF5FF] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 21C16 17 20 13.4183 20 10C20 6 16.4183 3 12 3C7.58172 3 4 6 4 10C4 13.4183 8 17 12 21Z" stroke="black" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="10" r="3" stroke="black" stroke-width="2"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Media</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Color Picker</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Grab colors from any image and export HEX, RGB, or HSL instantly.</p>
+    </article>
+
+    <!-- QR Generator -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFF6DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="black" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="black" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="black" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="black" stroke-width="2"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Converters</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">QR Generator</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Turn any link or text into a scannable QR code in one click.</p>
+    </article>
+
+    <!-- Markdown Previewer -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFE7DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="black" stroke-width="2"/><path d="M6 15V9L9 12L12 9V15" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 9V15M18 12L15 15L15 9" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Text</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Markdown Previewer</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Write Markdown on the left, see live rendered output on the right.</p>
+    </article>
+
+    <!-- UUID Generator -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#EAF5FF] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="black" stroke-width="2"/><path d="M12 7V12L15 15" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Developer</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">UUID Generator</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Generate bulk v4 UUIDs and copy them out in the format you need.</p>
+    </article>
+
+    <!-- Diff Checker -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFF6DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 4H5C3.89543 4 3 4.89543 3 6V18C3 19.1046 3.89543 20 5 20H9" stroke="black" stroke-width="2" stroke-linecap="round"/><path d="M15 4H19C20.1046 4 21 4.89543 21 6V18C21 19.1046 20.1046 20 19 20H15" stroke="black" stroke-width="2" stroke-linecap="round"/><path d="M12 4V20" stroke="black" stroke-width="2" stroke-dasharray="2 3"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Developer</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Diff Checker</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Compare two blocks of text and highlight every line-level change.</p>
+    </article>
+
+    <!-- Unit Converter -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFE7DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7" stroke="black" stroke-width="2" stroke-linecap="round"/><path d="M7 7H12M7 7V12" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 17H12M17 17V12" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Converters</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Unit Converter</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Length, weight, temperature, and data units — converted instantly.</p>
+    </article>
+
+    <!-- Timestamp Converter -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#EAF5FF] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="black" stroke-width="2"/><path d="M12 9V13L15 15" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 3H15" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Converters</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Timestamp Converter</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Convert between Unix timestamps and human-readable dates instantly.</p>
+    </article>
+
+    <!-- Text Case Tools -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFF6DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 20L9 6L14 20" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 15H12.5" stroke="black" stroke-width="2" stroke-linecap="round"/><path d="M15 20V10C15 8.5 16.5 8 18 8C19.5 8 20 9 20 10V20" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Text</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Text Case Tools</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Switch between upper, lower, title, camel, and snake case instantly.</p>
+    </article>
+
+    <!-- Regex Tester -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFE7DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6" stroke="black" stroke-width="2"/><path d="M11 8V14M8.5 9.5L13.5 12.5M13.5 9.5L8.5 12.5" stroke="black" stroke-width="1.6" stroke-linecap="round"/><path d="M20 20L16 16" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Developer</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Regex Tester</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Build and test regular expressions with live match highlighting.</p>
+    </article>
+
+    <!-- CSV to JSON -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#EAF5FF] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="8" height="16" rx="2" stroke="black" stroke-width="2"/><rect x="13" y="4" width="8" height="16" rx="2" stroke="black" stroke-width="2"/><path d="M9 12H15" stroke="black" stroke-width="2" stroke-linecap="round"/><path d="M12 9L15 12L12 15" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Converters</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">CSV ⇄ JSON</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Convert spreadsheet data to JSON and back with smart type detection.</p>
+    </article>
+
+    <!-- Cron Explainer -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFF6DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="black" stroke-width="2"/><path d="M12 7V12L15.5 13.5" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="1.4" fill="black"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Developer</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Cron Explainer</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Paste a cron expression and get a plain-English schedule explanation.</p>
+    </article>
+
+    <!-- Image to Base64 -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#FFE7DE] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="12" height="10" rx="2" stroke="black" stroke-width="2"/><circle cx="7" cy="9" r="1.2" fill="black"/><path d="M4 13L8 10L15 15" stroke="black" stroke-width="1.6" stroke-linejoin="round"/><path d="M17 8L21 8M21 8L18.5 5.5M21 8L18.5 10.5" stroke="black" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 4)"/><rect x="16" y="14" width="6" height="6" rx="1.4" stroke="black" stroke-width="1.6"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Converters</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">Image ⇄ Base64</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Encode images to Base64 strings or decode strings back to files.</p>
+    </article>
+
+    <!-- LinkedIn Post Formatter -->
+    <article class="card-lift group bg-white rounded-[24px] p-8 border border-black/[0.06]">
+      <div class="flex items-start justify-between mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-[#EAF5FF] flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="black" stroke-width="2"/><circle cx="8" cy="8.5" r="1.4" fill="black"/><path d="M8 12V17" stroke="black" stroke-width="2" stroke-linecap="round"/><path d="M12 17V13.5C12 12.5 13 11.5 14.2 11.5C15.4 11.5 16 12.5 16 13.5V17" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-wide px-3 py-1.5 rounded-full bg-black/[0.04]">Text</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2">LinkedIn Post Formatter</h3>
+      <p class="text-sm font-medium leading-relaxed opacity-80">Apply bold, italic, and bullet Unicode styling LinkedIn actually renders.</p>
+    </article>
+
+  </div>
+
+  <div class="mt-14 text-center">
+    <button class="h-12 px-8 rounded-full bg-white border border-black/10 text-sm font-semibold hover:bg-black hover:text-white transition-colors ease-soft">
+      View all 20+ tools
+    </button>
+  </div>
+</section>
+
+<!-- ===== PRIVACY STRIP ===== -->
+<section id="privacy" class="relative overflow-hidden bg-black">
+  <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-8">
+      <div class="lg:col-span-1">
+        <h2 class="text-3xl font-extrabold text-white leading-tight">Built on a simple promise</h2>
+        <p class="mt-4 text-sm font-medium text-white/70 leading-relaxed">Every tool runs as WebAssembly or native JS in your tab. Your files are processed in memory and never touch our servers.</p>
+      </div>
+      <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="rounded-[20px] bg-white/[0.06] border border-white/10 p-6">
+          <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="10" rx="2" stroke="white" stroke-width="2"/><path d="M8 10V7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7V10" stroke="white" stroke-width="2"/></svg>
+          </div>
+          <h3 class="text-white font-bold mb-2">No uploads, ever</h3>
+          <p class="text-xs font-medium text-white/60 leading-relaxed">Files stay local to your device from start to finish.</p>
+        </div>
+        <div class="rounded-[20px] bg-white/[0.06] border border-white/10 p-6">
+          <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="2"/><path d="M4 20C4 16.6863 7.58172 14 12 14C16.4183 14 20 16.6863 20 20" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="text-white font-bold mb-2">No accounts</h3>
+          <p class="text-xs font-medium text-white/60 leading-relaxed">Open a tool and start working — nothing to sign up for.</p>
+        </div>
+        <div class="rounded-[20px] bg-white/[0.06] border border-white/10 p-6">
+          <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-6">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 3L4 14H11L10 21L19 10H12L13 3Z" stroke="white" stroke-width="2" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 class="text-white font-bold mb-2">Instant & offline</h3>
+          <p class="text-xs font-medium text-white/60 leading-relaxed">Runs directly in-browser, fast even without a connection.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section id="faq" class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-24">
+  <div class="max-w-2xl mx-auto text-center mb-14">
+    <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Common questions</h2>
+  </div>
+  <div class="max-w-3xl mx-auto grid grid-cols-1 gap-4">
+    <details class="group bg-white rounded-[20px] border border-black/[0.06] p-6" open>
+      <summary class="flex items-center justify-between cursor-pointer font-bold text-sm sm:text-base list-none">
+        Is my data really never uploaded anywhere?
+        <svg class="shrink-0 ml-4 group-open:rotate-45 transition-transform ease-soft" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
+      </summary>
+      <p class="mt-4 text-sm font-medium leading-relaxed opacity-80">Correct. Every tool processes files using in-browser JavaScript and WebAssembly. Nothing is transmitted to any server at any point.</p>
+    </details>
+    <details class="group bg-white rounded-[20px] border border-black/[0.06] p-6">
+      <summary class="flex items-center justify-between cursor-pointer font-bold text-sm sm:text-base list-none">
+        Do I need to create an account?
+        <svg class="shrink-0 ml-4 group-open:rotate-45 transition-transform ease-soft" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
+      </summary>
+      <p class="mt-4 text-sm font-medium leading-relaxed opacity-80">No. Every tool is available instantly, with no sign-up, login, or email required.</p>
+    </details>
+    <details class="group bg-white rounded-[20px] border border-black/[0.06] p-6">
+      <summary class="flex items-center justify-between cursor-pointer font-bold text-sm sm:text-base list-none">
+        Is Ash Tools free to use?
+        <svg class="shrink-0 ml-4 group-open:rotate-45 transition-transform ease-soft" width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>
+      </summary>
+      <p class="mt-4 text-sm font-medium leading-relaxed opacity-80">Yes, all 20+ tools are free with no usage limits, watermarks, or hidden paywalls.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="border-t border-black/[0.06]">
+  <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-10">
+      <div class="col-span-2 lg:col-span-2">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="w-9 h-9 rounded-xl bg-black flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2L3 7V17L12 22L21 17V7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round"/></svg>
+          </span>
+          <span class="text-lg font-extrabold">Ash Tools</span>
+        </div>
+        <p class="text-sm font-medium opacity-70 max-w-xs leading-relaxed">Privacy-first media, document, and developer tools. No uploads, no accounts, just tools that work.</p>
+      </div>
+      <div>
+        <h4 class="text-xs font-bold uppercase tracking-wide opacity-50 mb-4">Media</h4>
+        <ul class="space-y-3 text-sm font-semibold">
+          <li><a href="#" class="hover:opacity-60">Video Studio</a></li>
+          <li><a href="#" class="hover:opacity-60">Image Editor</a></li>
+          <li><a href="#" class="hover:opacity-60">Color Picker</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-xs font-bold uppercase tracking-wide opacity-50 mb-4">Developer</h4>
+        <ul class="space-y-3 text-sm font-semibold">
+          <li><a href="#" class="hover:opacity-60">JSON Formatter</a></li>
+          <li><a href="#" class="hover:opacity-60">Regex Tester</a></li>
+          <li><a href="#" class="hover:opacity-60">Code Sandbox</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-xs font-bold uppercase tracking-wide opacity-50 mb-4">Company</h4>
+        <ul class="space-y-3 text-sm font-semibold">
+          <li><a href="#" class="hover:opacity-60">Privacy</a></li>
+          <li><a href="#" class="hover:opacity-60">FAQ</a></li>
+          <li><a href="#" class="hover:opacity-60">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-16 pt-8 border-t border-black/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-xs font-semibold opacity-50">© 2026 Ash Tools. All rights reserved.</p>
+      <p class="text-xs font-semibold opacity-50">Made to run entirely in your browser.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

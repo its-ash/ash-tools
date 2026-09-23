@@ -1,15 +1,43 @@
 <script setup lang="ts">
 const currentYear = new Date().getFullYear()
 
-const tools = [
-  { name: 'ZIP Compressor', href: '/zip/' },
-  { name: 'Image Editor', href: '/image/' },
-  { name: 'Video Studio', href: '/video/' },
-  { name: 'Regex Generator', href: '/regexp/' },
-  { name: 'Speed Runner', href: '/speed/' },
-  { name: 'Code Sandbox', href: '/sandbox/' },
-  { name: 'WebLLM Chat', href: '/webllm/' },
-  { name: 'Resume Optimizer', href: '/resume/' },
+// Kept in sync with the tool list on the home page (pages/index.vue).
+const toolGroups = [
+  {
+    label: 'Media & Files',
+    tools: [
+      { name: 'Video Studio', href: '/video/' },
+      { name: 'Image Editor', href: '/image/' },
+      { name: 'ZIP Compressor', href: '/zip/' },
+      { name: 'PDF Merger', href: '/pdf/' },
+    ],
+  },
+  {
+    label: 'Developer',
+    tools: [
+      { name: 'JSON Formatter', href: '/json/' },
+      { name: 'Code Sandbox', href: '/sandbox/' },
+      { name: 'Regex Tester', href: '/regex/' },
+      { name: 'Diff Checker', href: '/diff/' },
+      { name: 'CSV ⇄ JSON', href: '/csv/' },
+      { name: 'Encode / Decode / Hash', href: '/encode/' },
+      { name: 'Cron Explainer', href: '/cron/' },
+    ],
+  },
+  {
+    label: 'Utilities',
+    tools: [
+      { name: 'Color Picker', href: '/color/' },
+      { name: 'QR Code Generator', href: '/qr/' },
+      { name: 'Markdown Previewer', href: '/markdown/' },
+      { name: 'UUID & Password Generator', href: '/uuid/' },
+      { name: 'Unit Converter', href: '/units/' },
+      { name: 'Timestamp Converter', href: '/timestamp/' },
+      { name: 'Text Case & Lorem Ipsum', href: '/text/' },
+      { name: 'Image ⇄ Base64', href: '/base64-image/' },
+      { name: 'LinkedIn Post Formatter', href: '/linkedin/' },
+    ],
+  },
 ]
 
 const resources = [
@@ -20,78 +48,58 @@ const resources = [
 </script>
 
 <template>
-  <footer class="mt-8 border-4 border-black bg-[#FFD93D] text-black shadow-[8px_8px_0px_0px_#000]">
-    <div class="max-w-7xl mx-auto px-4 md:px-6">
-      <div class="grid grid-cols-1 gap-6 py-8 md:grid-cols-3 md:py-10">
-        <div class="flex flex-col gap-4">
+  <footer class="mt-16 border-t border-[var(--border)] bg-[var(--surface-1)]">
+    <div class="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-14">
+      <div class="grid grid-cols-1 gap-10 md:grid-cols-5">
+        <div class="flex flex-col gap-3 md:col-span-2">
           <div class="flex items-center gap-2">
-            <span class="inline-block h-3 w-3 border-2 border-black rounded-full bg-[#FF6B6B]"></span>
-            <h3 class="border-4 border-black bg-white px-3 py-1 text-lg font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">Ash Tools</h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="1" y="1" width="22" height="22" stroke="var(--ink-1)" stroke-width="2" />
+              <path d="M7 12L10.5 15.5L17 8" stroke="var(--ink-1)" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" />
+            </svg>
+            <h3 class="text-sm font-extrabold text-[var(--ink-1)]">Ash Tools</h3>
           </div>
-          <p class="border-4 border-black bg-white p-4 text-sm leading-relaxed shadow-[4px_4px_0px_0px_#000]">
-            A collection of powerful, privacy-focused web tools built with WebAssembly. Process everything locally in your browser. No uploads, 100% private.
+          <p class="max-w-xs text-sm leading-relaxed text-[var(--ink-2)]">
+            Practical file and media tools that run entirely in your browser. No uploads, no accounts, nothing leaves your device.
           </p>
+          <div>
+            <h4 class="mb-4 text-xs font-bold uppercase tracking-wide text-[var(--ink-3)]">Resources</h4>
+            <ul class="space-y-2.5">
+              <li v-for="resource in resources" :key="resource.href">
+                <a
+                  :href="resource.href"
+                  :target="resource.external ? '_blank' : undefined"
+                  :rel="resource.external ? 'noopener noreferrer' : undefined"
+                  class="text-sm text-[var(--ink-2)] transition-colors duration-150 hover:text-[var(--ink-1)]"
+                >
+                  {{ resource.name }}
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <div>
-          <h4 class="mb-4 inline-block border-4 border-black bg-[#FF6B6B] px-3 py-1 text-sm font-black uppercase tracking-[0.2em] shadow-[4px_4px_0px_0px_#000]">Tools</h4>
-          <ul class="space-y-2">
-            <li v-for="tool in tools" :key="tool.href">
+        <div v-for="group in toolGroups" :key="group.label">
+          <h4 class="mb-4 text-xs font-bold uppercase tracking-wide text-[var(--ink-3)]">{{ group.label }}</h4>
+          <ul class="space-y-2.5">
+            <li v-for="tool in group.tools" :key="tool.href">
               <NuxtLink
                 :to="tool.href"
-                class="inline-block border-4 border-transparent px-2 py-1 text-sm font-bold uppercase tracking-wide transition-all duration-100 ease-linear hover:border-black hover:bg-white hover:shadow-[4px_4px_0px_0px_#000]"
+                class="text-sm text-[var(--ink-2)] transition-colors duration-150 hover:text-[var(--ink-1)]"
               >
                 {{ tool.name }}
               </NuxtLink>
             </li>
           </ul>
         </div>
-
-        <div>
-          <h4 class="mb-4 inline-block border-4 border-black bg-[#C4B5FD] px-3 py-1 text-sm font-black uppercase tracking-[0.2em] shadow-[4px_4px_0px_0px_#000]">Resources</h4>
-          <ul class="space-y-2">
-            <li v-for="resource in resources" :key="resource.href">
-              <a
-                :href="resource.href"
-                :target="resource.external ? '_blank' : undefined"
-                :rel="resource.external ? 'noopener noreferrer' : undefined"
-                class="inline-block border-4 border-transparent px-2 py-1 text-sm font-bold uppercase tracking-wide transition-all duration-100 ease-linear hover:border-black hover:bg-white hover:shadow-[4px_4px_0px_0px_#000]"
-              >
-                {{ resource.name }}
-                <span v-if="resource.external" class="ml-1">↗</span>
-              </a>
-            </li>
-          </ul>
-        </div>
       </div>
 
-      <div class="mb-6 border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_#000]">
-        <p class="text-xs font-bold text-center md:text-left">
-          © {{ currentYear }} Ash Tools. All rights reserved. Built with 
-          <span class="font-black">WebAssembly</span> • 
-          <span class="font-black">Privacy First</span>
+      <div class="mt-10 flex flex-col gap-3 border-t border-[var(--border)] pt-6 text-xs mono text-[var(--ink-3)] md:flex-row md:items-center md:justify-between">
+        <p>© {{ currentYear }} Ash Tools. Built by
+          <a href="https://its-ash.github.io/" target="_blank" rel="noopener noreferrer" class="font-medium text-[var(--ink-2)] hover:text-[var(--ink-1)]">Ashvini Jangid</a>.
         </p>
-
-        <div class="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs md:justify-start">
-          <span class="border-4 border-black bg-[#FFFDF5] px-2 py-1 font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">Nuxt 3</span>
-          <span class="border-4 border-black bg-[#FFFDF5] px-2 py-1 font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">Tailwind</span>
-          <span class="border-4 border-black bg-[#FFFDF5] px-2 py-1 font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">WASM</span>
-          <span class="border-4 border-black bg-[#FFFDF5] px-2 py-1 font-black uppercase tracking-wide shadow-[4px_4px_0px_0px_#000]">VueJS</span>
-        </div>
-      </div>
-
-      <div class="mb-8 border-4 border-black bg-white p-4 text-center text-xs font-bold leading-relaxed shadow-[4px_4px_0px_0px_#000] md:text-left">
-        <p>
-          Built with ❤️ using WebAssembly, Rust, and modern web technologies.<br>
-          Created by <a href="https://its-ash.github.io/" target="_blank" rel="noopener noreferrer" class="border-b-4 border-black bg-[#C4B5FD] px-1 py-0.5 font-black uppercase tracking-wide">Ashvini Jangid</a> •
-          <a href="https://github.com/its-ash/ash-tools" target="_blank" rel="noopener noreferrer" class="border-b-4 border-black bg-[#FF6B6B] px-1 py-0.5 font-black uppercase tracking-wide">View on GitHub</a> •
-          <a href="https://ash-tools.store/" target="_blank" rel="noopener noreferrer" class="border-b-4 border-black bg-[#FFD93D] px-1 py-0.5 font-black uppercase tracking-wide">Learn More</a>
-        </p>
+        <p>Nuxt 3 · Rust · WebAssembly</p>
       </div>
     </div>
   </footer>
 </template>
-
-<style scoped>
-/* Global Tailwind CSS is loaded from assets/css/main.css */
-</style>

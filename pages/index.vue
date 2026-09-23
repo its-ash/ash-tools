@@ -2,216 +2,301 @@
 useHead({
   title: 'Ash Tools | Private Browser Tools for Media, Docs, and Dev',
   meta: [
-    { name: 'description', content: 'Ash Tools is a privacy-first toolkit for media editing, PDF and ZIP workflows, AI chat, and developer utilities. Everything runs locally in your browser with no uploads.' },
-    { name: 'keywords', content: 'free tools, video compressor, file zipper, online tools, web tools, compression, zip files, video editor, AI chat, code sandbox, rust execution, javascript runner, local processing, offline tools, privacy tools' },
+    { name: 'description', content: 'Ash Tools is a privacy-first toolkit for media editing, PDF and ZIP workflows, and developer utilities. Everything runs locally in your browser with no uploads.' },
+    { name: 'keywords', content: 'free tools, video compressor, file zipper, online tools, web tools, compression, zip files, video editor, code sandbox, rust execution, javascript runner, local processing, offline tools, privacy tools' },
     { property: 'og:type', content: 'website' },
     { property: 'og:url', content: 'https://ash-tools.store/' },
     { property: 'og:title', content: 'Ash Tools | Private Browser Tools for Media, Docs, and Dev' },
-    { property: 'og:description', content: 'Privacy-first browser tools for media, docs, AI, and developer workflows. Local processing, no uploads, offline-ready.' },
+    { property: 'og:description', content: 'Privacy-first browser tools for media, docs, and developer workflows. Local processing, no uploads, offline-ready.' },
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'robots', content: 'index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1' },
   ],
   link: [{ rel: 'canonical', href: 'https://ash-tools.store/' }],
 })
 
-const mediaTools = [
+const tools = [
   {
     title: 'Video Studio',
     route: '/video',
-    icon: '🎬',
-    color: '#FF6B6B',
-    description: 'Trim, crop, compress, and process videos locally with WebAssembly + FFmpeg.',
-    features: ['Trim and crop videos', 'Multiple format support', 'Batch processing', 'Local-first workflow'],
-    cta: 'Open Video Studio',
+    description: 'Trim, crop, and compress videos with WebAssembly and FFmpeg.',
+    tag: 'Media',
   },
   {
     title: 'Image Editor',
     route: '/image',
-    icon: '🖼️',
-    color: '#FFD93D',
-    description: 'Edit, warp, and optimize images in-browser without file uploads.',
-    features: ['Perspective crop tools', 'PNG, JPEG, WebP, HEIC', 'Compression previews', 'Offline-ready'],
-    cta: 'Open Image Editor',
+    description: 'Crop, warp, and optimize images without leaving your browser.',
+    tag: 'Media',
   },
   {
-    title: 'View and Zip Files',
+    title: 'ZIP Compressor',
     route: '/zip',
-    icon: '📦',
-    color: '#C4B5FD',
-    description: 'Create ZIP archives from files and folders with drag-and-drop convenience.',
-    features: ['ZIP archive creation', 'Folder compression', 'Drag and drop interface', 'Batch packaging'],
-    cta: 'Open ZIP Tool',
+    description: 'Create ZIP archives from files and folders with drag-and-drop.',
+    tag: 'Files',
   },
   {
     title: 'PDF Merger',
     route: '/pdf',
-    icon: '📄',
-    color: '#FF6B6B',
-    description: 'Merge, reorder, and compress PDF documents securely offline.',
-    features: ['Multi-file merging', 'Drag reordering', 'Compression support', 'Thumbnail previews'],
-    cta: 'Open PDF Merger',
-  },
-  {
-    title: 'WebLLM Studio',
-    route: '/webllm',
-    icon: '🧠',
-    color: '#C4B5FD',
-    description: 'Run local AI chat sessions with custom context and prompts on-device.',
-    features: ['Context + prompt workflow', 'Local WebGPU inference', 'Private chat history', 'PWA support'],
-    cta: 'Open WebLLM Studio',
-  },
-]
-
-const devTools = [
-  {
-    title: 'Speed Runner',
-    route: '/speed',
-    icon: '⚡',
-    color: '#FFD93D',
-    description: 'Benchmark JavaScript execution and memory with visual performance output.',
-    features: ['Execution time analysis', 'Heap tracking', 'Visual charts', 'Worker isolation'],
-    cta: 'Open Speed Runner',
-  },
-  {
-    title: 'Regex Generator',
-    route: '/regexp',
-    icon: '.*',
-    color: '#FF6B6B',
-    description: 'Generate optimized regex patterns from examples using Rust-powered logic.',
-    features: ['Example-based generation', 'Rust/Grex engine', 'Instant preview', 'Offline processing'],
-    cta: 'Open Regex Tool',
+    description: 'Merge, reorder, and compress PDF documents offline.',
+    tag: 'Files',
   },
   {
     title: 'Code Sandbox',
     route: '/sandbox',
-    icon: '🧪',
-    color: '#C4B5FD',
-    description: 'Run and test multiple languages in an isolated browser execution environment.',
-    features: ['Multi-language support', 'WASI runtime', 'stdin support', 'Copy output tools'],
-    cta: 'Open Code Sandbox',
+    description: 'Run and test code in multiple languages in an isolated runtime.',
+    tag: 'Developer',
+  },
+  {
+    title: 'JSON Formatter',
+    route: '/json',
+    description: 'Format, minify, and validate JSON with instant error feedback.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Encode / Decode / Hash',
+    route: '/encode',
+    description: 'Base64, URL, and hex encoding plus SHA hash digests.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Color Picker',
+    route: '/color',
+    description: 'Pick colors and convert between HEX, RGB, and HSL with palettes.',
+    tag: 'Developer',
+  },
+  {
+    title: 'QR Code Generator',
+    route: '/qr',
+    description: 'Turn text or links into a downloadable QR code, styled to match.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Markdown Previewer',
+    route: '/markdown',
+    description: 'Write Markdown and see sanitized, live-rendered HTML side by side.',
+    tag: 'Developer',
+  },
+  {
+    title: 'UUID & Password Generator',
+    route: '/uuid',
+    description: 'Generate v4 UUIDs and strong random passwords with strength feedback.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Diff Checker',
+    route: '/diff',
+    description: 'Compare two blocks of text line by line with additions and removals highlighted.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Unit Converter',
+    route: '/units',
+    description: 'Convert length, weight, temperature, data size, and time units instantly.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Timestamp Converter',
+    route: '/timestamp',
+    description: 'Convert between Unix timestamps, ISO 8601, and human-readable dates.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Text Case & Lorem Ipsum',
+    route: '/text',
+    description: 'Convert text case, count words, and generate placeholder text.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Regex Tester',
+    route: '/regex',
+    description: 'Test regular expressions against sample text with live match highlighting.',
+    tag: 'Developer',
+  },
+  {
+    title: 'CSV ⇄ JSON',
+    route: '/csv',
+    description: 'Convert CSV or TSV tables to JSON and back, with delimiter and header options.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Cron Explainer',
+    route: '/cron',
+    description: 'Translate cron expressions into plain English and preview next run times.',
+    tag: 'Developer',
+  },
+  {
+    title: 'Image ⇄ Base64',
+    route: '/base64-image',
+    description: 'Convert images to Base64 data URIs and back, fully offline.',
+    tag: 'Developer',
+  },
+  {
+    title: 'LinkedIn Post Formatter',
+    route: '/linkedin',
+    description: 'Write with bold, italic, and bullets that render correctly in LinkedIn posts.',
+    tag: 'Content',
   },
 ]
+
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Ash Tools',
+        url: 'https://ash-tools.store/',
+        description: 'Ash Tools is a free, privacy-first toolkit of browser utilities for media editing, PDF and ZIP workflows, and developer tasks.',
+      }),
+    },
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        itemListElement: tools.map((tool, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: tool.title,
+          url: `https://ash-tools.store${tool.route}/`,
+        })),
+      }),
+    },
+  ],
+})
+
+// Hero search: a standalone, always-inline search (distinct from the header's
+// ⌘K command palette) so both can exist on this page without fighting over
+// the same open/close state or keyboard shortcut.
+const heroQuery = ref('')
+const heroActiveIndex = ref(0)
+const heroInputFocused = ref(false)
+const router = useRouter()
+
+const heroResults = computed(() => {
+  const q = heroQuery.value.trim().toLowerCase()
+  if (!q) return tools
+  return tools.filter((tool) =>
+    tool.title.toLowerCase().includes(q) || tool.description.toLowerCase().includes(q) || tool.tag.toLowerCase().includes(q)
+  )
+})
+
+watch(heroResults, () => { heroActiveIndex.value = 0 })
+
+const heroShowResults = computed(() => heroInputFocused.value && heroQuery.value.trim().length > 0)
+
+const goToTool = (route: string) => {
+  heroInputFocused.value = false
+  router.push(route)
+}
+
+// Delayed on blur so a click on a result (mousedown) has a chance to fire
+// before the dropdown unmounts.
+const onHeroBlur = () => {
+  window.setTimeout(() => { heroInputFocused.value = false }, 150)
+}
+
+const onHeroKeydown = (event: KeyboardEvent) => {
+  if (!heroShowResults.value) return
+  if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    heroActiveIndex.value = Math.min(heroActiveIndex.value + 1, heroResults.value.length - 1)
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    heroActiveIndex.value = Math.max(heroActiveIndex.value - 1, 0)
+  } else if (event.key === 'Enter') {
+    event.preventDefault()
+    const match = heroResults.value[heroActiveIndex.value]
+    if (match) goToTool(match.route)
+  } else if (event.key === 'Escape') {
+    heroInputFocused.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl px-2 py-10 sm:px-4 md:px-6 md:py-14">
-    <header class="neo-shell mb-12 px-5 py-10 text-center md:px-10 md:py-14">
-      <p class="inline-block -rotate-2 border-4 border-black bg-[#FFD93D] px-3 py-1 text-xs font-black uppercase tracking-[0.2em] shadow-[4px_4px_0px_0px_#000]">
-        Local-First Browser Toolkit
+  <div class="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-20">
+    <section class="mx-auto max-w-2xl text-center">
+      <span class="ui-badge ui-badge-accent">Local-first toolkit</span>
+      <p class="mt-5 text-base leading-relaxed text-[var(--ink-2)]">
+        20+ media, document, and developer tools that run entirely in your browser. No uploads, no accounts.
       </p>
 
-      <div class="mt-6">
-        <h1 class="neo-outline-title text-5xl leading-[0.9] tracking-tight sm:text-7xl md:text-8xl">ASH TOOLS</h1>
-        <h1 class="-mt-7 rotate-1 text-5xl font-black uppercase tracking-tight sm:text-7xl md:text-8xl">ASH TOOLS</h1>
+      <div class="relative mt-6">
+        <div class="ui-panel flex items-center gap-3 px-4 py-3.5 text-left">
+          <svg class="h-5 w-5 shrink-0 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="9" cy="9" r="6" />
+            <path stroke-linecap="round" d="m17 17-4.3-4.3" />
+          </svg>
+          <input
+            v-model="heroQuery"
+            type="text"
+            placeholder="Search 20+ tools... try &quot;pdf&quot; or &quot;json&quot;"
+            class="w-full bg-transparent text-base text-[var(--ink-1)] outline-none placeholder:text-[var(--ink-3)]"
+            @focus="heroInputFocused = true"
+            @blur="onHeroBlur"
+            @keydown="onHeroKeydown"
+          >
+        </div>
+
+        <div
+          v-if="heroShowResults"
+          class="absolute inset-x-0 top-full z-20 mt-2 max-h-80 overflow-y-auto border-2 border-[var(--border)] bg-[var(--surface-1)] p-2 text-left"
+        >
+          <p v-if="!heroResults.length" class="px-3 py-6 text-center text-sm text-[var(--ink-3)]">
+            No tools match "{{ heroQuery }}"
+          </p>
+          <button
+            v-for="(tool, index) in heroResults"
+            :key="tool.route"
+            type="button"
+            class="flex w-full items-center justify-between gap-3 rounded-none px-3 py-2.5 text-left transition-colors duration-100"
+            :class="index === heroActiveIndex ? 'bg-[var(--ink-1)] text-white' : 'hover:bg-[var(--surface-2)]'"
+            @mousedown.prevent="goToTool(tool.route)"
+            @mouseenter="heroActiveIndex = index"
+          >
+            <span class="min-w-0">
+              <span class="block truncate text-sm font-medium" :class="index === heroActiveIndex ? 'text-white' : 'text-[var(--ink-1)]'">{{ tool.title }}</span>
+              <span class="block truncate text-xs" :class="index === heroActiveIndex ? 'text-white/70' : 'text-[var(--ink-3)]'">{{ tool.description }}</span>
+            </span>
+            <span class="ui-badge shrink-0" :class="index === heroActiveIndex ? '!border-white !text-white' : ''">{{ tool.tag }}</span>
+          </button>
+        </div>
       </div>
 
-      <p class="mx-auto mt-6 max-w-3xl border-4 border-black bg-white p-4 text-lg font-bold leading-relaxed shadow-[8px_8px_0px_0px_#000]">
-        A single workspace for everyday file tasks and developer utilities. Edit media, merge documents, run code, and chat with local AI models directly in your browser.
-      </p>
-
-      <div class="mt-6 flex flex-wrap justify-center gap-3">
-        <span class="neo-badge bg-[#FF6B6B]">100% Local Processing</span>
-        <span class="neo-badge bg-[#FFD93D]">No Uploads Required</span>
-        <span class="neo-badge bg-[#C4B5FD]">Works Offline</span>
-        <span class="neo-badge bg-white">WebAssembly Powered</span>
-      </div>
-    </header>
-
-    <section class="neo-shell mb-14 bg-[#FFD93D] p-6 md:p-8">
-      <h2 class="mb-5 inline-block border-4 border-black bg-white px-3 py-1 text-3xl uppercase">Start in 3 Steps</h2>
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_#000]">
-          <p class="text-sm font-black uppercase tracking-wide">1. Pick a tool</p>
-          <p class="mt-2 text-sm">Choose from media, docs, AI, or developer utilities below.</p>
-        </div>
-        <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_#000]">
-          <p class="text-sm font-black uppercase tracking-wide">2. Add files or code</p>
-          <p class="mt-2 text-sm">Drag files or paste snippets. Processing starts locally.</p>
-        </div>
-        <div class="border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_#000]">
-          <p class="text-sm font-black uppercase tracking-wide">3. Export results</p>
-          <p class="mt-2 text-sm">Download optimized outputs and keep working in-browser.</p>
-        </div>
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs mono text-[var(--ink-3)]">
+        <span class="inline-flex items-center gap-1.5">
+          <span class="h-1.5 w-1.5 shrink-0 rounded-full" style="background: var(--success)" />
+          100% local processing
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="h-1.5 w-1.5 shrink-0 rounded-full" style="background: var(--success)" />
+          Works offline
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="h-1.5 w-1.5 shrink-0 rounded-full" style="background: var(--success)" />
+          No accounts
+        </span>
       </div>
     </section>
 
-    <section class="mb-14">
-      <h2 class="inline-block -rotate-1 border-4 border-black bg-[#FF6B6B] px-4 py-2 text-3xl uppercase shadow-[4px_4px_0px_0px_#000]">
-        Media and Document Tools
-      </h2>
-      <p class="mt-4 max-w-3xl border-4 border-black bg-white p-4 text-base shadow-[4px_4px_0px_0px_#000]">
-        Use these tools when you need to transform files quickly without cloud uploads.
-      </p>
-
-      <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <article
-          v-for="tool in mediaTools"
+    <section class="mt-20 border-t border-[var(--border)] pt-14">
+      <h2 class="text-2xl font-extrabold tracking-tight text-[var(--ink-1)]">All tools</h2>
+      <div class="mt-8 grid grid-cols-1 gap-px border border-[var(--border)] bg-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">
+        <NuxtLink
+          v-for="tool in tools"
           :key="tool.route"
-          class="neo-card flex h-full flex-col p-5"
+          :to="tool.route"
+          class="group flex flex-col gap-3 bg-[var(--surface-1)] p-5 transition-colors duration-150 hover:bg-[var(--surface-2)]"
         >
-          <div class="mb-3 flex items-center gap-3">
-            <div
-              class="flex h-14 w-14 items-center justify-center border-4 border-black text-2xl shadow-[4px_4px_0px_0px_#000]"
-              :style="{ backgroundColor: tool.color }"
-            >
-              {{ tool.icon }}
-            </div>
-            <h3 class="text-xl uppercase">{{ tool.title }}</h3>
-          </div>
-
-          <p class="mb-4 text-sm leading-relaxed">{{ tool.description }}</p>
-          <ul class="mb-5 space-y-1 text-xs font-bold uppercase tracking-wide">
-            <li v-for="feature in tool.features" :key="feature">✓ {{ feature }}</li>
-          </ul>
-
-          <NuxtLink
-            :to="tool.route"
-            class="neo-button mt-auto"
-            :style="{ backgroundColor: tool.color }"
-          >
-            {{ tool.cta }}
-          </NuxtLink>
-        </article>
-      </div>
-    </section>
-
-    <section>
-      <h2 class="inline-block rotate-1 border-4 border-black bg-[#C4B5FD] px-4 py-2 text-3xl uppercase shadow-[4px_4px_0px_0px_#000]">
-        Developer Tools
-      </h2>
-      <p class="mt-4 max-w-3xl border-4 border-black bg-white p-4 text-base shadow-[4px_4px_0px_0px_#000]">
-        Build, test, and debug faster with in-browser utilities powered by workers and WASM.
-      </p>
-
-      <div class="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <article
-          v-for="tool in devTools"
-          :key="tool.route"
-          class="neo-card flex h-full flex-col p-5"
-        >
-          <div class="mb-3 flex items-center gap-3">
-            <div
-              class="flex h-14 w-14 items-center justify-center border-4 border-black text-2xl font-black shadow-[4px_4px_0px_0px_#000]"
-              :style="{ backgroundColor: tool.color }"
-            >
-              {{ tool.icon }}
-            </div>
-            <h3 class="text-xl uppercase">{{ tool.title }}</h3>
-          </div>
-
-          <p class="mb-4 text-sm leading-relaxed">{{ tool.description }}</p>
-          <ul class="mb-5 space-y-1 text-xs font-bold uppercase tracking-wide">
-            <li v-for="feature in tool.features" :key="feature">✓ {{ feature }}</li>
-          </ul>
-
-          <NuxtLink
-            :to="tool.route"
-            class="neo-button mt-auto"
-            :style="{ backgroundColor: tool.color }"
-          >
-            {{ tool.cta }}
-          </NuxtLink>
-        </article>
+          <span class="ui-badge w-fit">{{ tool.tag }}</span>
+          <h3 class="text-base font-bold text-[var(--ink-1)]">{{ tool.title }}</h3>
+          <p class="text-sm leading-relaxed text-[var(--ink-2)]">{{ tool.description }}</p>
+          <span class="mt-1 inline-flex items-center gap-1 text-sm font-bold text-[var(--ink-1)]">
+            Open tool
+            <span class="transition-transform duration-150 group-hover:translate-x-0.5">→</span>
+          </span>
+        </NuxtLink>
       </div>
     </section>
   </div>

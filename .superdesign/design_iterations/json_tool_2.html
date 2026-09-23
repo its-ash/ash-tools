@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JSON Formatter — Ash Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ["Plus Jakarta Sans", "sans-serif"],
+          mono: ["JetBrains Mono", "monospace"],
+        },
+        colors: {
+          clay: {
+            DEFAULT: "#bd5b38",
+            hover: "#a54c2c",
+            soft: "#f5e3da",
+          },
+        },
+        boxShadow: {
+          soft: "0 1px 2px rgba(33,28,22,0.04), 0 8px 24px -8px rgba(33,28,22,0.08)",
+          lift: "0 4px 8px rgba(33,28,22,0.06), 0 16px 40px -12px rgba(33,28,22,0.14)",
+        },
+      },
+    },
+  };
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { background: #faf8f5; font-family: "Plus Jakarta Sans", sans-serif; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+
+  ::selection { background: #f5e3da; color: #211c16; }
+
+  .btn-press { transition: transform 160ms cubic-bezier(0.23,1,0.32,1), background-color 160ms ease, border-color 160ms ease; }
+  .btn-press:active { transform: scale(0.97); }
+
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift:hover { transform: translateY(-1px); }
+  }
+  .hover-lift { transition: transform 180ms cubic-bezier(0.23,1,0.32,1), box-shadow 180ms ease; }
+
+  .json-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+  .json-scroll::-webkit-scrollbar-track { background: transparent; }
+  .json-scroll::-webkit-scrollbar-thumb { background: #e8e2d6; border-radius: 999px; }
+  .json-scroll::-webkit-scrollbar-thumb:hover { background: #ddd4c4; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+  }
+</style>
+</head>
+<body class="text-[#211c16] antialiased">
+
+<!-- ============ NAV ============ -->
+<header class="sticky top-0 z-20 border-b border-[#e8e2d6] bg-[#faf8f5]/90 backdrop-blur-md">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2 group">
+      <span class="w-8 h-8 rounded-lg bg-[#211c16] flex items-center justify-center shrink-0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#faf8f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg>
+      </span>
+      <span class="font-bold text-[17px] tracking-tight">Ash Tools</span>
+    </a>
+    <a href="#" class="btn-press flex items-center gap-1.5 text-sm font-medium text-[#5c5347] hover:text-[#211c16] transition-colors">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      <span class="hidden sm:inline">All tools</span>
+    </a>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+
+  <!-- ============ HEADER CARD ============ -->
+  <section class="bg-white rounded-2xl border border-[#e8e2d6] shadow-soft p-6 sm:p-8 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div class="max-w-[60ch]">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="w-10 h-10 rounded-xl bg-clay-soft flex items-center justify-center shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#bd5b38" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3H6a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h4"/><path d="M14 3h4a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-4"/></svg>
+          </span>
+          <h1 class="text-2xl sm:text-[28px] font-bold tracking-tight leading-none">JSON Formatter</h1>
+        </div>
+        <p class="text-[15px] text-[#5c5347] leading-relaxed">
+          Paste raw JSON, validate it, and pretty-print or minify instantly. Everything runs in this tab — nothing you paste ever leaves your browser.
+        </p>
+      </div>
+      <span class="shrink-0 inline-flex items-center gap-1.5 bg-[#eef3ec] text-[#3a5c33] text-xs font-semibold px-3 py-1.5 rounded-full border border-[#d7e6d1] whitespace-nowrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+        Runs 100% offline, no upload
+      </span>
+    </div>
+  </section>
+
+  <!-- ============ TOOLBAR CARD ============ -->
+  <section class="bg-white rounded-2xl border border-[#e8e2d6] shadow-soft p-4 sm:p-5 mb-6">
+    <div class="flex flex-wrap items-center gap-3">
+
+      <!-- Primary actions -->
+      <div class="flex items-center gap-2">
+        <button type="button" class="btn-press flex items-center gap-1.5 bg-clay hover:bg-clay-hover text-white text-sm font-semibold pl-3.5 pr-4 py-2.5 rounded-lg shadow-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 3h-3v3"/><path d="M8 21H5v-3"/></svg>
+          Format
+        </button>
+        <button type="button" class="btn-press flex items-center gap-1.5 bg-[#f2efe9] hover:bg-[#e8e2d6] text-[#211c16] text-sm font-semibold px-4 py-2.5 rounded-lg border border-[#e8e2d6]">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v18"/><path d="M16 3v18"/><path d="M3 8h4"/><path d="M3 16h4"/><path d="M17 8h4"/><path d="M17 16h4"/></svg>
+          Minify
+        </button>
+      </div>
+
+      <div class="hidden sm:block w-px h-6 bg-[#e8e2d6]"></div>
+
+      <!-- Indent selector -->
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold text-[#8a8074] uppercase tracking-wide">Indent</span>
+        <div class="flex items-center bg-[#f2efe9] rounded-lg p-1 border border-[#e8e2d6]">
+          <button type="button" class="mono btn-press text-xs font-semibold px-2.5 py-1.5 rounded-md bg-white text-[#211c16] shadow-sm border border-[#e8e2d6]">2</button>
+          <button type="button" class="mono btn-press text-xs font-semibold px-2.5 py-1.5 rounded-md text-[#8a8074] hover:text-[#211c16]">4</button>
+          <button type="button" class="mono btn-press text-xs font-semibold px-2.5 py-1.5 rounded-md text-[#8a8074] hover:text-[#211c16]">Tab</button>
+        </div>
+      </div>
+
+      <div class="hidden sm:block w-px h-6 bg-[#e8e2d6]"></div>
+
+      <!-- Utility actions -->
+      <div class="flex items-center gap-2 ml-auto">
+        <button type="button" class="btn-press flex items-center gap-1.5 text-[#5c5347] hover:text-[#211c16] hover:bg-[#f2efe9] text-sm font-medium px-3 py-2.5 rounded-lg">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16h6v6"/><path d="M8 8H2V2"/><path d="M2 8l6-6"/><path d="M22 16l-6 6"/></svg>
+          <span class="hidden md:inline">Load sample</span>
+        </button>
+        <button type="button" class="btn-press flex items-center gap-1.5 text-[#5c5347] hover:text-[#211c16] hover:bg-[#f2efe9] text-sm font-medium px-3 py-2.5 rounded-lg">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          <span class="hidden md:inline">Open file</span>
+        </button>
+        <button type="button" class="btn-press flex items-center gap-1.5 text-[#8a3b2a] hover:bg-[#f5e3da] text-sm font-medium px-3 py-2.5 rounded-lg">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          <span class="hidden md:inline">Clear</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATUS + STATS CARD ============ -->
+  <section class="bg-white rounded-2xl border border-[#e8e2d6] shadow-soft p-4 sm:p-5 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+      <div class="flex items-center gap-2.5">
+        <span class="relative flex w-2.5 h-2.5 shrink-0">
+          <span class="absolute inline-flex w-full h-full rounded-full bg-[#3a5c33] opacity-30"></span>
+          <span class="relative inline-flex w-2.5 h-2.5 rounded-full bg-[#3a5c33]"></span>
+        </span>
+        <span class="text-sm font-semibold text-[#3a5c33]">Valid JSON</span>
+      </div>
+      <div class="hidden sm:block w-px h-4 bg-[#e8e2d6]"></div>
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 mono text-xs text-[#8a8074]">
+        <span><span class="text-[#211c16] font-semibold">18</span> keys</span>
+        <span><span class="text-[#211c16] font-semibold">4</span> levels deep</span>
+        <span><span class="text-[#211c16] font-semibold">612 B</span> input</span>
+        <span><span class="text-[#211c16] font-semibold">784 B</span> formatted</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ INPUT / OUTPUT GRID ============ -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- INPUT CARD -->
+    <div class="bg-white rounded-2xl border border-[#e8e2d6] shadow-soft overflow-hidden flex flex-col">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-[#e8e2d6]">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-[#f2efe9] flex items-center justify-center">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5c5347" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          </span>
+          <span class="text-sm font-semibold">Input</span>
+        </div>
+        <span class="mono text-xs text-[#8a8074]">612 characters</span>
+      </div>
+      <div class="p-5 flex-1">
+        <textarea
+          class="mono json-scroll w-full h-72 lg:h-[420px] resize-none bg-[#faf8f5] rounded-xl border border-[#e8e2d6] p-4 text-[13px] leading-relaxed text-[#211c16] placeholder-[#a89e8f] focus:outline-none focus:ring-2 focus:ring-clay/30 focus:border-clay"
+          spellcheck="false"
+          placeholder='Paste raw JSON here, e.g. {"id":1,"name":"Ash"}'
+        >{"user":{"id":4821,"name":"Priya Raman","active":true,"role":"admin","tags":["ops","billing"]},"lastLogin":"2026-09-14T09:12:00Z","sessions":3,"meta":null}</textarea>
+      </div>
+    </div>
+
+    <!-- OUTPUT CARD -->
+    <div class="bg-white rounded-2xl border border-[#e8e2d6] shadow-soft overflow-hidden flex flex-col">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-[#e8e2d6]">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-md bg-[#eef3ec] flex items-center justify-center">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3a5c33" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <span class="text-sm font-semibold">Output</span>
+          <span class="mono text-[10px] font-semibold text-[#8a8074] bg-[#f2efe9] px-1.5 py-0.5 rounded border border-[#e8e2d6]">18 keys</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button type="button" class="btn-press flex items-center gap-1.5 text-[#5c5347] hover:text-[#211c16] hover:bg-[#f2efe9] text-xs font-semibold px-2.5 py-1.5 rounded-md">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+          <button type="button" class="btn-press flex items-center gap-1.5 text-[#5c5347] hover:text-[#211c16] hover:bg-[#f2efe9] text-xs font-semibold px-2.5 py-1.5 rounded-md">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            Download
+          </button>
+        </div>
+      </div>
+      <div class="p-5 flex-1">
+        <pre class="mono json-scroll w-full h-72 lg:h-[420px] overflow-auto bg-[#faf8f5] rounded-xl border border-[#e8e2d6] p-4 text-[13px] leading-relaxed"><code><span class="text-[#8a8074]">{</span>
+  <span class="text-[#8a3b2a]">"user"</span><span class="text-[#8a8074]">:</span> <span class="text-[#8a8074]">{</span>
+    <span class="text-[#8a3b2a]">"id"</span><span class="text-[#8a8074]">:</span> <span class="text-[#1d6fa3]">4821</span><span class="text-[#8a8074]">,</span>
+    <span class="text-[#8a3b2a]">"name"</span><span class="text-[#8a8074]">:</span> <span class="text-[#3a5c33]">"Priya Raman"</span><span class="text-[#8a8074]">,</span>
+    <span class="text-[#8a3b2a]">"active"</span><span class="text-[#8a8074]">:</span> <span class="text-[#bd5b38]">true</span><span class="text-[#8a8074]">,</span>
+    <span class="text-[#8a3b2a]">"role"</span><span class="text-[#8a8074]">:</span> <span class="text-[#3a5c33]">"admin"</span><span class="text-[#8a8074]">,</span>
+    <span class="text-[#8a3b2a]">"tags"</span><span class="text-[#8a8074]">:</span> <span class="text-[#8a8074]">[</span>
+      <span class="text-[#3a5c33]">"ops"</span><span class="text-[#8a8074]">,</span>
+      <span class="text-[#3a5c33]">"billing"</span>
+    <span class="text-[#8a8074]">]</span>
+  <span class="text-[#8a8074]">}</span><span class="text-[#8a8074]">,</span>
+  <span class="text-[#8a3b2a]">"lastLogin"</span><span class="text-[#8a8074]">:</span> <span class="text-[#3a5c33]">"2026-09-14T09:12:00Z"</span><span class="text-[#8a8074]">,</span>
+  <span class="text-[#8a3b2a]">"sessions"</span><span class="text-[#8a8074]">:</span> <span class="text-[#1d6fa3]">3</span><span class="text-[#8a8074]">,</span>
+  <span class="text-[#8a3b2a]">"meta"</span><span class="text-[#8a8074]">:</span> <span class="text-[#8a8074]">null</span>
+<span class="text-[#8a8074]">}</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ERROR STATE EXAMPLE (reference, muted) ============ -->
+  <section class="mt-6 bg-white rounded-2xl border border-[#f0d3c9] shadow-soft p-4 sm:p-5 flex items-start gap-3">
+    <span class="w-7 h-7 rounded-lg bg-[#fbeae3] flex items-center justify-center shrink-0 mt-0.5">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b5432c" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+    </span>
+    <div>
+      <p class="text-sm font-semibold text-[#b5432c]">Example error readout</p>
+      <p class="text-sm text-[#5c5347] mono mt-0.5">Unexpected token <span class="text-[#211c16]">,</span> in JSON at position 214 — trailing comma before <span class="text-[#211c16]">"tags"</span></p>
+    </div>
+  </section>
+
+  <!-- ============ FOOTNOTE ============ -->
+  <p class="text-center text-xs text-[#8a8074] mt-8">
+    Parsing happens locally in your browser using the native JSON engine. Nothing you paste is stored, logged, or sent anywhere.
+  </p>
+
+</main>
+
+</body>
+</html>

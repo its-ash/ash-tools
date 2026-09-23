@@ -99,6 +99,23 @@ export function resize_image(data, width, height, filter) {
     return takeFromExternrefTable0(ret[0]);
 }
 
+/**
+ * @param {Uint8Array} data
+ * @param {number} degrees
+ * @param {boolean} flip_h
+ * @param {boolean} flip_v
+ * @returns {Uint8Array}
+ */
+export function rotate_image(data, degrees, flip_h, flip_v) {
+    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.rotate_image(ptr0, len0, degrees, flip_h, flip_v);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,

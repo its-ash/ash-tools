@@ -5,6 +5,10 @@ export default defineNuxtConfig({
 
   devtools: { enabled: false },
 
+  experimental: {
+    appManifest: false,
+  },
+
   app: {
     head: {
       charset: 'utf-8',
@@ -16,11 +20,11 @@ export default defineNuxtConfig({
         // Basic SEO
         {
           name: 'description',
-          content: 'Free online WASM tools for image editing, compression, file handling, regex testing, video processing, code compilation, and AI chat. Everything runs locally on your device—no uploads, no tracking, no servers.'
+          content: 'Ash Tools is a free, privacy-first toolkit of 20+ browser utilities for media editing, PDF and ZIP workflows, and developer tasks. Everything runs locally on your device—no uploads, no tracking, no servers.'
         },
         {
           name: 'keywords',
-          content: 'image compression, crop tool, WASM, WebAssembly, video converter, file compression, regex tester, code sandbox, AI chat, local processing, privacy-first'
+          content: 'video compressor, image editor, pdf merger, zip compressor, code sandbox, json formatter, regex tester, qr code generator, uuid generator, local processing, offline tools, privacy tools, browser tools'
         },
         {
           name: 'author',
@@ -32,21 +36,16 @@ export default defineNuxtConfig({
         },
         {
           name: 'theme-color',
-          content: '#0f172a'
+          content: '#faf8f5'
         },
         {
           name: 'color-scheme',
-          content: 'dark'
+          content: 'light'
         },
         // Robots
         {
           name: 'robots',
           content: 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'
-        },
-        // Google
-        {
-          name: 'google-site-verification',
-          content: 'verification-code-here'
         },
         // Apple
         {
@@ -59,12 +58,12 @@ export default defineNuxtConfig({
         },
         {
           name: 'apple-mobile-web-app-title',
-          content: 'Local WASM Tools'
+          content: 'Ash Tools'
         },
         // Microsoft
         {
           name: 'msapplication-TileColor',
-          content: '#0f172a'
+          content: '#faf8f5'
         },
         // Open Graph
         {
@@ -73,19 +72,19 @@ export default defineNuxtConfig({
         },
         {
           property: 'og:title',
-          content: 'Local WASM Tools | Free Online Tools'
+          content: 'Ash Tools | Private Browser Tools for Media, Docs, and Dev'
         },
         {
           property: 'og:description',
-          content: 'Free online WASM tools for image editing, compression, file handling, regex testing, video processing, code compilation, and AI chat. Everything runs locally on your device.'
+          content: 'Ash Tools is a free, privacy-first toolkit of 20+ browser utilities for media editing, PDF and ZIP workflows, and developer tasks. No uploads, no tracking, no servers.'
         },
         {
           property: 'og:url',
-          content: 'https://ash-tools.com'
+          content: 'https://ash-tools.store/'
         },
         {
           property: 'og:image',
-          content: '/og-image.png'
+          content: 'https://ash-tools.store/og-image.png'
         },
         {
           property: 'og:image:width',
@@ -106,15 +105,15 @@ export default defineNuxtConfig({
         },
         {
           name: 'twitter:title',
-          content: 'Local WASM Tools | Free Online Tools'
+          content: 'Ash Tools | Private Browser Tools for Media, Docs, and Dev'
         },
         {
           name: 'twitter:description',
-          content: 'Free online WASM tools for image editing, compression, file handling, regex testing, video processing, code compilation, and AI chat. Everything runs locally on your device.'
+          content: 'Ash Tools is a free, privacy-first toolkit of 20+ browser utilities for media editing, PDF and ZIP workflows, and developer tasks. No uploads, no tracking, no servers.'
         },
         {
           name: 'twitter:image',
-          content: '/twitter-image.png'
+          content: 'https://ash-tools.store/twitter-image.png'
         },
         {
           name: 'twitter:creator',
@@ -137,17 +136,8 @@ export default defineNuxtConfig({
       link: [
         {
           rel: 'icon',
-          href: '/icon.gif',
-          type: 'image/gif',
-        },
-        {
-          rel: 'canonical',
-          href: 'https://ash-tools.com'
-        },
-        {
-          rel: 'alternate',
-          hreflang: 'en',
-          href: 'https://ash-tools.com'
+          href: '/favicon.png',
+          type: 'image/png',
         },
         {
           rel: 'apple-touch-icon',
@@ -192,7 +182,13 @@ export default defineNuxtConfig({
     preset: 'static',
     prerender: {
       crawlLinks: true,
-      routes: ['/', '/image', '/zip', '/video', '/webllm', '/speed', '/regexp', '/sandbox', '/pdf', '/sitemap.xml', '/robots.txt']
+      routes: [
+        '/', '/image', '/zip', '/video', '/sandbox', '/pdf',
+        '/json', '/csv', '/regex', '/encode', '/color', '/qr',
+        '/markdown', '/uuid', '/diff', '/units', '/timestamp',
+        '/text', '/cron', '/base64-image', '/linkedin',
+        '/sitemap.xml', '/robots.txt',
+      ]
     },
     output: {
       publicDir: './docs'
@@ -216,11 +212,11 @@ export default defineNuxtConfig({
 
   pwa: {
     manifest: {
-      name: 'Local WASM Tools',
-      short_name: 'WASM Tools',
-      description: 'Privacy-first, in-browser WASM tools for image editing, video conversion, and more.',
-      theme_color: '#0f172a',
-      background_color: '#0f172a',
+      name: 'Ash Tools',
+      short_name: 'Ash Tools',
+      description: 'Free, privacy-first browser tools for media, docs, and developer workflows. Runs locally, no uploads.',
+      theme_color: '#faf8f5',
+      background_color: '#faf8f5',
       display: 'standalone',
       orientation: 'portrait',
       icons: [

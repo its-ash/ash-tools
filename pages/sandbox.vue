@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+definePageMeta({ layout: 'tools' })
+
 useHead({
-  title: "Sandboxed Code Runner | Ash Tools",
+  title: "Free Code Sandbox | Run JavaScript, Python & Rust in your browser",
   meta: [
     {
       name: "description",
       content:
-        "Secure WASM sandboxed code runner. Compile and execute code locally in your browser.",
+        "Free, private, in-browser code sandbox. Run JavaScript, Python (Pyodide), and Rust (WASI) locally with no server, no signup, no uploads.",
     },
     {
       name: "keywords",
@@ -14,7 +16,19 @@ useHead({
         "wasm runner, sandbox, compiler, wasm, rust, c, c++, python, javascript, browser runtime",
     },
     { name: "robots", content: "index,follow" },
+    { property: "og:url", content: "https://ash-tools.store/sandbox/" },
+    { property: "og:title", content: "Free Code Sandbox | Run JavaScript, Python & Rust" },
+    { property: "og:description", content: "Run code privately in your browser. Nothing leaves your device." },
+    { name: "twitter:card", content: "summary_large_image" },
   ],
+  link: [{ rel: "canonical", href: "https://ash-tools.store/sandbox/" }],
+});
+
+useToolSchema({
+  name: "Code Sandbox",
+  description: "Run JavaScript, Python, and Rust locally in your browser.",
+  url: "https://ash-tools.store/sandbox/",
+  category: "DeveloperApplication",
 });
 
 let scriptEl: HTMLScriptElement | null = null;
@@ -29,6 +43,15 @@ const demoCodes: Record<string, string> = {
   python: `name = input("What is you name : ")\nprint('Hello, Python!', name)`,
   rust: `// Rust demo\nfn main() {\n    println!(\"Hello, Rust!\");\n}`
 };
+
+// Display-only derived labels for the tab bar / status bar (view layer, no effect on execution).
+const scratchFileConfig: Record<string, { file: string; label: string }> = {
+  javascript: { file: 'scratch.js', label: 'JavaScript' },
+  python: { file: 'scratch.py', label: 'Python (Pyodide)' },
+  rust: { file: 'scratch.rs', label: 'Rust (WASI)' },
+};
+const scratchFileName = computed(() => scratchFileConfig[selectedLanguage.value]?.file ?? 'scratch.txt');
+const languageLabel = computed(() => scratchFileConfig[selectedLanguage.value]?.label ?? selectedLanguage.value);
 
 function updateMonacoLanguageAndCode(lang: string) {
   if (monacoInstance && window.monaco) {
@@ -132,23 +155,37 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-[#FFFDF5] text-black">
-    <!-- Gradient overlays for depth -->
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute top-0 left-[12%] w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
-      <div class="absolute top-20 right-[12%] w-80 h-80 bg-orange-500/10 rounded-full blur-3xl"></div>
-    </div>
+  <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
+    <main class="relative flex flex-col md:flex-row flex-1 min-h-0">
 
-    <main class="relative flex flex-col h-[calc(100vh-48px)]">
-      <section class="flex flex-col gap-2 p-2 md:p-3 flex-1 min-h-0 bg-[#FFFDF5]">
+      <!-- Left rail: navigation + run controls -->
+      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
+        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
+          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+            <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
+            <span class="text-[10px] font-medium">Home</span>
+          </NuxtLink>
+          <button id="runBtn" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1" style="color: var(--accent)" title="Run" aria-label="Run">
+            <svg class="h-[18px] w-[18px]" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5v9l8-4.5-8-4.5z" /></svg>
+            <span class="text-[10px] font-medium">Run</span>
+          </button>
+          <button id="stopBtn" disabled class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)] disabled:opacity-40 disabled:pointer-events-none" title="Stop" aria-label="Stop">
+            <svg class="h-[18px] w-[18px]" viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1" /></svg>
+            <span class="text-[10px] font-medium">Stop</span>
+          </button>
+        </div>
+      </aside>
+
+      <section class="order-1 md:order-2 flex flex-col gap-2 p-2 md:p-3 flex-1 min-h-0">
         <!-- Toolbar -->
         <div class="flex flex-wrap items-center justify-between gap-3 md:gap-4">
           <div class="flex flex-wrap items-center gap-2">
             <label
-              class="flex items-center gap-2 bg-white border-4 border-black rounded-xl px-3 py-2">
-              <span class="text-xs font-bold uppercase tracking-wide text-black">Language</span>
+              class="ui-card flex items-center gap-2 px-3 py-2">
+              <svg class="h-3.5 w-3.5 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8l-4 4 4 4M13 8l4 4-4 4" /></svg>
+              <span class="text-xs font-semibold text-[var(--ink-3)]">Language</span>
               <select id="languageSelect" aria-label="Language"
-                class="bg-transparent text-black border-0 font-mono text-xs outline-none"
+                class="bg-transparent text-[var(--ink-1)] border-0 font-mono text-xs outline-none"
                 v-model="selectedLanguage">
                 <option value="javascript">JavaScript</option>
                 <option value="python">Python (Pyodide)</option>
@@ -156,10 +193,11 @@ onUnmounted(() => {
               </select>
             </label>
             <label
-              class="flex items-center gap-2 bg-white border-4 border-black rounded-xl px-3 py-2">
-              <span class="text-xs font-bold uppercase tracking-wide text-black">Timeout</span>
+              class="ui-card flex items-center gap-2 px-3 py-2">
+              <svg class="h-3.5 w-3.5 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6v4l2.5 2.5" /><circle cx="10" cy="10" r="7" stroke-linecap="round" /></svg>
+              <span class="text-xs font-semibold text-[var(--ink-3)]">Timeout</span>
               <select id="timeoutSelect" aria-label="Timeout"
-                class="bg-transparent text-black border-0 font-mono text-xs outline-none">
+                class="bg-transparent text-[var(--ink-1)] border-0 font-mono text-xs outline-none">
                 <option value="3000">3s</option>
                 <option value="5000" selected>5s</option>
                 <option value="10000">10s</option>
@@ -168,19 +206,12 @@ onUnmounted(() => {
           </div>
 
           <div class="flex items-center gap-2">
-            <button id="runBtn"
-              class="neo-button bg-[#FF6B6B] text-black">
-              Run
-            </button>
-            <button id="stopBtn" disabled
-              class="px-4 py-2 font-bold text-xs rounded-lg bg-white border-4 border-black text-black disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-              Stop
-            </button>
             <div
-              class="inline-flex items-center gap-2 px-3 py-2 rounded-full border-4 border-black bg-[#FFD93D]"
+              class="ui-badge ui-badge-accent inline-flex items-center gap-2 px-3 py-2"
               aria-live="polite">
-              <span class="text-xs font-bold uppercase tracking-wide text-black">Runtime</span>
-              <span id="runtimeStatus" class="text-xs font-mono text-black">Idle</span>
+              <span class="status-dot ok h-1.5 w-1.5 rounded-full" aria-hidden="true"></span>
+              <span class="text-xs font-semibold">Runtime</span>
+              <span id="runtimeStatus" class="text-xs font-mono">Idle</span>
             </div>
           </div>
         </div>
@@ -189,93 +220,140 @@ onUnmounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3 flex-1 min-h-0">
           <!-- Code editor card -->
           <div
-            class="md:col-span-2 flex flex-col border-4 border-black rounded-xl bg-white p-2 min-h-0">
-            <div class="flex items-baseline justify-between mb-3">
-              <span class="text-xs font-bold uppercase tracking-wide text-black">Code Editor</span>
-              <span class="text-xs text-black">Monaco Editor (Dracula)</span>
+            class="md:col-span-2 flex flex-col ui-panel overflow-hidden min-h-0" style="background: #21232d">
+            <!-- File tab bar -->
+            <div class="flex items-center gap-2 px-3 pt-2.5" style="background: #21232d">
+              <div
+                class="flex items-center gap-2 rounded-t-[var(--radius-sm)] px-3 py-1.5 text-xs font-mono"
+                style="background: #282A36; color: #F8F8F2"
+              >
+                <svg class="h-3 w-3 shrink-0" style="color: #8BE9FD" viewBox="0 0 16 16" fill="currentColor"><path d="M9 1H4a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V5l-4-4z" /></svg>
+                {{ scratchFileName }}
+                <span class="h-1.5 w-1.5 rounded-full" style="background: #6272A4" aria-hidden="true"></span>
+              </div>
             </div>
-            <div id="codeEditor" class="flex-1 rounded-xl overflow-hidden bg-white border-4 border-black"
+            <div id="codeEditor" class="flex-1 min-h-0"
+              style="background: #282A36"
               aria-label="Code editor"></div>
+            <!-- Editor status bar -->
+            <div
+              class="flex items-center justify-between px-3 py-1 text-[11px] font-mono"
+              style="background: #21232d; color: #a4a9c9"
+            >
+              <span>{{ languageLabel }}</span>
+              <span>UTF-8 · LF · Dracula</span>
+            </div>
           </div>
 
           <!-- Side panel: 5 cards stacked -->
           <div class="flex flex-col gap-2 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
             <!-- Execution card -->
-            <div class="border-4 border-black rounded-xl bg-white p-2 shrink-0">
+            <div class="ui-panel p-3 shrink-0">
               <div class="flex items-baseline justify-between mb-2">
-                <span class="text-xs font-bold uppercase tracking-wide text-black">Execution</span>
-                <span class="text-xs text-black" id="timing">time: --</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)]">Execution</span>
+                <span class="text-xs font-mono text-[var(--ink-3)]" id="timing">time: --</span>
               </div>
               <div class="grid grid-cols-2 gap-2 text-[11px] mb-2">
                 <div>
-                  <span class="block text-xs text-black mb-1">Memory</span>
-                  <span class="font-mono text-black" id="memory">--</span>
+                  <span class="block text-xs text-[var(--ink-3)] mb-1">Memory</span>
+                  <span class="font-mono text-[var(--ink-1)]" id="memory">--</span>
                 </div>
                 <div>
-                  <span class="block text-xs text-black mb-1">Exit</span>
-                  <span class="font-mono text-black" id="exitCode">--</span>
+                  <span class="block text-xs text-[var(--ink-3)] mb-1">Exit</span>
+                  <span class="font-mono text-[var(--ink-1)]" id="exitCode">--</span>
                 </div>
               </div>
               <div id="status"
-                class="px-2 py-1.5 rounded-lg bg-[#C4B5FD] border-2 border-black text-black text-xs font-bold uppercase tracking-wide">
+                class="ui-badge text-xs font-mono">
                 Idle
               </div>
             </div>
 
             <!-- Input card -->
-            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm shrink-0">
-              <div class="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">
-                Input (stdin)
+            <div class="ui-panel p-3 shrink-0">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] mb-2">
+                Input <span class="normal-case font-mono tracking-normal text-[var(--ink-3)]">(stdin)</span>
               </div>
               <textarea id="stdinInput" placeholder="Enter input here..."
-                class="w-full h-14 bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-[11px] text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-teal-500/50">Ash</textarea>
+                class="w-full h-14 rounded-[var(--radius-sm)] p-2 font-mono text-[11px] resize-none focus:outline-none focus:ring-2"
+                style="background: #1e1b16; color: #e8e2d6; border: 1px solid var(--border-strong)">Ash</textarea>
             </div>
 
             <!-- Console Output card -->
-            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm shrink-0">
+            <div class="ui-panel p-3 shrink-0">
               <div class="flex items-center justify-between mb-2">
                 <div>
-                  <span class="text-xs font-bold uppercase tracking-wide text-slate-400 block">Console Output</span>
-                  <span class="text-xs text-slate-400">stdout / stderr</span>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] block">Console Output</span>
+                  <span class="text-xs font-mono text-[var(--ink-3)]">stdout / stderr</span>
                 </div>
                 <button id="copyConsoleBtn"
-                  class="px-2 py-1 text-xs rounded-md bg-teal-500 text-slate-950 font-bold hover:bg-teal-400 transition-colors">
+                  class="ui-button-secondary px-2 py-1 text-xs">
                   Copy
                 </button>
               </div>
               <pre id="consoleOutput"
-                class="h-20 w-full bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-[11px] text-slate-200 overflow-auto whitespace-pre-wrap wrap-break-word"></pre>
+                class="h-20 w-full rounded-[var(--radius-sm)] p-2 font-mono text-[11px] overflow-auto whitespace-pre-wrap wrap-break-word"
+                style="background: #1e1b16; color: #e8e2d6; border: 1px solid var(--border-strong)"></pre>
             </div>
 
             <!-- Errors card -->
             <div
-              class="border border-red-900/30 bg-red-950/10 rounded-xl p-2 backdrop-blur-sm flex-1 flex flex-col min-h-40">
+              class="ui-panel p-3 flex-1 flex flex-col min-h-40" style="border-color: var(--danger-soft)">
               <div class="flex items-center justify-between mb-2">
                 <div>
-                  <span class="text-xs font-bold uppercase tracking-wide text-slate-400 block">Errors</span>
-                  <span class="text-xs text-slate-400">runtime</span>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] block">Errors</span>
+                  <span class="text-xs font-mono text-[var(--ink-3)]">runtime</span>
                 </div>
                 <button id="copyErrorBtn"
-                  class="px-2 py-1 text-xs rounded-md bg-teal-500 text-slate-950 font-bold hover:bg-teal-400 transition-colors">
+                  class="ui-button-secondary px-2 py-1 text-xs">
                   Copy
                 </button>
               </div>
               <pre id="errorOutput"
-                class="flex-1 w-full bg-slate-950/50 border border-red-900/30 rounded-lg p-2 font-mono text-[11px] leading-relaxed text-red-400 overflow-auto whitespace-pre-wrap wrap-break-word"></pre>
+                class="flex-1 w-full rounded-[var(--radius-sm)] p-2 font-mono text-[11px] leading-relaxed overflow-auto whitespace-pre-wrap wrap-break-word"
+                style="background: #1e1b16; color: #e08a72; border: 1px solid var(--danger-soft)"></pre>
             </div>
 
             <!-- Compile Logs card -->
-            <div class="border border-slate-700/60 rounded-xl bg-slate-900/30 p-2 backdrop-blur-sm shrink-0">
-              <div class="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">
+            <div class="ui-panel p-3 shrink-0">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] mb-1">
                 Compile Logs
               </div>
-              <span class="text-xs text-slate-400 block mb-2">wasm toolchain</span>
+              <span class="text-xs font-mono text-[var(--ink-3)] block mb-2">wasm toolchain</span>
               <pre id="compileOutput"
-                class="h-16 w-full bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-[11px] text-slate-400 overflow-auto whitespace-pre-wrap wrap-break-word"></pre>
+                class="h-16 w-full rounded-[var(--radius-sm)] p-2 font-mono text-[11px] overflow-auto whitespace-pre-wrap wrap-break-word"
+                style="background: #1e1b16; color: #a8a196; border: 1px solid var(--border-strong)"></pre>
             </div>
           </div>
         </div>
       </section>
     </main>
+
+    <!-- Bottom status strip -->
+    <div class="shrink-0 border-t px-3 md:px-4 py-2 flex items-center gap-4 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
+      <span>{{ languageLabel }}</span>
+      <span class="ml-auto">local · offline · in-browser sandbox</span>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.rail-btn {
+  transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 140ms ease, color 140ms ease;
+}
+
+.rail-btn:hover {
+  background: var(--surface-2);
+  color: var(--ink-1);
+}
+
+.rail-btn:active {
+  transform: scale(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-btn {
+    transition: none !important;
+  }
+}
+</style>

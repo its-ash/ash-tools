@@ -13,6 +13,8 @@ export function perspective_crop(data: Uint8Array, points: Float32Array, out_wid
 
 export function resize_image(data: Uint8Array, width: number, height: number, filter: string): Uint8Array;
 
+export function rotate_image(data: Uint8Array, degrees: number, flip_h: boolean, flip_v: boolean): Uint8Array;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
@@ -22,6 +24,7 @@ export interface InitOutput {
     readonly optimize_image: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => [number, number, number];
     readonly perspective_crop: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
     readonly resize_image: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number];
+    readonly rotate_image: (a: number, b: number, c: number, d: number, e: number) => [number, number, number];
     readonly init_console_panic_hook: () => void;
     readonly __wbindgen_free: (a: number, b: number, c: number) => void;
     readonly __wbindgen_malloc: (a: number, b: number) => number;

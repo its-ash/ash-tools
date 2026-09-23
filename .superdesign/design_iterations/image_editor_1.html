@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen — Image Editor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  * { -webkit-font-smoothing: antialiased; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; }
+  .canvas-photo {
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 22%),
+      linear-gradient(160deg, #e8dfce 0%, #cbb896 28%, #9a8768 52%, #5c6b56 74%, #33443a 100%);
+  }
+  .canvas-photo::before{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 68% 70%, rgba(20,30,22,0.35) 0%, rgba(20,30,22,0) 60%),
+      radial-gradient(ellipse 30% 20% at 20% 80%, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 70%);
+  }
+  .canvas-sun{
+    background: radial-gradient(circle, #fdf6e3 0%, #f6dfa1 40%, rgba(246,223,161,0) 72%);
+  }
+  .tool-btn { transition: transform 140ms var(--ease-out), background-color 140ms ease; }
+  .tool-btn:active { transform: scale(0.94); }
+  .chip-btn { transition: transform 140ms var(--ease-out), background-color 140ms ease, color 140ms ease; }
+  .chip-btn:active { transform: scale(0.96); }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 9999px;
+    background: #e5e3dd;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    background: #1c1c1a;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    cursor: pointer;
+    transition: transform 140ms var(--ease-out);
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    background: #1c1c1a;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    cursor: pointer;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift:hover { transform: translateY(-1px); }
+  }
+  .hover-lift { transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #d8d5cd; border-radius: 9999px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body class="bg-[#f4f2ee] text-[#1c1c1a] min-h-[100dvh]">
+
+<div class="flex flex-col min-h-[100dvh]">
+
+  <!-- Top Bar -->
+  <header class="h-16 shrink-0 border-b border-[#e5e3dd] bg-white/90 backdrop-blur-sm flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
+    <div class="flex items-center gap-3 md:gap-8">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-[#1c1c1a] flex items-center justify-center shrink-0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        </div>
+        <span class="font-semibold text-[15px] tracking-tight hidden sm:block">Lumen</span>
+      </div>
+      <span class="hidden lg:block text-sm text-[#6b6a66]">coastline-edit-04.jpg</span>
+    </div>
+
+    <div class="flex items-center gap-1.5 md:gap-2">
+      <button class="tool-btn w-9 h-9 rounded-lg flex items-center justify-center text-[#6b6a66] hover:bg-[#f0eee9] hover:text-[#1c1c1a]" aria-label="Undo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h-1"></path></svg>
+      </button>
+      <button class="tool-btn w-9 h-9 rounded-lg flex items-center justify-center text-[#6b6a66] hover:bg-[#f0eee9] hover:text-[#1c1c1a]" aria-label="Redo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"></path><path d="M20 9H9a5 5 0 0 0-5 5v0a5 5 0 0 0 5 5h1"></path></svg>
+      </button>
+      <div class="w-px h-6 bg-[#e5e3dd] mx-1 hidden sm:block"></div>
+      <button class="hidden sm:flex tool-btn h-9 px-3.5 rounded-lg items-center gap-1.5 text-sm text-[#1c1c1a] hover:bg-[#f0eee9]" aria-label="Reset">
+        <span>Reset</span>
+      </button>
+      <button class="chip-btn h-9 px-4 rounded-lg bg-[#1c1c1a] text-white text-sm font-medium flex items-center gap-2 hover:bg-[#33332f]">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Export</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex flex-1 min-h-0 flex-col md:flex-row">
+
+    <!-- Left Sidebar : Tools -->
+    <aside class="order-2 md:order-1 shrink-0 bg-white border-t md:border-t-0 md:border-r border-[#e5e3dd] md:w-[76px] w-full">
+      <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
+        <button class="tool-btn shrink-0 w-14 h-14 md:w-14 md:h-14 rounded-xl flex flex-col items-center justify-center gap-1 bg-[#f0eee9] text-[#1c1c1a]" aria-label="Select">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51z"></path></svg>
+          <span class="text-[10px] font-medium">Select</span>
+        </button>
+        <button class="tool-btn shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-[#6b6a66] hover:bg-[#f5f4f0] hover:text-[#1c1c1a]" aria-label="Crop">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"></path><path d="M18 22V8a2 2 0 0 0-2-2H2"></path></svg>
+          <span class="text-[10px] font-medium">Crop</span>
+        </button>
+        <button class="tool-btn shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-[#6b6a66] hover:bg-[#f5f4f0] hover:text-[#1c1c1a]" aria-label="Rotate">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3.02-6.71"></path><polyline points="21 3 21 9 15 9"></polyline></svg>
+          <span class="text-[10px] font-medium">Rotate</span>
+        </button>
+        <button class="tool-btn shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-[#6b6a66] hover:bg-[#f5f4f0] hover:text-[#1c1c1a]" aria-label="Resize">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          <span class="text-[10px] font-medium">Resize</span>
+        </button>
+        <button class="tool-btn shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-[#6b6a66] hover:bg-[#f5f4f0] hover:text-[#1c1c1a]" aria-label="Adjust">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+          <span class="text-[10px] font-medium">Adjust</span>
+        </button>
+        <button class="tool-btn shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-[#6b6a66] hover:bg-[#f5f4f0] hover:text-[#1c1c1a]" aria-label="Filters">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"></circle><circle cx="15" cy="15" r="6" opacity="0.5"></circle></svg>
+          <span class="text-[10px] font-medium">Filters</span>
+        </button>
+        <button class="tool-btn shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-[#6b6a66] hover:bg-[#f5f4f0] hover:text-[#1c1c1a]" aria-label="Text">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+          <span class="text-[10px] font-medium">Text</span>
+        </button>
+        <button class="tool-btn shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center gap-1 text-[#6b6a66] hover:bg-[#f5f4f0] hover:text-[#1c1c1a]" aria-label="Layers">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          <span class="text-[10px] font-medium">Layers</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Canvas -->
+    <main class="order-1 md:order-2 flex-1 min-w-0 flex flex-col bg-[#eae7e0]">
+      <!-- Canvas toolbar -->
+      <div class="h-12 shrink-0 flex items-center justify-between px-4 md:px-8 border-b border-[#e5e3dd]">
+        <div class="flex items-center gap-2 text-sm text-[#6b6a66]">
+          <span class="font-medium text-[#1c1c1a]">2400 × 1600</span>
+          <span class="hidden sm:inline">·</span>
+          <span class="hidden sm:inline">JPEG</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button class="tool-btn w-8 h-8 rounded-lg flex items-center justify-center text-[#6b6a66] hover:bg-white hover:text-[#1c1c1a]" aria-label="Zoom out">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+          </button>
+          <span class="text-sm text-[#1c1c1a] w-12 text-center tabular-nums">100%</span>
+          <button class="tool-btn w-8 h-8 rounded-lg flex items-center justify-center text-[#6b6a66] hover:bg-white hover:text-[#1c1c1a]" aria-label="Zoom in">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+          </button>
+          <button class="tool-btn w-8 h-8 rounded-lg flex items-center justify-center text-[#6b6a66] hover:bg-white hover:text-[#1c1c1a]" aria-label="Fit to screen">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Canvas stage -->
+      <div class="flex-1 flex items-center justify-center p-6 md:p-12 overflow-auto">
+        <div class="relative w-full max-w-[720px] aspect-[3/2] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.08),0_16px_40px_-12px_rgba(0,0,0,0.18)] canvas-photo">
+          <div class="absolute w-40 h-40 rounded-full canvas-sun top-[12%] right-[14%]"></div>
+          <div class="absolute left-0 right-0 bottom-0 h-[38%]" style="background:linear-gradient(180deg, rgba(51,68,58,0) 0%, #2c3a30 55%, #232f27 100%);"></div>
+          <div class="absolute left-[8%] bottom-[6%] w-[30%] h-[3px] bg-[#1a2420] opacity-60 rounded-full blur-[1px]"></div>
+          <div class="absolute right-[10%] bottom-[10%] w-[18%] h-[4px] bg-[#1a2420] opacity-50 rounded-full blur-[1px]"></div>
+          <!-- crop handles -->
+          <div class="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-white/90 rounded-tl-[3px]"></div>
+          <div class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-white/90 rounded-tr-[3px]"></div>
+          <div class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-white/90 rounded-bl-[3px]"></div>
+          <div class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-white/90 rounded-br-[3px]"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Panel : Adjustments -->
+    <aside class="order-3 shrink-0 w-full md:w-[300px] bg-white border-t md:border-t-0 md:border-l border-[#e5e3dd] flex flex-col max-h-[50vh] md:max-h-none overflow-y-auto">
+      <div class="p-4 md:p-6 flex flex-col gap-6">
+
+        <!-- Adjustments card -->
+        <section class="rounded-2xl border border-[#eeece6] bg-[#fbfaf8] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <h2 class="text-[13px] font-semibold tracking-tight mb-4">Adjustments</h2>
+
+          <div class="flex flex-col gap-4">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label for="brightness" class="text-sm text-[#4a4945]">Brightness</label>
+                <span class="text-xs text-[#8a8983] tabular-nums">+12</span>
+              </div>
+              <input id="brightness" type="range" min="-100" max="100" value="12" class="w-full">
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label for="contrast" class="text-sm text-[#4a4945]">Contrast</label>
+                <span class="text-xs text-[#8a8983] tabular-nums">+8</span>
+              </div>
+              <input id="contrast" type="range" min="-100" max="100" value="8" class="w-full">
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label for="saturation" class="text-sm text-[#4a4945]">Saturation</label>
+                <span class="text-xs text-[#8a8983] tabular-nums">-4</span>
+              </div>
+              <input id="saturation" type="range" min="-100" max="100" value="-4" class="w-full">
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label for="temperature" class="text-sm text-[#4a4945]">Temperature</label>
+                <span class="text-xs text-[#8a8983] tabular-nums">+6</span>
+              </div>
+              <input id="temperature" type="range" min="-100" max="100" value="6" class="w-full">
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label for="sharpness" class="text-sm text-[#4a4945]">Sharpness</label>
+                <span class="text-xs text-[#8a8983] tabular-nums">0</span>
+              </div>
+              <input id="sharpness" type="range" min="-100" max="100" value="0" class="w-full">
+            </div>
+          </div>
+        </section>
+
+        <!-- Filters card -->
+        <section class="rounded-2xl border border-[#eeece6] bg-[#fbfaf8] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <h2 class="text-[13px] font-semibold tracking-tight mb-4">Filters</h2>
+          <div class="grid grid-cols-3 gap-2.5">
+            <button class="chip-btn flex flex-col items-center gap-1.5 group" aria-label="No filter">
+              <span class="w-full aspect-square rounded-xl canvas-photo ring-2 ring-[#1c1c1a] ring-offset-2 relative overflow-hidden"></span>
+              <span class="text-[11px] text-[#1c1c1a] font-medium">None</span>
+            </button>
+            <button class="chip-btn flex flex-col items-center gap-1.5 group" aria-label="Grayscale filter">
+              <span class="w-full aspect-square rounded-xl canvas-photo relative overflow-hidden" style="filter: grayscale(1);"></span>
+              <span class="text-[11px] text-[#6b6a66] group-hover:text-[#1c1c1a] font-medium">Grayscale</span>
+            </button>
+            <button class="chip-btn flex flex-col items-center gap-1.5 group" aria-label="Sepia filter">
+              <span class="w-full aspect-square rounded-xl canvas-photo relative overflow-hidden" style="filter: sepia(0.65);"></span>
+              <span class="text-[11px] text-[#6b6a66] group-hover:text-[#1c1c1a] font-medium">Sepia</span>
+            </button>
+            <button class="chip-btn flex flex-col items-center gap-1.5 group" aria-label="Blur filter">
+              <span class="w-full aspect-square rounded-xl canvas-photo relative overflow-hidden" style="filter: blur(1.5px);"></span>
+              <span class="text-[11px] text-[#6b6a66] group-hover:text-[#1c1c1a] font-medium">Blur</span>
+            </button>
+            <button class="chip-btn flex flex-col items-center gap-1.5 group" aria-label="Vivid filter">
+              <span class="w-full aspect-square rounded-xl canvas-photo relative overflow-hidden" style="filter: saturate(1.7) contrast(1.1);"></span>
+              <span class="text-[11px] text-[#6b6a66] group-hover:text-[#1c1c1a] font-medium">Vivid</span>
+            </button>
+            <button class="chip-btn flex flex-col items-center gap-1.5 group" aria-label="Fade filter">
+              <span class="w-full aspect-square rounded-xl canvas-photo relative overflow-hidden" style="filter: brightness(1.1) saturate(0.7) contrast(0.9);"></span>
+              <span class="text-[11px] text-[#6b6a66] group-hover:text-[#1c1c1a] font-medium">Fade</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Layers card -->
+        <section class="rounded-2xl border border-[#eeece6] bg-[#fbfaf8] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-[13px] font-semibold tracking-tight">Layers</h2>
+            <button class="tool-btn w-6 h-6 rounded-md flex items-center justify-center text-[#6b6a66] hover:bg-[#f0eee9] hover:text-[#1c1c1a]" aria-label="Add layer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center gap-3 px-2.5 py-2 rounded-lg bg-[#f0eee9]">
+              <span class="w-9 h-9 rounded-md shrink-0 canvas-photo"></span>
+              <span class="text-sm text-[#1c1c1a] flex-1 min-w-0 truncate">Background</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#4a4945] shrink-0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </div>
+            <div class="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-[#f5f4f0] transition-colors">
+              <span class="w-9 h-9 rounded-md shrink-0 bg-white border border-[#e5e3dd] flex items-center justify-center">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a4945" stroke-width="1.7"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+              </span>
+              <span class="text-sm text-[#4a4945] flex-1 min-w-0 truncate">Caption text</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#4a4945] shrink-0"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </div>
+            <div class="flex items-center gap-3 px-2.5 py-2 rounded-lg hover:bg-[#f5f4f0] transition-colors">
+              <span class="w-9 h-9 rounded-md shrink-0 bg-white border border-[#e5e3dd] flex items-center justify-center">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a4945" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+              </span>
+              <span class="text-sm text-[#8a8983] flex-1 min-w-0 truncate">Vignette</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-[#c7c5bc] shrink-0"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M10.58 10.58a2 2 0 0 0 2.83 2.83"></path><path d="M16.68 16.68A9.77 9.77 0 0 1 12 18c-7 0-11-8-11-8a18.5 18.5 0 0 1 4.06-5.06M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path></svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- Export card -->
+        <section class="rounded-2xl border border-[#eeece6] bg-[#fbfaf8] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <h2 class="text-[13px] font-semibold tracking-tight mb-4">Export</h2>
+          <div class="flex items-center gap-2 mb-4">
+            <button class="chip-btn flex-1 h-9 rounded-lg bg-[#1c1c1a] text-white text-sm font-medium">PNG</button>
+            <button class="chip-btn flex-1 h-9 rounded-lg bg-white border border-[#e5e3dd] text-[#4a4945] text-sm font-medium hover:border-[#c7c5bc]">JPEG</button>
+            <button class="chip-btn flex-1 h-9 rounded-lg bg-white border border-[#e5e3dd] text-[#4a4945] text-sm font-medium hover:border-[#c7c5bc]">WebP</button>
+          </div>
+          <button class="hover-lift w-full h-11 rounded-xl bg-[#1c1c1a] text-white text-sm font-medium flex items-center justify-center gap-2 shadow-[0_1px_2px_rgba(0,0,0,0.06)]">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download</span>
+          </button>
+        </section>
+
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+</body>
+</html>

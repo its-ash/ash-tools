@@ -9,7 +9,12 @@
     "preview": "nuxt preview"
   },
   "dependencies": {
+    "cron-parser": "^5.10.1",
+    "cronstrue": "^3.27.0",
+    "dompurify": "^3.4.15",
+    "marked": "^18.0.13",
     "nuxt": "^3.15.0",
+    "qrcode-generator": "^2.0.4",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },

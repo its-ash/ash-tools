@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF Merger &amp; Compressor · Ash Tools</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+        colors: {
+          clay: {
+            DEFAULT: '#bd5b38',
+            hover: '#a54c2c',
+            soft: '#f5e3da',
+          },
+        },
+      },
+    },
+  }
+</script>
+<style>
+  body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* crosshatch texture for panel backdrops */
+  .grid-texture {
+    background-image:
+      linear-gradient(to right, rgba(0,0,0,0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0,0,0,0.035) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  .diagonal-texture {
+    background-image: repeating-linear-gradient(
+      -45deg, rgba(0,0,0,0.05), rgba(0,0,0,0.05) 1px, transparent 1px, transparent 7px
+    );
+  }
+
+  .thumb-lines span { display:block; height:2px; background:#000; opacity:0.12; border-radius:1px; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: #000;
+    border-radius: 999px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: #bd5b38;
+    border: 2px solid #000;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 #000;
+    transition: transform 0.12s ease;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.08); }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: #bd5b38;
+    border: 2px solid #000;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 #000;
+  }
+
+  .file-row { transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease; }
+  .file-row:hover { transform: translateX(2px); box-shadow: -3px 0 0 #bd5b38; border-color: #000; }
+
+  .btn-hard {
+    box-shadow: 3px 3px 0 #000;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn-hard:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #000; }
+  .btn-hard:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 #000; }
+
+  .chip { font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em; }
+
+  .drag-handle { cursor: grab; }
+  .drag-handle:active { cursor: grabbing; }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+  .scan-anim {
+    background: linear-gradient(90deg, transparent, rgba(189,91,56,0.35), transparent);
+    background-size: 200% 100%;
+    animation: scan-move 2.4s linear infinite;
+  }
+  @keyframes scan-move {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+</style>
+</head>
+<body class="bg-[#f4f1ea] text-black antialiased">
+
+<!-- ============ HEADER ============ -->
+<header class="sticky top-0 z-50 bg-[#f4f1ea]/95 backdrop-blur border-b-2 border-black">
+  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="h-16 flex items-center justify-between gap-4">
+      <a href="#" class="flex items-center gap-3 shrink-0">
+        <span class="w-9 h-9 rounded-md bg-black text-white flex items-center justify-center font-mono font-bold text-sm">A</span>
+        <span class="font-extrabold text-lg tracking-tight hidden xs:inline">Ash Tools</span>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-1 font-mono text-[13px] font-medium uppercase tracking-wide">
+        <a href="#" class="px-3 py-2 rounded-md text-black/60 hover:text-black hover:bg-black/5 transition-colors">Video</a>
+        <a href="#" class="px-3 py-2 rounded-md text-black/60 hover:text-black hover:bg-black/5 transition-colors">Image</a>
+        <a href="#" class="px-3 py-2 rounded-md text-black/60 hover:text-black hover:bg-black/5 transition-colors">ZIP</a>
+        <a href="#" class="px-3 py-2 rounded-md bg-black text-white">PDF</a>
+        <a href="#" class="px-3 py-2 rounded-md text-black/60 hover:text-black hover:bg-black/5 transition-colors">Sandbox</a>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <a href="#" class="hidden sm:flex items-center gap-2 border-2 border-black rounded-md px-3 py-1.5 text-xs font-mono font-semibold btn-hard bg-white">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.1 3.29 9.4 7.86 10.94.57.1.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.72.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.75 2.7 1.25 3.36.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.76.11 3.05.73.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.27 5.69.42.36.78 1.08.78 2.17 0 1.57-.01 2.83-.01 3.22 0 .3.21.66.8.55A10.52 10.52 0 0 0 23.5 12c0-6.27-5.23-11.5-11.5-11.5Z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <button class="md:hidden w-9 h-9 flex items-center justify-center border-2 border-black rounded-md">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ MAIN ============ -->
+<main class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- Toolbar / title bar -->
+  <div class="border-2 border-black rounded-lg bg-white mb-6 overflow-hidden">
+    <div class="diagonal-texture flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 border-b-2 border-black bg-[#efe9de]">
+      <div class="flex items-center gap-3">
+        <a href="#" class="w-9 h-9 shrink-0 flex items-center justify-center border-2 border-black rounded-md bg-white hover:bg-black hover:text-white transition-colors">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </a>
+        <div class="w-9 h-9 shrink-0 flex items-center justify-center bg-clay border-2 border-black rounded-md">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v6h6"/></svg>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight leading-tight">PDF Merger &amp; Compressor</h1>
+          <p class="font-mono text-[11px] text-black/50 uppercase tracking-wider mt-0.5">Batch processing · client-side engine</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="chip inline-flex items-center gap-1.5 border-2 border-black rounded-md bg-white px-2.5 py-1 text-[11px] font-semibold">
+          <span class="w-1.5 h-1.5 rounded-full bg-clay pulse-dot"></span>LOCAL
+        </span>
+        <span class="chip inline-flex items-center gap-1.5 border-2 border-black rounded-md bg-white px-2.5 py-1 text-[11px] font-semibold">OFFLINE</span>
+        <span class="chip inline-flex items-center gap-1.5 border-2 border-black rounded-md bg-black text-white px-2.5 py-1 text-[11px] font-semibold">NO UPLOAD</span>
+      </div>
+    </div>
+
+    <!-- stat strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 divide-x-2 divide-black">
+      <div class="px-5 py-3">
+        <p class="font-mono text-[10px] uppercase tracking-wider text-black/45">Files</p>
+        <p class="font-mono text-xl font-bold">04</p>
+      </div>
+      <div class="px-5 py-3">
+        <p class="font-mono text-[10px] uppercase tracking-wider text-black/45">Total pages</p>
+        <p class="font-mono text-xl font-bold">57</p>
+      </div>
+      <div class="px-5 py-3">
+        <p class="font-mono text-[10px] uppercase tracking-wider text-black/45">Input size</p>
+        <p class="font-mono text-xl font-bold">18.4<span class="text-sm font-medium text-black/45"> MB</span></p>
+      </div>
+      <div class="px-5 py-3">
+        <p class="font-mono text-[10px] uppercase tracking-wider text-black/45">Est. output</p>
+        <p class="font-mono text-xl font-bold text-clay-hover">6.2<span class="text-sm font-medium text-black/45"> MB</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-col grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+
+    <!-- LEFT: upload + file list -->
+    <div class="flex flex-col gap-6">
+
+      <!-- dropzone -->
+      <div class="grid-texture border-2 border-dashed border-black/40 hover:border-clay rounded-lg bg-white transition-colors group cursor-pointer">
+        <div class="flex flex-col items-center justify-center text-center py-10 sm:py-14 px-6">
+          <div class="w-14 h-14 flex items-center justify-center border-2 border-black rounded-md bg-clay-soft group-hover:bg-clay group-hover:border-black transition-colors mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" class="group-hover:stroke-white transition-colors"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          </div>
+          <p class="font-bold text-base">Drop PDF files here</p>
+          <p class="text-sm text-black/55 mt-1">or click to browse — multiple files supported</p>
+          <div class="mt-4 flex items-center gap-2">
+            <span class="chip border border-black/30 rounded px-2 py-0.5 text-[10px] uppercase text-black/50">.pdf</span>
+            <span class="chip border border-black/30 rounded px-2 py-0.5 text-[10px] uppercase text-black/50">max 200mb/file</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- file list -->
+      <div class="border-2 border-black rounded-lg bg-white overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b-2 border-black bg-[#efe9de]">
+          <h2 class="font-mono text-[11px] font-bold uppercase tracking-wider">Queue — drag to reorder</h2>
+          <button class="font-mono text-[11px] font-semibold text-black/50 hover:text-clay-hover transition-colors">Clear all</button>
+        </div>
+
+        <ul class="divide-y-2 divide-black/10">
+
+          <!-- row 1 -->
+          <li class="file-row flex items-center gap-3 px-4 py-3 border-l-4 border-transparent bg-white">
+            <span class="drag-handle text-black/30 shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>
+            </span>
+            <div class="w-10 h-12 shrink-0 border-2 border-black rounded bg-[#f7f4ee] flex flex-col justify-center gap-1 px-1.5 thumb-lines">
+              <span class="w-full"></span><span class="w-3/4"></span><span class="w-full"></span><span class="w-1/2"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="font-mono text-sm font-semibold truncate">contract-draft.pdf</p>
+              <div class="flex items-center gap-2 mt-1 flex-wrap">
+                <span class="chip text-[10px] border border-black/25 rounded px-1.5 py-0.5 text-black/55">18 PG</span>
+                <span class="chip text-[10px] border border-black/25 rounded px-1.5 py-0.5 text-black/55">7.1 MB</span>
+                <span class="chip text-[10px] border border-black/25 rounded px-1.5 py-0.5 text-black/55">PDF/A</span>
+              </div>
+            </div>
+            <button class="shrink-0 w-8 h-8 flex items-center justify-center border-2 border-black/20 rounded-md hover:border-black hover:bg-black hover:text-white transition-colors">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </li>
+
+          <!-- row 2 -->
+          <li class="file-row flex items-center gap-3 px-4 py-3 border-l-4 border-transparent bg-white">
+            <span class="drag-handle text-black/30 shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>
+            </span>
+            <div class="w-10 h-12 shrink-0 border-2 border-black rounded bg-[#f7f4ee] flex flex-col justify-center gap-1 px-1.5 thumb-lines">
+              <span class="w-full"></span><span class="w-1/2"></span><span class="w-3/4"></span><span class="w-full"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="font-mono text-sm font-semibold truncate">invoice-2024.pdf</p>
+              <div class="flex items-center gap-2 mt-1 flex-wrap">
+                <span class="chip text-[10px] border border-black/25 rounded px-1.5 py-0.5 text-black/55">3 PG</span>
+                <span class="chip text-[10px] border border-black/25 rounded px-1.5 py-0.5 text-black/55">0.6 MB</span>
+              </div>
+            </div>
+            <button class="shrink-0 w-8 h-8 flex items-center justify-center border-2 border-black/20 rounded-md hover:border-black hover:bg-black hover:text-white transition-colors">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </li>
+
+          <!-- row 3 -->
+          <li class="file-row flex items-center gap-3 px-4 py-3 border-l-4 border-transparent bg-white">
+            <span class="drag-handle text-black/30 shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>
+            </span>
+            <div class="w-10 h-12 shrink-0 border-2 border-black rounded bg-[#f7f4ee] flex flex-col justify-center gap-1 px-1.5 thumb-lines relative overflow-hidden">
+              <span class="w-full"></span><span class="w-full"></span><span class="w-2/3"></span>
+              <span class="absolute inset-0 scan-anim"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="font-mono text-sm font-semibold truncate">scan-001.pdf</p>
+              <div class="flex items-center gap-2 mt-1 flex-wrap">
+                <span class="chip text-[10px] border border-black/25 rounded px-1.5 py-0.5 text-black/55">24 PG</span>
+                <span class="chip text-[10px] border border-black/25 rounded px-1.5 py-0.5 text-black/55">9.8 MB</span>
+                <span class="chip text-[10px] border border-clay rounded px-1.5 py-0.5 text-clay-hover font-semibold">SCANNED</span>
+              </div>
+            </div>
+            <button class="shrink-0 w-8 h-8 flex items-center justify-center border-2 border-black/20 rounded-md hover:border-black hover:bg-black hover:text-white transition-colors">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </li>
+
+          <!-- row 4 -->
+          <li class="file-row flex items-center gap-3 px-4 py-3 border-l-4 border-transparent bg-white">
+            <span class="drag-handle text-black/30 shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><circle cx="8" cy="12" r="1.6"/><circle cx="16" cy="12" r="1.6"/><circle cx="8" cy="18" r="1.6"/><circle cx="16" cy="18" r="1.6"/></svg>
+            </span>
+            <div class="w-10 h-12 shrink-0 border-2 border-black rounded bg-[#f7f4ee] flex flex-col justify-center gap-1 px-1.5 thumb-lines">
+              <span class="w-3/4"></span><span class="w-full"></span><span class="w-1/2"></span><span class="w-full"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="font-mono text-sm font-semibold truncate">onboarding-deck-v3-final.pdf</p>
+              <div class="flex items-center gap-2 mt-1 flex-wrap">
+                <span class="chip text-[10px] border border-black/25 rounded px-1.5 py-0.5 text-black/55">12 PG</span>
+                <span class="chip text-[10px] border border-black/25 rounded px-1.5 py-0.5 text-black/55">0.9 MB</span>
+              </div>
+            </div>
+            <button class="shrink-0 w-8 h-8 flex items-center justify-center border-2 border-black/20 rounded-md hover:border-black hover:bg-black hover:text-white transition-colors">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+
+    <!-- RIGHT: export settings -->
+    <div class="flex flex-col gap-6">
+
+      <div class="border-2 border-black rounded-lg bg-white overflow-hidden">
+        <div class="px-4 py-3 border-b-2 border-black bg-[#efe9de]">
+          <h2 class="font-mono text-[11px] font-bold uppercase tracking-wider">Export settings</h2>
+        </div>
+
+        <div class="p-5 flex flex-col gap-6">
+
+          <!-- compression -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <label class="text-sm font-bold">Compression</label>
+              <span class="chip border-2 border-black rounded px-2 py-0.5 text-xs font-bold bg-clay-soft">MEDIUM</span>
+            </div>
+            <input type="range" min="0" max="100" value="55" class="w-full">
+            <div class="flex justify-between mt-2 font-mono text-[10px] uppercase text-black/45">
+              <span>Lossless</span>
+              <span>Balanced</span>
+              <span>Max squeeze</span>
+            </div>
+          </div>
+
+          <!-- mode toggles -->
+          <div>
+            <label class="text-sm font-bold block mb-2">Output mode</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="border-2 border-black rounded-md py-2 text-xs font-mono font-semibold bg-black text-white">Merge → 1 file</button>
+              <button class="border-2 border-black rounded-md py-2 text-xs font-mono font-semibold bg-white hover:bg-black/5 transition-colors">Keep separate</button>
+            </div>
+          </div>
+
+          <!-- toggles list -->
+          <div class="flex flex-col gap-2 border-t-2 border-black/10 pt-4">
+            <label class="flex items-center justify-between text-sm">
+              <span>Strip metadata</span>
+              <span class="w-9 h-5 rounded-full bg-black relative cursor-pointer">
+                <span class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-clay"></span>
+              </span>
+            </label>
+            <label class="flex items-center justify-between text-sm">
+              <span>Flatten form fields</span>
+              <span class="w-9 h-5 rounded-full bg-black/15 border border-black/30 relative cursor-pointer">
+                <span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white border border-black/30"></span>
+              </span>
+            </label>
+            <label class="flex items-center justify-between text-sm">
+              <span>Downsample images to 150dpi</span>
+              <span class="w-9 h-5 rounded-full bg-black relative cursor-pointer">
+                <span class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-clay"></span>
+              </span>
+            </label>
+          </div>
+
+          <!-- summary -->
+          <div class="grid-texture border-2 border-black rounded-md p-3 grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p class="font-mono text-[10px] text-black/45 uppercase">In</p>
+              <p class="font-mono text-sm font-bold">18.4 MB</p>
+            </div>
+            <div class="flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </div>
+            <div>
+              <p class="font-mono text-[10px] text-black/45 uppercase">Out</p>
+              <p class="font-mono text-sm font-bold text-clay-hover">6.2 MB</p>
+            </div>
+          </div>
+
+          <!-- export button -->
+          <button class="btn-hard w-full bg-clay hover:bg-clay-hover text-white font-bold rounded-md py-3.5 flex items-center justify-center gap-2 border-2 border-black transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+            Export &amp; download
+          </button>
+
+          <!-- progress -->
+          <div class="hidden sm:block">
+            <div class="flex justify-between font-mono text-[10px] uppercase text-black/45 mb-1.5">
+              <span>Processing scan-001.pdf</span>
+              <span>66%</span>
+            </div>
+            <div class="w-full h-2.5 border-2 border-black rounded-full overflow-hidden bg-white">
+              <div class="h-full bg-clay" style="width:66%"></div>
+            </div>
+          </div>
+
+          <p class="font-mono text-[11px] text-black/45 text-center -mt-2">Ready — 4 files queued, 0 errors</p>
+
+        </div>
+      </div>
+
+      <!-- private callout -->
+      <div class="border-2 border-black rounded-lg bg-black text-white p-4 flex items-start gap-3">
+        <div class="w-9 h-9 shrink-0 flex items-center justify-center border-2 border-white rounded-md bg-white/10">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4z"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <div>
+          <p class="font-bold text-sm">100% Private</p>
+          <p class="text-xs text-white/60 mt-1 leading-relaxed">All merging and compression happens in your browser via WebAssembly. Files never leave this device — no servers, no uploads, no tracking.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="border-t-2 border-black bg-white mt-12">
+  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-7 h-7 rounded-md bg-black text-white flex items-center justify-center font-mono font-bold text-xs">A</span>
+          <span class="font-extrabold">Ash Tools</span>
+        </div>
+        <p class="text-sm text-black/55 leading-relaxed max-w-xs">A local-first toolkit for video, image, ZIP, and PDF processing — everything runs offline in your browser.</p>
+      </div>
+      <div>
+        <p class="font-mono text-[11px] font-bold uppercase tracking-wider mb-3">Tools</p>
+        <ul class="flex flex-col gap-2 text-sm text-black/60">
+          <li><a href="#" class="hover:text-clay-hover transition-colors">Video Compressor</a></li>
+          <li><a href="#" class="hover:text-clay-hover transition-colors">Image Editor</a></li>
+          <li><a href="#" class="hover:text-clay-hover transition-colors">ZIP Utility</a></li>
+          <li><a href="#" class="hover:text-clay-hover transition-colors">PDF Merger</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="font-mono text-[11px] font-bold uppercase tracking-wider mb-3">Resources</p>
+        <ul class="flex flex-col gap-2 text-sm text-black/60">
+          <li><a href="#" class="hover:text-clay-hover transition-colors">Documentation</a></li>
+          <li><a href="#" class="hover:text-clay-hover transition-colors">GitHub</a></li>
+          <li><a href="#" class="hover:text-clay-hover transition-colors">Changelog</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t-2 border-black/10 mt-8 pt-6 flex flex-col sm:flex-row justify-between gap-2">
+      <p class="font-mono text-[11px] text-black/45">© 2026 Ash Tools. All rights reserved.</p>
+      <p class="font-mono text-[11px] text-black/45">Built for offline-first workflows.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

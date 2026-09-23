@@ -1,4 +1,6 @@
 <script setup lang="ts">
+definePageMeta({ layout: 'tools' })
+
 useHead({
   title: 'WASM Video Studio | Trim, crop, compress locally',
   meta: [
@@ -6,11 +8,19 @@ useHead({
     { 'http-equiv': 'Cross-Origin-Embedder-Policy', content: 'require-corp' },
     { name: 'description', content: 'Private, in-browser video trimming, cropping, and compression powered by WebAssembly. Process everything locally with no uploads.' },
     { name: 'robots', content: 'index,follow' },
+    { property: 'og:url', content: 'https://ash-tools.store/video/' },
     { property: 'og:title', content: 'WASM Video Studio | Trim, crop, compress locally' },
     { property: 'og:description', content: 'Trim, crop, and compress video privately in your browser. WebAssembly powered, no uploads.' },
     { name: 'twitter:card', content: 'summary_large_image' },
   ],
   link: [{ rel: 'canonical', href: 'https://ash-tools.store/video/' }],
+})
+
+useToolSchema({
+  name: 'WASM Video Studio',
+  description: 'Trim, crop, and compress video locally in your browser using WebAssembly.',
+  url: 'https://ash-tools.store/video/',
+  category: 'MultimediaApplication',
 })
 
 let scriptEl: HTMLScriptElement | null = null
@@ -29,61 +39,68 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-[calc(100vh-48px)] bg-[#FFFDF5] text-black flex flex-col overflow-hidden">
-    <!-- Gradient overlays for depth -->
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute top-0 right-1/3 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
-      <div class="absolute top-20 left-1/4 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl"></div>
-    </div>
-
+  <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col overflow-hidden">
     <!-- Top bar -->
-    <div class="relative h-15 bg-[#FFD93D] border-b-4 border-black flex items-center justify-between px-5 gap-4">
-      <div class="text-base font-semibold flex items-center gap-2">
-        <span class="inline-block w-2 h-2 bg-[#FF6B6B] border border-black rounded-full"></span>
-        WASM Video Studio
+    <div class="relative h-15 shrink-0 flex items-center justify-between px-5 gap-4" style="background: var(--surface-1); border-bottom: 1px solid var(--border)">
+      <div class="text-sm font-bold flex items-center gap-2 text-[var(--ink-1)]">
+        <svg class="h-4 w-4 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="4.5" width="11" height="11" rx="2" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 8.5l4-2.5v8l-4-2.5" /></svg>
+        Video Studio
       </div>
-      <label for="videoInput" class="flex items-center gap-2 px-4 py-2 border-4 border-black rounded-lg bg-white text-black cursor-pointer transition-all">
-        📁 Open Video
-      </label>
+      <span class="hidden sm:inline text-xs font-mono text-[var(--ink-3)]">local · offline · no upload</span>
       <input id="videoInput" type="file" accept="video/mp4,video/webm,video/ogg,video/mov,video/avi,video/mkv,video/flv,video/wmv,video/m4v,video/3gp,video/*" multiple class="hidden">
     </div>
 
-    <!-- Main area: 2-col layout (editor + sidebar) -->
-    <div class="relative flex flex-1 overflow-hidden">
+    <!-- Main area: rail + editor + sidebar -->
+    <div class="relative flex flex-1 overflow-hidden flex-col md:flex-row">
+
+      <!-- Left rail: navigation + open action -->
+      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
+        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
+          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+            <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
+            <span class="text-[10px] font-medium">Home</span>
+          </NuxtLink>
+          <label for="videoInput" class="rail-btn cursor-pointer shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Open video" aria-label="Open video">
+            <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7a2 2 0 012-2h2l1.5 2H14a2 2 0 012 2v5a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" /><path stroke-linecap="round" d="M10 9v5M8.5 10.5L10 9l1.5 1.5" /></svg>
+            <span class="text-[10px] font-medium">Open</span>
+          </label>
+        </div>
+      </aside>
+
       <!-- Editor area (1fr) -->
-      <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+      <div class="order-1 md:order-2 flex flex-col flex-1 min-w-0 overflow-hidden">
         <!-- Preview section -->
-        <div class="flex-1 flex items-center justify-center p-6 bg-[#FFFDF5] relative border-b-4 border-black">
+        <div class="flex-1 flex items-center justify-center p-6 relative" style="background: var(--ink-1); border-bottom: 1px solid var(--border)">
           <!-- Empty state -->
           <div id="emptyState" class="text-center flex flex-col items-center gap-4">
-            <h2 class="text-2xl font-bold text-black">Start by opening a video</h2>
-            <p class="text-xs text-black leading-relaxed">Trim, crop, and compress your videos locally.<br>No uploads • 100% private • WebAssembly powered</p>
-            <p class="text-xs text-black"><strong>Supported formats:</strong> MP4, WebM, MOV, AVI, MKV, FLV, WMV, M4V, 3GP</p>
-            <p class="text-xs text-black">💡 You can select multiple files for batch processing</p>
+            <h2 class="text-2xl font-bold text-white">Start by opening a video</h2>
+            <p class="text-xs text-white/70 leading-relaxed">Trim, crop, and compress your videos locally.<br>No uploads · 100% private · WebAssembly powered</p>
+            <p class="text-xs text-white/70"><strong>Supported formats:</strong> MP4, WebM, MOV, AVI, MKV, FLV, WMV, M4V, 3GP</p>
+            <p class="text-xs text-white/70">You can select multiple files for batch processing</p>
           </div>
 
           <!-- Video shell (hidden initially) -->
-          <div class="video-shell hidden relative w-full h-full max-w-full max-h-full rounded-xl overflow-hidden shadow-2xl" id="videoShell">
+          <div class="video-shell hidden relative w-full h-full max-w-full max-h-full overflow-hidden" id="videoShell" style="border: 1px solid #fff">
             <video id="preview" controls playsinline muted class="block w-full h-full object-contain"></video>
-            <div id="cropOverlay" class="crop-overlay hidden absolute border-2 border-dashed border-blue-500 rounded-md bg-blue-500/10 cursor-move" style="display:none;">
-              <div class="crop-handle tl absolute w-3.5 h-3.5 bg-blue-500 border-2 border-white rounded-full -top-1.5 -left-1.5 cursor-nw-resize" data-handle="tl"></div>
-              <div class="crop-handle tr absolute w-3.5 h-3.5 bg-blue-500 border-2 border-white rounded-full -top-1.5 -right-1.5 cursor-ne-resize" data-handle="tr"></div>
-              <div class="crop-handle bl absolute w-3.5 h-3.5 bg-blue-500 border-2 border-white rounded-full -bottom-1.5 -left-1.5 cursor-sw-resize" data-handle="bl"></div>
-              <div class="crop-handle br absolute w-3.5 h-3.5 bg-blue-500 border-2 border-white rounded-full -bottom-1.5 -right-1.5 cursor-se-resize" data-handle="br"></div>
+            <div id="cropOverlay" class="crop-overlay hidden absolute cursor-move" style="display:none;">
+              <div class="crop-handle tl absolute -top-1.5 -left-1.5 cursor-nw-resize" data-handle="tl"></div>
+              <div class="crop-handle tr absolute -top-1.5 -right-1.5 cursor-ne-resize" data-handle="tr"></div>
+              <div class="crop-handle bl absolute -bottom-1.5 -left-1.5 cursor-sw-resize" data-handle="bl"></div>
+              <div class="crop-handle br absolute -bottom-1.5 -right-1.5 cursor-se-resize" data-handle="br"></div>
             </div>
           </div>
         </div>
 
         <!-- Timeline section -->
-        <div class="h-48 bg-[#FFFDF5] border-t-4 border-black flex flex-col p-4 gap-3">
+        <div class="h-48 flex flex-col p-4 gap-3" style="background: var(--surface-1); border-top: 1px solid var(--border)">
           <!-- Player controls -->
-          <div class="flex items-center gap-4 px-4 py-3 bg-white rounded-lg border-4 border-black">
-            <button id="playBtn" class="control-btn play w-11 h-11 flex items-center justify-center rounded-lg bg-linear-to-r from-blue-500 to-cyan-500 text-slate-950 font-bold hover:shadow-lg hover:scale-105 transition-all">▶</button>
-            <div id="timeDisplay" class="font-mono text-xs text-black font-semibold min-w-32 tracking-widest">00:00 / 00:00</div>
+          <div class="flex items-center gap-4 px-4 py-3" style="background: var(--surface-2); border: 1px solid var(--border)">
+            <button id="playBtn" class="control-btn play w-11 h-11 flex items-center justify-center font-bold transition-all">▶</button>
+            <div id="timeDisplay" class="font-mono text-xs text-[var(--ink-1)] font-semibold min-w-32 tracking-wide">00:00 / 00:00</div>
             <div class="flex items-center gap-2 ml-auto">
-              <button id="volumeBtn" class="control-btn w-9 h-9 flex items-center justify-center rounded-lg bg-white border-2 border-black text-black transition-all">🔊</button>
-              <div class="volume-slider w-24 h-1 bg-white border border-black rounded cursor-pointer relative">
-                <div id="volumeFill" class="volume-fill h-full bg-linear-to-r from-blue-500 to-cyan-500 rounded" style="width: 100%;"></div>
+              <button id="volumeBtn" class="control-btn w-9 h-9 flex items-center justify-center transition-all">🔊</button>
+              <div class="volume-slider w-24 h-1 cursor-pointer relative" style="background: var(--surface-3); border: 1px solid var(--border)">
+                <div id="volumeFill" class="volume-fill h-full" style="width: 100%;"></div>
               </div>
             </div>
           </div>
@@ -91,22 +108,22 @@ onUnmounted(() => {
           <!-- Timeline -->
           <div class="flex flex-col gap-1.5 flex-1">
             <!-- Seek bar -->
-            <div id="seekBar" class="seek-bar h-2 bg-white border border-black rounded-full cursor-pointer relative overflow-hidden group">
-              <div id="seekProgress" class="seek-progress h-full bg-linear-to-r from-blue-500 to-cyan-500 rounded-full relative" style="width: 0%;">
-                <div class="seek-handle absolute w-3 h-3 bg-white rounded-full -right-1.5 top-1/2 -translate-y-1/2 shadow-lg group-hover:w-4 group-hover:h-4 transition-all"></div>
+            <div id="seekBar" class="seek-bar h-2 cursor-pointer relative overflow-hidden group" style="background: var(--surface-3); border: 1px solid var(--border)">
+              <div id="seekProgress" class="seek-progress h-full relative" style="width: 0%;">
+                <div class="seek-handle absolute w-3 h-3 -right-1.5 top-1/2 -translate-y-1/2 group-hover:w-4 group-hover:h-4 transition-all" style="background: var(--surface-1); border: 1px solid var(--ink-1)"></div>
               </div>
             </div>
 
             <!-- Timeline track -->
-            <div class="timeline-track flex-1 bg-white rounded-lg border-4 border-black relative overflow-hidden cursor-pointer">
-              <div class="timeline-content absolute inset-0 bg-repeat-x" style="background-image: repeating-linear-gradient(90deg, transparent 0, transparent 9px, rgba(255,255,255,0.04) 9px, rgba(255,255,255,0.04) 10px);"></div>
-              <div id="trimStart" class="trim-handle start absolute top-0 bottom-0 w-3.5 bg-blue-500 cursor-ew-resize z-20 rounded-l opacity-90" style="left: 0;"></div>
-              <div id="trimEnd" class="trim-handle end absolute top-0 bottom-0 w-3.5 bg-blue-500 cursor-ew-resize z-20 rounded-r opacity-90" style="right: 0;"></div>
-              <div id="playhead" class="playhead absolute top-0 bottom-0 w-0.5 bg-white z-30" style="left: 0%;"></div>
+            <div class="timeline-track flex-1 relative overflow-hidden cursor-pointer" style="background: var(--surface-2); border: 1px solid var(--border)">
+              <div class="timeline-content absolute inset-0 bg-repeat-x"></div>
+              <div id="trimStart" class="trim-handle start absolute top-0 bottom-0 w-3.5 cursor-ew-resize z-20"></div>
+              <div id="trimEnd" class="trim-handle end absolute top-0 bottom-0 w-3.5 cursor-ew-resize z-20"></div>
+              <div id="playhead" class="playhead absolute top-0 bottom-0 w-0.5 z-30" style="left: 0%;"></div>
             </div>
 
             <!-- Timeline labels -->
-            <div class="timeline-labels flex justify-between font-mono text-xs text-black px-2">
+            <div class="timeline-labels flex justify-between font-mono text-xs text-[var(--ink-3)] px-2">
               <span id="startLabel">00:00</span>
               <span id="endLabel">00:00</span>
             </div>
@@ -115,14 +132,14 @@ onUnmounted(() => {
       </div>
 
       <!-- Sidebar (320px) -->
-      <div class="w-80 bg-white border-l-4 border-black overflow-y-auto p-5 flex flex-col gap-4">
+      <div class="order-3 w-80 overflow-y-auto p-5 flex flex-col gap-4" style="background: var(--surface-1); border-left: 1px solid var(--border)">
         <!-- Export Settings -->
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-black mb-3">Export Settings</h3>
+          <h3 class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] mb-3">Export Settings</h3>
           <div class="space-y-3">
             <div class="flex flex-col gap-1.5">
-              <label for="resolutionSelect" class="text-xs font-medium text-black">Resolution</label>
-              <select id="resolutionSelect" class="w-full px-3 py-2 rounded-lg border-4 border-black bg-white text-black text-xs font-mono focus:outline-none transition-colors">
+              <label for="resolutionSelect" class="text-xs font-medium text-[var(--ink-2)]">Resolution</label>
+              <select id="resolutionSelect" class="ui-input font-mono text-xs">
                 <option value="source">Keep original</option>
                 <option value="1080">1080p (1920×1080)</option>
                 <option value="720">720p (1280×720)</option>
@@ -131,8 +148,8 @@ onUnmounted(() => {
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label for="presetSelect" class="text-xs font-medium text-black">Encoding speed</label>
-              <select id="presetSelect" class="w-full px-3 py-2 rounded-lg border-4 border-black bg-white text-black text-xs font-mono focus:outline-none transition-colors">
+              <label for="presetSelect" class="text-xs font-medium text-[var(--ink-2)]">Encoding speed</label>
+              <select id="presetSelect" class="ui-input font-mono text-xs">
                 <option value="ultrafast">Ultrafast (Fastest)</option>
                 <option value="superfast">Superfast</option>
                 <option value="veryfast" selected>Very fast</option>
@@ -143,80 +160,85 @@ onUnmounted(() => {
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <label for="crfInput" class="text-xs font-medium text-black">Quality (CRF) <span id="crfValue" class="text-black font-bold">25</span></label>
-              <input id="crfInput" type="range" min="18" max="32" value="25" class="w-full accent-blue-500">
-              <p class="text-xs text-black">Lower = better quality, larger file</p>
+              <label for="crfInput" class="text-xs font-medium text-[var(--ink-2)]">Quality (CRF) <span id="crfValue" class="text-[var(--ink-1)] font-semibold">25</span></label>
+              <input id="crfInput" type="range" min="18" max="32" value="25" class="ui-range w-full">
+              <p class="text-xs text-[var(--ink-3)]">Lower = better quality, larger file</p>
             </div>
           </div>
         </div>
 
         <!-- Trim Settings -->
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Trim Settings</h3>
+          <h3 class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] mb-3">Trim Settings</h3>
           <div class="grid grid-cols-2 gap-2">
             <div class="flex flex-col gap-1.5">
-              <label for="startInput" class="text-xs font-medium text-slate-400">Start time</label>
-              <input id="startInput" type="text" placeholder="00:00" class="w-full px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900/50 text-slate-200 text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500 hover:border-slate-600 transition-colors">
+              <label for="startInput" class="text-xs font-medium text-[var(--ink-2)]">Start time</label>
+              <input id="startInput" type="text" placeholder="00:00" class="ui-input text-xs">
             </div>
             <div class="flex flex-col gap-1.5">
-              <label for="endInput" class="text-xs font-medium text-slate-400">End time</label>
-              <input id="endInput" type="text" placeholder="Full" class="w-full px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900/50 text-slate-200 text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500 hover:border-slate-600 transition-colors">
+              <label for="endInput" class="text-xs font-medium text-[var(--ink-2)]">End time</label>
+              <input id="endInput" type="text" placeholder="Full" class="ui-input text-xs">
             </div>
           </div>
         </div>
 
         <!-- Crop Settings -->
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Crop Settings</h3>
+          <h3 class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] mb-3">Crop Settings</h3>
           <div class="grid grid-cols-2 gap-2 mb-3">
             <div class="flex flex-col gap-1.5">
-              <label for="cropWidth" class="text-xs font-medium text-slate-400">Width (px)</label>
-              <input id="cropWidth" type="number" min="0" placeholder="Auto" class="w-full px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900/50 text-slate-200 text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500 hover:border-slate-600 transition-colors">
+              <label for="cropWidth" class="text-xs font-medium text-[var(--ink-2)]">Width (px)</label>
+              <input id="cropWidth" type="number" min="0" placeholder="Auto" class="ui-input text-xs">
             </div>
             <div class="flex flex-col gap-1.5">
-              <label for="cropHeight" class="text-xs font-medium text-slate-400">Height (px)</label>
-              <input id="cropHeight" type="number" min="0" placeholder="Auto" class="w-full px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900/50 text-slate-200 text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500 hover:border-slate-600 transition-colors">
+              <label for="cropHeight" class="text-xs font-medium text-[var(--ink-2)]">Height (px)</label>
+              <input id="cropHeight" type="number" min="0" placeholder="Auto" class="ui-input text-xs">
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2 mb-2">
             <div class="flex flex-col gap-1.5">
-              <label for="cropX" class="text-xs font-medium text-slate-400">X offset</label>
-              <input id="cropX" type="number" min="0" placeholder="0" class="w-full px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900/50 text-slate-200 text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500 hover:border-slate-600 transition-colors">
+              <label for="cropX" class="text-xs font-medium text-[var(--ink-2)]">X offset</label>
+              <input id="cropX" type="number" min="0" placeholder="0" class="ui-input text-xs">
             </div>
             <div class="flex flex-col gap-1.5">
-              <label for="cropY" class="text-xs font-medium text-slate-400">Y offset</label>
-              <input id="cropY" type="number" min="0" placeholder="0" class="w-full px-2 py-1.5 rounded-lg border border-slate-700 bg-slate-900/50 text-slate-200 text-xs placeholder-slate-600 focus:outline-none focus:border-blue-500 hover:border-slate-600 transition-colors">
+              <label for="cropY" class="text-xs font-medium text-[var(--ink-2)]">Y offset</label>
+              <input id="cropY" type="number" min="0" placeholder="0" class="ui-input text-xs">
             </div>
           </div>
-          <p class="text-xs text-slate-500 mb-3">Drag the overlay on video to crop visually</p>
+          <p class="text-xs text-[var(--ink-3)] mb-3">Drag the overlay on video to crop visually</p>
         </div>
 
         <!-- Action buttons -->
         <div class="flex flex-col gap-2">
-          <button id="processBtn" class="w-full px-4 py-2.5 font-bold text-xs rounded-lg bg-linear-to-r from-blue-500 to-cyan-500 text-slate-950 hover:shadow-lg hover:-translate-y-0.5 transition-all">Export Video</button>
-          <button id="processBatchBtn" class="hidden w-full px-4 py-2.5 font-bold text-xs rounded-lg bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:border-blue-500 transition-all">Process All Files</button>
+          <button id="processBtn" class="ui-button w-full text-xs from-blue-500 to-cyan-500">Export Video</button>
+          <button id="processBatchBtn" class="ui-button-secondary hidden w-full text-xs">Process All Files</button>
         </div>
 
         <!-- Status and progress -->
-        <div class="status-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/50 text-slate-400 text-xs font-bold" id="processingBadge">
-          <span class="inline-block w-2 h-2 bg-slate-600 rounded-full"></span>
+        <div class="status-badge inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold" id="processingBadge" style="background: var(--surface-2); border: 1px solid var(--border); color: var(--ink-3)">
+          <span class="status-dot inline-block w-2 h-2" style="background: var(--ink-3)"></span>
           Idle
         </div>
-        <div id="status" class="font-mono text-xs text-slate-400 min-h-5"></div>
+        <div id="status" class="font-mono text-xs text-[var(--ink-3)] min-h-5"></div>
 
         <!-- Progress bar -->
-        <div id="progress" class="w-full h-5 rounded-full bg-slate-800 border border-slate-700 overflow-hidden opacity-0">
-          <div id="progressBar" class="h-full flex items-center justify-center text-[10px] font-bold text-slate-950 whitespace-nowrap bg-linear-to-r from-blue-500 to-cyan-500 rounded-full transition-all tracking-wide" style="width: 0%;"></div>
+        <div id="progress" class="w-full h-5 overflow-hidden opacity-0" style="background: var(--surface-2); border: 1px solid var(--border)">
+          <div id="progressBar" class="h-full flex items-center justify-center text-[10px] font-semibold whitespace-nowrap mono transition-all tracking-wide" style="width: 0%; background: var(--accent); color: var(--accent-ink)"></div>
         </div>
 
-        <div id="fileCount" class="font-mono text-xs text-slate-400 min-h-5"></div>
+        <div id="fileCount" class="font-mono text-xs text-[var(--ink-3)] min-h-5"></div>
 
         <!-- File list -->
-        <div id="fileList" class="hidden mt-3 pt-3 border-t border-slate-700">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Files to process</h3>
-          <div id="fileListItems" class="text-xs text-slate-400"></div>
+        <div id="fileList" class="hidden mt-3 pt-3" style="border-top: 1px solid var(--border)">
+          <h3 class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] mb-2">Files to process</h3>
+          <div id="fileListItems" class="text-xs text-[var(--ink-3)]"></div>
         </div>
       </div>
+    </div>
+
+    <!-- Bottom status strip -->
+    <div class="shrink-0 border-t px-5 py-2 flex items-center gap-4 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
+      <span>local · offline · no upload</span>
     </div>
   </div>
 </template>
@@ -226,13 +248,32 @@ onUnmounted(() => {
 
 /* Preserve tool-specific interactive selectors referenced by /public/video/main.js */
 
+/* Left rail buttons (nav + open action) */
+.rail-btn {
+  transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 140ms ease, color 140ms ease;
+}
+
+.rail-btn:hover {
+  background: var(--surface-2);
+  color: var(--ink-1);
+}
+
+.rail-btn:active {
+  transform: scale(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-btn {
+    transition: none !important;
+  }
+}
+
 .video-shell {
   position: relative;
   max-width: 100%;
   max-height: 100%;
-  border-radius: 0.75rem;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .video-shell video {
@@ -245,20 +286,20 @@ onUnmounted(() => {
 /* Crop overlay and handles */
 .crop-overlay {
   position: absolute;
-  border: 2px dashed #0ea5e9;
-  border-radius: 0.375rem;
-  background: rgba(14, 165, 233, 0.12);
+  border: 2px dashed #ffffff;
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.2);
   cursor: move;
-  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.6);
 }
 
 .crop-handle {
   position: absolute;
-  width: 14px;
-  height: 14px;
-  background: #0ea5e9;
-  border: 2px solid #fff;
-  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border: 2px solid #000;
+  border-radius: 0;
 }
 
 .crop-handle.br { bottom: -7px; right: -7px; cursor: se-resize; }
@@ -268,45 +309,41 @@ onUnmounted(() => {
 
 /* Timeline player controls */
 .control-btn {
-  border: none;
-  border-radius: 0.5rem;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1rem;
   padding: 0;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  color: var(--ink-1);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .control-btn:hover {
-  background: rgba(14, 165, 233, 0.2);
-  border-color: #0ea5e9;
-  transform: scale(1.05);
+  background: var(--accent-soft);
+  border-color: var(--accent);
 }
 
 .control-btn.play {
   width: 42px;
   height: 42px;
-  background: linear-gradient(120deg, #0ea5e9, #22d3ee);
-  border: none;
-  color: #0b1220;
+  background: var(--accent);
+  border: 1px solid var(--border);
+  color: var(--accent-ink);
   font-size: 1.125rem;
 }
 
 .control-btn.play:hover {
-  transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+  background: var(--accent-hover);
 }
 
 /* Seek bar and progress */
 .seek-bar {
   height: 0.5rem;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 0.25rem;
+  border-radius: 0;
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -314,8 +351,8 @@ onUnmounted(() => {
 
 .seek-progress {
   height: 100%;
-  background: linear-gradient(90deg, #0ea5e9, #22d3ee);
-  border-radius: 0.25rem;
+  background: var(--accent);
+  border-radius: 0;
   position: relative;
 }
 
@@ -326,16 +363,15 @@ onUnmounted(() => {
   transform: translateY(-50%);
   width: 12px;
   height: 12px;
-  background: white;
-  border-radius: 50%;
+  background: var(--surface-1);
+  border: 1px solid var(--ink-1);
+  border-radius: 0;
 }
 
 /* Timeline track and playhead */
 .timeline-track {
   height: 3rem;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -344,7 +380,7 @@ onUnmounted(() => {
 .timeline-content {
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(90deg, transparent 0, transparent 9px, rgba(255, 255, 255, 0.04) 9px, rgba(255, 255, 255, 0.04) 10px);
+  background: repeating-linear-gradient(90deg, transparent 0, transparent 9px, var(--border) 9px, var(--border) 10px);
 }
 
 .trim-handle {
@@ -352,36 +388,36 @@ onUnmounted(() => {
   top: 0;
   bottom: 0;
   width: 14px;
-  background: #0ea5e9;
+  background: var(--accent);
   cursor: ew-resize;
   z-index: 20;
-  border-radius: 2px;
+  border-radius: 0;
   opacity: 0.9;
 }
 
-.trim-handle.start { left: 0; border-radius: 4px 0 0 4px; }
-.trim-handle.end { right: 0; border-radius: 0 4px 4px 0; }
+.trim-handle.start { left: 0; }
+.trim-handle.end { right: 0; }
 
 .playhead {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 2px;
-  background: #fff;
+  background: var(--ink-1);
   z-index: 30;
 }
 
 .timeline-labels {
   display: flex;
   justify-content: space-between;
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ink-3);
 }
 
 .timeline-label {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ink-3);
 }
 
 /* Status badge */
@@ -390,47 +426,33 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.06);
-  color: #94a3b8;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 0;
   width: fit-content;
 }
 
-.status-badge::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #94a3b8;
-}
-
 .status-badge.active {
-  color: #e2e8f0;
-  border-color: rgba(14, 165, 233, 0.4);
-  background: rgba(14, 165, 233, 0.12);
+  color: var(--ink-1);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .status-badge.active::before {
-  background: #0ea5e9;
+  background: var(--accent);
 }
 
 /* Volume slider */
 .volume-slider {
   width: 5rem;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
+  border-radius: 0;
   cursor: pointer;
   position: relative;
 }
 
 .volume-fill {
   height: 100%;
-  background: linear-gradient(90deg, #0ea5e9, #22d3ee);
-  border-radius: 2px;
+  background: var(--accent);
+  border-radius: 0;
   width: 100%;
 }
 
@@ -438,9 +460,7 @@ onUnmounted(() => {
 .progress {
   width: 100%;
   height: 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
   overflow: hidden;
   opacity: 0;
 }
@@ -448,8 +468,22 @@ onUnmounted(() => {
 .progress-bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #0ea5e9, #22d3ee);
+  background: var(--accent);
   transition: width 0.15s ease;
+}
+
+/* #processBtn keeps its from- and to- gradient-stop classes so main.js's
+   classList.replace("from-blue-500","from-red-500") toggle keeps working;
+   these classes now just act as state flags mapped to the new palette. */
+#processBtn.from-red-500,
+#processBtn.to-orange-500 {
+  background: var(--danger);
+}
+
+#processBtn.from-red-500:hover,
+#processBtn.to-orange-500:hover {
+  background: var(--danger);
+  opacity: 0.9;
 }
 
 /* Responsive */
