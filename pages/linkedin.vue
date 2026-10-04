@@ -287,43 +287,101 @@ const applySmallCapsToSelection = () => {
   })
 }
 
-const toolbarGroups: { label: string; buttons: { label: string; title: string; action: () => void; className?: string }[] }[] = [
-  {
-    label: 'Style selection',
-    buttons: [
-      { label: 'B', title: 'Bold', action: () => wrapSelection('**', 'Bold'), className: 'font-bold' },
-      { label: 'I', title: 'Italic', action: () => wrapSelection('*', 'Italic'), className: 'italic' },
-      { label: 'B/I', title: 'Bold + Italic', action: () => wrapSelection('***', 'Bold + Italic'), className: 'font-bold italic' },
-      { label: 'S', title: 'Strikethrough', action: () => wrapSelection('~~', 'Strikethrough'), className: 'line-through' },
-      { label: 'U', title: 'Underline', action: () => wrapSelection('__', 'Underline'), className: 'underline' },
-      { label: '</>', title: 'Monospace (code)', action: () => wrapSelection('`', 'Monospace') },
-      { label: 'ᴀᴀ', title: 'Small caps', action: applySmallCapsToSelection },
-    ],
-  },
-  {
-    label: 'Insert block',
-    buttons: [
-      { label: '• List', title: 'Insert bullet list', action: insertBullets },
-      { label: '1. List', title: 'Insert numbered list', action: insertNumbered },
-      { label: '☑ Checklist', title: 'Insert checklist', action: insertChecklist },
-      { label: '── Divider', title: 'Insert section divider', action: insertDivider },
-    ],
-  },
+type ToolBtn = { label: string; title: string; action: () => void; className?: string; kbd?: string }
+
+const styleButtons: ToolBtn[] = [
+  { label: 'B', title: 'Bold', kbd: '⌘B', action: () => wrapSelection('**', 'Bold'), className: 'font-extrabold' },
+  { label: 'I', title: 'Italic', kbd: '⌘I', action: () => wrapSelection('*', 'Italic'), className: 'italic font-serif' },
+  { label: 'BI', title: 'Bold + Italic', action: () => wrapSelection('***', 'Bold + Italic'), className: 'font-extrabold italic' },
+  { label: 'S', title: 'Strikethrough', action: () => wrapSelection('~~', 'Strikethrough'), className: 'line-through' },
+  { label: 'U', title: 'Underline', kbd: '⌘U', action: () => wrapSelection('__', 'Underline'), className: 'underline underline-offset-2' },
+  { label: '</>', title: 'Monospace', kbd: '⌘E', action: () => wrapSelection('`', 'Monospace'), className: 'font-mono' },
+  { label: 'ᴀᴀ', title: 'Small caps', action: applySmallCapsToSelection },
 ]
+
+const blockButtons: ToolBtn[] = [
+  { label: '•  List', title: 'Insert bullet list', action: insertBullets },
+  { label: '1.  List', title: 'Insert numbered list', action: insertNumbered },
+  { label: '☑  Checklist', title: 'Insert checklist', action: insertChecklist },
+  { label: '—  Divider', title: 'Insert divider', action: insertDivider },
+]
+
+const REFERENCE = [
+  { md: '**bold**', out: '𝐁𝐨𝐥𝐝' },
+  { md: '*italic*', out: '𝐼𝑡𝑎𝑙𝑖𝑐' },
+  { md: '***both***', out: '𝑩𝒐𝒕𝒉' },
+  { md: '~~strike~~', out: 'S̶t̶r̶i̶k̶e̶' },
+  { md: '__underline__', out: 'U̲n̲d̲e̲r̲l̲i̲n̲e̲' },
+  { md: '`code`', out: '𝚌𝚘𝚍𝚎' },
+  { md: '- item', out: '• item' },
+  { md: '1. item', out: '① item' },
+  { md: '[ ] / [x]', out: '☐ / ☑' },
+  { md: '---', out: '───────' },
+]
+
+const SHORTCUTS: Record<string, () => void> = {
+  b: styleButtons[0].action,
+  i: styleButtons[1].action,
+  u: styleButtons[4].action,
+  e: styleButtons[5].action,
+}
+
+const onEditorKeydown = (e: KeyboardEvent) => {
+  if (!(e.metaKey || e.ctrlKey) || e.altKey || e.shiftKey) return
+  const fn = SHORTCUTS[e.key.toLowerCase()]
+  if (!fn) return
+  e.preventDefault()
+  fn()
+}
+
+// LinkedIn collapses the feed post behind "…see more" after roughly 210
+// characters or 3 lines — whichever comes first. Preview the same fold so the
+// hook can be tuned.
+const FOLD_CHARS = 210
+const FOLD_LINES = 3
+const expanded = ref(false)
+const foldIndex = computed(() => {
+  const chars = Array.from(formattedText.value)
+  let lines = 0
+  for (let i = 0; i < chars.length; i += 1) {
+    if (chars[i] === '\n' && ++lines >= FOLD_LINES) return i
+    if (i >= FOLD_CHARS) return i
+  }
+  return -1
+})
+const visibleText = computed(() => {
+  if (expanded.value || foldIndex.value < 0) return formattedText.value
+  return Array.from(formattedText.value).slice(0, foldIndex.value).join('').trimEnd()
+})
+const hookText = computed(() =>
+  foldIndex.value < 0 ? formattedText.value : Array.from(formattedText.value).slice(0, foldIndex.value).join(''))
+
+const meterPct = computed(() => Math.min(100, (charCount.value / LINKEDIN_SAFE_LIMIT) * 100))
+const wordCount = computed(() => (input.value.trim() ? input.value.trim().split(/\s+/).length : 0))
+const readSecs = computed(() => Math.max(1, Math.round((wordCount.value / 230) * 60)))
+
+const copied = ref(false)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
 
 const copyFormatted = async () => {
   if (!formattedText.value) return
   try {
     await navigator.clipboard.writeText(formattedText.value)
     status.value = 'Copied — paste directly into LinkedIn.'
+    copied.value = true
+    clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(() => { copied.value = false }, 1800)
   } catch {
     status.value = 'Could not copy — select and copy manually.'
   }
 }
 
+onBeforeUnmount(() => clearTimeout(copiedTimer))
+
 const clearAll = () => {
   input.value = ''
   status.value = 'Write your post using **bold**, *italic*, and more.'
+  nextTick(() => getTextarea()?.focus())
 }
 
 const loadSample = () => {
@@ -339,172 +397,203 @@ watch(charCount, () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
+  <div class="min-h-screen bg-[var(--surface-2)] text-[var(--ink-1)] flex flex-col">
     <div class="flex-1 flex flex-col md:flex-row">
       <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
         <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
             <span class="text-[10px] font-medium">Home</span>
           </NuxtLink>
-          <button class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Clear" aria-label="Clear" @click="clearAll">
+          <button class="rail-btn shrink-0 w-14 h-14 flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Load sample" aria-label="Load sample" @click="loadSample">
+            <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3h7l3 3v11H5zM12 3v3h3M8 10h4M8 13h4" /></svg>
+            <span class="text-[10px] font-medium">Sample</span>
+          </button>
+          <button class="rail-btn shrink-0 w-14 h-14 flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Clear" aria-label="Clear" @click="clearAll">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 6h10M8 6V4h4v2m-6 0l1 10h6l1-10" /></svg>
             <span class="text-[10px] font-medium">Clear</span>
           </button>
         </div>
       </aside>
 
-      <main class="order-1 md:order-2 flex-1 min-w-0 flex flex-col p-4 md:p-6">
-      <div class="mx-auto w-full max-w-6xl flex flex-col gap-4">
-        <div class="ui-panel p-4 flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2">
-            <svg class="h-4 w-4 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="2" /><path stroke-linecap="round" stroke-linejoin="round" d="M6.5 8.5v5M6.5 6.5v.01M10 13.5v-3a1.7 1.7 0 013.4 0v3M10 10.5v3" /></svg>
-            <h1 class="text-sm font-bold text-[var(--ink-1)]">LinkedIn Post Formatter</h1>
-          </div>
-          <span class="text-xs font-mono text-[var(--ink-3)]">local · offline · no upload</span>
-        </div>
-
-        <div class="ui-panel p-3 flex flex-col gap-2.5">
-          <div v-for="group in toolbarGroups" :key="group.label" class="flex flex-wrap items-center gap-2">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] w-24 shrink-0">{{ group.label }}</span>
-            <button
-              v-for="btn in group.buttons"
-              :key="btn.label"
-              class="ui-button-secondary !py-1.5 !px-3 text-xs"
-              :class="btn.className"
-              :title="btn.title"
-              @click="btn.action"
-            >
-              {{ btn.label }}
-            </button>
-          </div>
-          <div class="flex items-center gap-2 pt-1 border-t" style="border-color: var(--border)">
-            <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] w-24 shrink-0">Actions</span>
-            <button class="ui-button-secondary !py-1.5 !px-3 text-xs" @click="loadSample">Load sample</button>
-            <button
-              class="ui-button-secondary !py-1.5 !px-3 text-xs inline-flex items-center gap-1.5"
-              :disabled="aiState === 'unavailable' || aiState === 'checking' || aiFormatting || !input.trim()"
-              :title="aiState === 'unavailable'
-                ? 'Chrome built-in AI (Gemini Nano) is not available in this browser. Try Chrome 138+ with the on-device model enabled.'
-                : 'Rewrite this post into LinkedIn style using on-device AI'"
-              @click="autoFormatWithAI"
-            >
-              <span v-if="aiFormatting" class="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
-              <span v-else>✨</span>
-              Auto-format{{ aiState === 'unavailable' ? ' (unavailable)' : '' }}
-            </button>
-            <button class="ui-button !py-1.5 !px-3 text-xs ml-auto" :disabled="!formattedText" @click="copyFormatted">Copy for LinkedIn</button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 flex-1 min-h-0">
-          <section class="ui-panel flex flex-col min-h-0">
-            <div class="flex items-center justify-between px-4 pt-3 pb-2">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)]">Write (Markdown-style)</span>
-              <span class="text-xs font-mono text-[var(--ink-3)]">{{ lineCount }} lines</span>
+      <main class="order-1 md:order-2 flex-1 min-w-0 p-4 md:p-8">
+        <div class="mx-auto w-full max-w-6xl flex flex-col gap-6">
+          <header class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p class="text-[11px] font-mono uppercase tracking-[0.14em] text-[var(--ink-3)]">Writing · Social</p>
+              <h1 class="mt-1 text-3xl md:text-4xl font-extrabold leading-[1.05] tracking-[-0.03em]">LinkedIn Post Formatter</h1>
+              <p class="mt-2 text-sm text-[var(--ink-2)] max-w-xl">Write in Markdown, get Unicode styling LinkedIn actually renders. Runs entirely in your browser.</p>
             </div>
-            <div class="px-4 pb-4 flex-1 min-h-0">
+            <button class="ui-button copy-btn min-w-[9.5rem]" :disabled="!formattedText" @click="copyFormatted">
+              <svg v-if="!copied" class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="7" y="7" width="10" height="10" /><path d="M13 7V3H3v10h4" /></svg>
+              <svg v-else class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 10.5l4 4 8-9" /></svg>
+              <span>{{ copied ? 'Copied' : 'Copy post' }}</span>
+            </button>
+          </header>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 items-start">
+            <!-- Editor -->
+            <section class="ui-panel flex flex-col min-w-0" aria-labelledby="editor-label">
+              <div class="flex flex-wrap items-center gap-1 border-b p-2" role="toolbar" aria-label="Formatting">
+                <button
+                  v-for="btn in styleButtons"
+                  :key="btn.title"
+                  class="tool-btn h-9 min-w-9 px-2 text-sm"
+                  :class="btn.className"
+                  :title="btn.kbd ? `${btn.title} (${btn.kbd})` : btn.title"
+                  :aria-label="btn.title"
+                  @mousedown.prevent
+                  @click="btn.action"
+                >{{ btn.label }}</button>
+                <span class="mx-1 h-5 w-px bg-[var(--ink-3)] opacity-40" aria-hidden="true" />
+                <button
+                  v-for="btn in blockButtons"
+                  :key="btn.title"
+                  class="tool-btn h-9 px-2.5 text-xs font-semibold whitespace-pre"
+                  :title="btn.title"
+                  @mousedown.prevent
+                  @click="btn.action"
+                >{{ btn.label }}</button>
+              </div>
+
+              <label id="editor-label" for="post-input" class="sr-only">Post text</label>
               <textarea
                 id="post-input"
                 v-model="input"
                 spellcheck="true"
-                placeholder="Write your post... use **bold**, *italic*, ~~strike~~, __underline__, `code`, - bullets, 1. numbers, [ ] checklist, --- divider"
-                class="ui-input font-mono text-xs w-full h-full min-h-[360px] resize-none"
+                placeholder="Start with a one-line hook…"
+                class="block w-full min-h-[440px] resize-y bg-transparent px-5 py-4 font-mono text-[13px] leading-[1.7] text-[var(--ink-1)] outline-none placeholder:text-[var(--ink-3)]"
+                @keydown="onEditorKeydown"
               />
-            </div>
-          </section>
 
-          <section class="ui-panel flex flex-col min-h-0">
-            <div class="flex items-center justify-between px-4 pt-3 pb-2">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)]">Preview (as LinkedIn will show it)</span>
-              <span class="text-xs font-mono" :class="overLimit ? 'text-red-600' : 'text-[var(--ink-3)]'">{{ charCount }} / {{ LINKEDIN_SAFE_LIMIT }}</span>
-            </div>
-            <div class="px-4 pb-4 flex-1 min-h-0">
-              <div class="ui-input font-sans text-sm w-full h-full min-h-[360px] overflow-auto whitespace-pre-wrap break-words leading-relaxed">{{ formattedText || 'Formatted preview will appear here.' }}</div>
-            </div>
-          </section>
-        </div>
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t px-4 py-2.5 text-xs font-mono text-[var(--ink-3)]">
+                <span>{{ wordCount }} words</span>
+                <span>{{ lineCount }} lines</span>
+                <span>~{{ readSecs }}s read</span>
+                <button
+                  class="tool-btn ml-auto h-8 px-2.5 inline-flex items-center gap-1.5 font-sans font-semibold text-[var(--ink-1)] disabled:opacity-40 disabled:cursor-not-allowed"
+                  :disabled="aiState === 'unavailable' || aiState === 'checking' || aiFormatting || !input.trim()"
+                  :title="aiState === 'unavailable'
+                    ? 'Needs Chrome 138+ with built-in AI (Gemini Nano) enabled.'
+                    : 'Rewrite into LinkedIn style with on-device AI'"
+                  @click="autoFormatWithAI"
+                >
+                  <span v-if="aiFormatting" class="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+                  <svg v-else class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2l1.8 5.2L17 9l-5.2 1.8L10 16l-1.8-5.2L3 9l5.2-1.8z" /></svg>
+                  {{ aiState === 'unavailable' ? 'AI rewrite unavailable' : 'AI rewrite' }}
+                </button>
+              </div>
+            </section>
 
-        <section class="ui-panel p-4">
-          <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)]">Formatting reference</span>
-          <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
-            <div class="flex items-center justify-between gap-2 py-1 border-b" style="border-color: var(--border)">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">**bold**</code>
-              <span class="text-[var(--ink-2)]">𝐁𝐨𝐥𝐝 text</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1 border-b" style="border-color: var(--border)">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">*italic*</code>
-              <span class="text-[var(--ink-2)]">𝘐𝘵𝘢𝘭𝘪𝘤 text</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1 border-b" style="border-color: var(--border)">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">***bold italic***</code>
-              <span class="text-[var(--ink-2)]">𝑩𝒐𝒍𝒅 𝒊𝒕𝒂𝒍𝒊𝒄</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1 border-b" style="border-color: var(--border)">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">~~strike~~</code>
-              <span class="text-[var(--ink-2)]">S̶t̶r̶i̶k̶e̶ text</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1 border-b" style="border-color: var(--border)">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">__underline__</code>
-              <span class="text-[var(--ink-2)]">U̲n̲d̲e̲r̲l̲i̲n̲e̲ text</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1 border-b" style="border-color: var(--border)">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">`code`</code>
-              <span class="text-[var(--ink-2)]">𝚖𝚘𝚗𝚘𝚜𝚙𝚊𝚌𝚎 text</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1 border-b" style="border-color: var(--border)">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">- item</code>
-              <span class="text-[var(--ink-2)]">• Bullet list</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1 border-b" style="border-color: var(--border)">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">1. item</code>
-              <span class="text-[var(--ink-2)]">① Numbered list</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1 border-b" style="border-color: var(--border)">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">[ ] / [x]</code>
-              <span class="text-[var(--ink-2)]">☐ / ☑ Checklist</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1">
-              <code class="font-mono px-1 rounded-none" style="background: var(--surface-2)">---</code>
-              <span class="text-[var(--ink-2)]">─── Divider</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 py-1">
-              <span class="text-[var(--ink-3)]">Select text + "ᴀᴀ" button</span>
-              <span class="text-[var(--ink-2)]">sᴍᴀʟʟ ᴄᴀᴘs</span>
-            </div>
+            <!-- Preview -->
+            <section class="flex flex-col gap-3 md:sticky md:top-6 min-w-0" aria-label="Preview">
+
+              <article class="ui-panel">
+                <div class="flex items-start gap-3 px-4 pt-4">
+                  <div class="h-12 w-12 shrink-0 rounded-full bg-[var(--ink-1)] text-white grid place-items-center text-sm font-bold" aria-hidden="true">You</div>
+                  <div class="min-w-0 leading-tight">
+                    <p class="text-sm font-bold">Your Name</p>
+                    <p class="text-xs text-[var(--ink-3)] truncate">Your headline</p>
+                    <p class="mt-0.5 text-xs text-[var(--ink-3)]">now · Public</p>
+                  </div>
+                </div>
+                <div class="px-4 py-3 text-sm leading-[1.6] whitespace-pre-wrap break-words min-h-[8rem]">
+                  <template v-if="formattedText">{{ visibleText }}<button
+                    v-if="foldIndex >= 0"
+                    class="ml-1 text-[var(--ink-3)] hover:text-[var(--ink-1)] hover:underline font-semibold"
+                    @click="expanded = !expanded"
+                  >{{ expanded ? 'show less' : '…see more' }}</button></template>
+                  <span v-else class="text-[var(--ink-3)]">Your formatted post will appear here.</span>
+                </div>
+                <div class="flex border-t text-xs font-semibold text-[var(--ink-3)]" aria-hidden="true">
+                  <span v-for="a in ['Like', 'Comment', 'Repost', 'Send']" :key="a" class="flex-1 py-3 text-center">{{ a }}</span>
+                </div>
+              </article>
+
+              <p v-if="formattedText" class="text-xs text-[var(--ink-2)]">
+                <span class="font-semibold text-[var(--ink-1)]">Above the fold:</span>
+                {{ Array.from(hookText).length }} chars visible before "see more".
+              </p>
+            </section>
           </div>
-          <p class="mt-3 text-xs leading-relaxed text-[var(--ink-2)]">
-            LinkedIn posts don't support real HTML formatting — these effects come from swapping letters for styled
-            Unicode characters, or attaching invisible combining marks for strikethrough and underline. Anything typed
-            here works when pasted into LinkedIn, X, Slack, or anywhere else plain Unicode text is accepted.
-          </p>
-        </section>
-      </div>
+
+          <details class="ui-panel group">
+            <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-bold">
+              Formatting reference
+              <svg class="h-4 w-4 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8l5 5 5-5" /></svg>
+            </summary>
+            <div class="border-t px-4 py-4">
+              <dl class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-[var(--surface-3)] border border-[var(--surface-3)]">
+                <div v-for="r in REFERENCE" :key="r.md" class="bg-[var(--surface-1)] px-3 py-2.5">
+                  <dt class="font-mono text-xs text-[var(--ink-3)]">{{ r.md }}</dt>
+                  <dd class="mt-1 text-sm">{{ r.out }}</dd>
+                </div>
+              </dl>
+              <p class="mt-4 max-w-3xl text-xs leading-relaxed text-[var(--ink-2)]">
+                LinkedIn doesn't support real rich text. These styles swap letters for Unicode lookalikes, or attach
+                combining marks for strikethrough and underline, so they survive pasting into LinkedIn, X, Slack, and
+                anywhere else plain text is accepted. Screen readers may read styled letters awkwardly, so use them sparingly.
+              </p>
+            </div>
+          </details>
+        </div>
       </main>
     </div>
 
-    <div class="shrink-0 border-t px-5 py-2 flex items-center gap-4 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
-      <span class="truncate">{{ status }}</span>
+    <div class="shrink-0 border-t px-5 py-2 text-xs font-mono" style="background: var(--surface-1); color: var(--ink-3)" role="status" aria-live="polite">
+      <span class="truncate block">{{ status }}</span>
     </div>
   </div>
 </template>
 
 <style scoped>
-.rail-btn {
-  transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 140ms ease, color 140ms ease;
+.rail-btn,
+.tool-btn {
+  transition: transform 140ms var(--ease-out), background-color 140ms ease, color 140ms ease;
 }
 
-.rail-btn:hover {
-  background: var(--surface-2);
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--ink-1);
 }
 
-.rail-btn:active {
+.tool-btn:focus-visible,
+.rail-btn:focus-visible {
+  outline: 2px solid var(--ink-1);
+  outline-offset: -2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rail-btn:hover,
+  .tool-btn:not(:disabled):hover {
+    background: var(--surface-2);
+    color: var(--ink-1);
+  }
+}
+
+.rail-btn:active,
+.tool-btn:not(:disabled):active {
   transform: scale(0.94);
 }
 
+.meter {
+  transition: transform 200ms var(--ease-out);
+}
+
+#post-input:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--ink-1);
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .rail-btn {
+  .rail-btn,
+  .tool-btn,
+  .meter {
     transition: none !important;
   }
 }

@@ -239,7 +239,7 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
-      navigateFallback: '/',
+      navigateFallback: null,
       globPatterns: ['**/*.{js,css,html,png,svg,ico,wasm}'],
       maximumFileSizeToCacheInBytes: 64 * 1024 * 1024 // 64 MiB
     },
@@ -248,7 +248,7 @@ export default defineNuxtConfig({
       periodicSyncForUpdates: 3600
     },
     devOptions: {
-      enabled: true,
+      enabled: false,
       type: 'module'
     }
   },
