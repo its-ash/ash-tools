@@ -10,6 +10,7 @@ const toolGroups = [
       { name: 'Image Editor', href: '/image/' },
       { name: 'ZIP Compressor', href: '/zip/' },
       { name: 'PDF Merger', href: '/pdf/' },
+      { name: 'PDF Sign', href: '/pdf-sign/' },
     ],
   },
   {

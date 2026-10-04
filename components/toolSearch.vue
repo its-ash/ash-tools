@@ -12,6 +12,7 @@ const tools: Tool[] = [
   { name: 'Image Editor', href: '/image/', description: 'Crop, resize, rotate, and adjust images', keywords: 'photo crop resize rotate filter heic' },
   { name: 'ZIP Archiver', href: '/zip/', description: 'Create and inspect ZIP archives', keywords: 'compress archive folder unzip' },
   { name: 'PDF Merger', href: '/pdf/', description: 'Merge, reorder, and compress PDFs', keywords: 'merge combine compress document' },
+  { name: 'PDF Sign', href: '/pdf-sign/', description: 'Draw or upload a signature and sign a PDF', keywords: 'signature sign esign document draw' },
   { name: 'Code Sandbox', href: '/sandbox/', description: 'Run JavaScript, Python, and Rust in the browser', keywords: 'javascript python rust run execute code editor' },
   { name: 'Color Picker', href: '/color/', description: 'Convert between HEX, RGB, and HSL', keywords: 'hex rgb hsl palette convert' },
   { name: 'Diff Checker', href: '/diff/', description: 'Compare two blocks of text', keywords: 'compare text changes' },

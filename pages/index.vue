@@ -40,6 +40,12 @@ const tools = [
     tag: 'Files',
   },
   {
+    title: 'PDF Sign',
+    route: '/pdf-sign',
+    description: 'Draw or upload a signature and place it anywhere on a PDF.',
+    tag: 'Files',
+  },
+  {
     title: 'Code Sandbox',
     route: '/sandbox',
     description: 'Run and test code in multiple languages in an isolated runtime.',

@@ -183,7 +183,7 @@ export default defineNuxtConfig({
     prerender: {
       crawlLinks: true,
       routes: [
-        '/', '/image', '/zip', '/video', '/sandbox', '/pdf',
+        '/', '/image', '/zip', '/video', '/sandbox', '/pdf', '/pdf-sign',
         '/json', '/csv', '/regex', '/encode', '/color', '/qr',
         '/markdown', '/uuid', '/diff', '/units', '/timestamp',
         '/text', '/cron', '/base64-image', '/linkedin',
