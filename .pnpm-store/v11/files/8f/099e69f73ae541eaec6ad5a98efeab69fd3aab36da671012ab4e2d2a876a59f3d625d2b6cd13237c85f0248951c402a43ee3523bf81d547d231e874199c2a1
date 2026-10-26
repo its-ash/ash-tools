@@ -1,0 +1,8 @@
+import { t as createAssetsDevframe } from "../node-Bl3Yf4xV.mjs";
+import { createCac } from "devframe/adapters/cac";
+//#region src/node/cli.ts
+function createAssetsCli() {
+	return createCac(createAssetsDevframe({ serveStatic: true }));
+}
+//#endregion
+export { createAssetsCli };

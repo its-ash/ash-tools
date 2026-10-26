@@ -1,0 +1,49 @@
+import { setupOg } from "./node/setup.mjs";
+import { defineDevframe } from "devframe";
+//#region package.json
+var name = "@devframes/plugin-og";
+var version = "1.2.6";
+var description = "Devframe plugin for inspecting Open Graph metadata and previewing social cards for any URL.";
+var homepage = "https://github.com/devframes/devframe#readme";
+//#endregion
+//#region src/node/index.ts
+const DEFAULT_ID = "devframes_plugin_og";
+const remoteAssets = {
+	package: `${name}--assets`,
+	version
+};
+/**
+* Create the standalone Open Graph viewer definition.
+*
+* @experimental This plugin is experimental and may change without a major
+* version bump until it stabilizes.
+*/
+function createOgDevframe(options = {}) {
+	const id = options.id ?? DEFAULT_ID;
+	return defineDevframe({
+		id,
+		name: options.name ?? "Open Graph",
+		version,
+		packageName: name,
+		importMetaUrl: import.meta.url,
+		homepage,
+		description,
+		icon: options.icon ?? "ph:image-square-duotone",
+		basePath: options.basePath,
+		clientAssets: remoteAssets,
+		cli: {
+			command: id,
+			port: options.port ?? 9016,
+			auth: options.auth ?? true
+		},
+		dock: { category: "~builtin" },
+		setup(ctx) {
+			setupOg(ctx, {
+				defaultUrl: options.defaultUrl,
+				fetch: options.fetch
+			});
+		}
+	});
+}
+//#endregion
+export { createOgDevframe as t };

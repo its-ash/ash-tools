@@ -1,0 +1,45 @@
+import { CreateJsonRenderViewOptions } from "@devframes/json-render/node";
+import "@vitejs/devtools-kit";
+import { DevframeJsonRenderSpec, JsonRenderView, JsonRenderViewRef, UIElement } from "@devframes/json-render";
+import { DevframeJsonRenderDockEntry as DevToolsViewJsonRender } from "@devframes/json-render/hub";
+//#region src/node/json-render.d.ts
+/** A json-render spec — the declarative UI description a plugin authors. */
+type JsonRenderSpec<Element extends UIElement = UIElement> = DevframeJsonRenderSpec<Element>;
+/** A single element within a spec's `elements` map. */
+type JsonRenderElement = UIElement;
+/**
+ * The handle returned by `ctx.createJsonRenderer()`. It wraps a devframe
+ * {@link JsonRenderView} and exposes the kit's method names.
+ *
+ * Register a `json-render` dock entry with the handle as `ui`
+ * (`docks.register({ type: 'json-render', ui, … })`); the client subscribes
+ * through its `stateKey`. Drive the panel by calling `updateSpec` /
+ * `updateState` on the handle.
+ */
+interface JsonRenderer<SpecType extends JsonRenderSpec = JsonRenderSpec> {
+  /** Replace the entire spec. */
+  updateSpec: (spec: SpecType) => void;
+  /** Shallow-merge values into the view's `state`. */
+  updateState: (state: Record<string, unknown>) => void;
+  /** Unregister the underlying view's shared state and listeners. */
+  dispose: () => void;
+  /** Shared-state key the client subscribes to for the live spec + state. */
+  readonly _stateKey: string;
+  /** The serializable reference to the underlying view. */
+  readonly view: JsonRenderViewRef<SpecType>;
+}
+type CreateJsonRenderer = <SpecType extends JsonRenderSpec>(spec: SpecType, options?: Pick<CreateJsonRenderViewOptions<SpecType>, 'schema'>) => JsonRenderer<SpecType>;
+declare module '@vitejs/devtools-kit' {
+  interface KitNodeContext {
+    /**
+     * Create a json-render handle for building declarative, server-driven
+     * panels. Provided by Vite DevTools (`@vitejs/devtools`), which owns the
+     * `@devframes/json-render` dependency so the kit stays light.
+     */
+    createJsonRenderer: CreateJsonRenderer;
+  }
+}
+/** Identity helper that types a json-render spec literal with inference. */
+declare function defineJsonRenderSpec<SpecType extends JsonRenderSpec>(spec: SpecType): SpecType;
+//#endregion
+export { JsonRenderViewRef as a, JsonRenderView as i, JsonRenderElement as n, JsonRenderer as o, JsonRenderSpec as r, defineJsonRenderSpec as s, DevToolsViewJsonRender as t };

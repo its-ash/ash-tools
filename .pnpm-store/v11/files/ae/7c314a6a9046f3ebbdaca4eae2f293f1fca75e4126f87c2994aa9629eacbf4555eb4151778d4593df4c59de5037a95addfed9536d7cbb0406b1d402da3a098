@@ -1,0 +1,2 @@
+import { a as InvokeResult, n as createInspectDevframe, o as RpcFunctionInfo, r as DevframeInspectCommandInfo, t as InspectDevframeOptions } from "../index-D7_vorUr.mjs";
+export { type DevframeInspectCommandInfo, InspectDevframeOptions, type InvokeResult, type RpcFunctionInfo, createInspectDevframe, createInspectDevframe as default };

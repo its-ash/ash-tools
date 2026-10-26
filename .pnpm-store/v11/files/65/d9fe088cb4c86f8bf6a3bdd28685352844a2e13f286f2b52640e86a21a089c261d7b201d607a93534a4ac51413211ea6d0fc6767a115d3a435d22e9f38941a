@@ -1,0 +1,194 @@
+import { TerminalPreset, TerminalsSharedState } from "../types.mjs";
+import { RpcDefinitionsToFunctions } from "devframe/rpc";
+//#region src/node/rpc/index.d.ts
+export declare const serverFunctions: readonly [import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:list", "query", readonly [], import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+  title: string;
+  mode: "interactive" | "readonly";
+  status: "running" | "exited" | "error";
+  backend: "pty" | "pipe";
+  command: string;
+  args: string[];
+  cwd: string;
+  cols: number;
+  rows: number;
+  createdAt: number;
+  processName?: string | undefined;
+  customTitle?: string | undefined;
+  pid?: number | undefined;
+  exitCode?: number | undefined;
+  icon?: string | undefined;
+  channel?: string | undefined;
+  presetId?: string | undefined;
+}[], {
+  id: string;
+  title: string;
+  mode: "interactive" | "readonly";
+  status: "running" | "exited" | "error";
+  backend: "pty" | "pipe";
+  command: string;
+  args: string[];
+  cwd: string;
+  cols: number;
+  rows: number;
+  createdAt: number;
+  processName?: string | undefined;
+  customTitle?: string | undefined;
+  pid?: number | undefined;
+  exitCode?: number | undefined;
+  icon?: string | undefined;
+  channel?: string | undefined;
+  presetId?: string | undefined;
+}[]>, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:presets", "query", readonly [], import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+  title: string;
+  command: string;
+  args: string[];
+  mode: "interactive" | "readonly";
+  icon?: string | undefined;
+}[], {
+  id: string;
+  title: string;
+  command: string;
+  args: string[];
+  mode: "interactive" | "readonly";
+  icon?: string | undefined;
+}[]>, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:spawn", "action", readonly [import("devframe/utils/simple-schema").SimpleSchema<{
+  presetId?: string | undefined;
+  command?: string | undefined;
+  args?: string[] | undefined;
+  cwd?: string | undefined;
+  mode?: "interactive" | "readonly" | undefined;
+  title?: string | undefined;
+  cols?: number | undefined;
+  rows?: number | undefined;
+  env?: Record<string, string> | undefined;
+}, {
+  presetId?: string | undefined;
+  command?: string | undefined;
+  args?: string[] | undefined;
+  cwd?: string | undefined;
+  mode?: "interactive" | "readonly" | undefined;
+  title?: string | undefined;
+  cols?: number | undefined;
+  rows?: number | undefined;
+  env?: Record<string, string> | undefined;
+}>], import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+  title: string;
+  mode: "interactive" | "readonly";
+  status: "running" | "exited" | "error";
+  backend: "pty" | "pipe";
+  command: string;
+  args: string[];
+  cwd: string;
+  cols: number;
+  rows: number;
+  createdAt: number;
+  processName?: string | undefined;
+  customTitle?: string | undefined;
+  pid?: number | undefined;
+  exitCode?: number | undefined;
+  icon?: string | undefined;
+  channel?: string | undefined;
+  presetId?: string | undefined;
+}, {
+  id: string;
+  title: string;
+  mode: "interactive" | "readonly";
+  status: "running" | "exited" | "error";
+  backend: "pty" | "pipe";
+  command: string;
+  args: string[];
+  cwd: string;
+  cols: number;
+  rows: number;
+  createdAt: number;
+  processName?: string | undefined;
+  customTitle?: string | undefined;
+  pid?: number | undefined;
+  exitCode?: number | undefined;
+  icon?: string | undefined;
+  channel?: string | undefined;
+  presetId?: string | undefined;
+}>, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:write", "action", readonly [import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+  data: string;
+}, {
+  id: string;
+  data: string;
+}>], import("devframe/utils/simple-schema").SimpleSchema<void, void>, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:resize", "action", readonly [import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+  cols: number;
+  rows: number;
+}, {
+  id: string;
+  cols: number;
+  rows: number;
+}>], import("devframe/utils/simple-schema").SimpleSchema<void, void>, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:terminate", "action", readonly [import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+}, {
+  id: string;
+}>], import("devframe/utils/simple-schema").SimpleSchema<void, void>, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:restart", "action", readonly [import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+}, {
+  id: string;
+}>], import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+  title: string;
+  mode: "interactive" | "readonly";
+  status: "running" | "exited" | "error";
+  backend: "pty" | "pipe";
+  command: string;
+  args: string[];
+  cwd: string;
+  cols: number;
+  rows: number;
+  createdAt: number;
+  processName?: string | undefined;
+  customTitle?: string | undefined;
+  pid?: number | undefined;
+  exitCode?: number | undefined;
+  icon?: string | undefined;
+  channel?: string | undefined;
+  presetId?: string | undefined;
+}, {
+  id: string;
+  title: string;
+  mode: "interactive" | "readonly";
+  status: "running" | "exited" | "error";
+  backend: "pty" | "pipe";
+  command: string;
+  args: string[];
+  cwd: string;
+  cols: number;
+  rows: number;
+  createdAt: number;
+  processName?: string | undefined;
+  customTitle?: string | undefined;
+  pid?: number | undefined;
+  exitCode?: number | undefined;
+  icon?: string | undefined;
+  channel?: string | undefined;
+  presetId?: string | undefined;
+}>, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:rename", "action", readonly [import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+  title: string;
+}, {
+  id: string;
+  title: string;
+}>], import("devframe/utils/simple-schema").SimpleSchema<void, void>, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:remove", "action", readonly [import("devframe/utils/simple-schema").SimpleSchema<{
+  id: string;
+}, {
+  id: string;
+}>], import("devframe/utils/simple-schema").SimpleSchema<void, void>, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithSchemas<"devframes:plugin:terminals:clear-exited", "action", readonly [], import("devframe/utils/simple-schema").SimpleSchema<void, void>, import("devframe").DevframeNodeContext>];
+declare module 'devframe' {
+  interface DevframeRpcServerFunctions extends RpcDefinitionsToFunctions<typeof serverFunctions> {}
+  interface DevframeRpcSharedStates {
+    'devframes:plugin:terminals:sessions': TerminalsSharedState;
+    'devframes:plugin:terminals:presets': {
+      presets: TerminalPreset[];
+    };
+  }
+}
+//#endregion

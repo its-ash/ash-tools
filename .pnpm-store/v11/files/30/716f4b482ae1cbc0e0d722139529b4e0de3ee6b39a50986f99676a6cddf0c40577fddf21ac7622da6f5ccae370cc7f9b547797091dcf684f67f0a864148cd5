@@ -1,0 +1,13 @@
+import { t as createTerminalsDevframe } from "../node-BSd-kWmL.mjs";
+import { createCac } from "devframe/adapters/cac";
+//#region src/node/cli.ts
+/**
+* Build a standalone CLI for the terminals panel, exposing `dev` / `build` /
+* `mcp` subcommands, backed by {@link createTerminalsDevframe}. Used by the
+* package `bin`.
+*/
+function createTerminalsCli(options = {}, cliOptions = {}) {
+	return createCac(createTerminalsDevframe(options), cliOptions);
+}
+//#endregion
+export { createTerminalsCli };

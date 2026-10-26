@@ -1,0 +1,60 @@
+{
+  "name": "@vue/devtools-agent",
+  "version": "9.0.0-rc.2",
+  "description": "Agent tools and host adapters for Vue DevTools",
+  "license": "MIT",
+  "author": "webfansplz",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vuejs/devtools.git",
+    "directory": "packages/agent"
+  },
+  "bin": {
+    "vue-devtools-agent": "./dist/cli.mjs"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "./dist/cli.mjs"
+  ],
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json",
+    "./devframe": {
+      "types": "./dist/devframe.d.mts",
+      "default": "./dist/devframe.mjs"
+    },
+    "./node": {
+      "types": "./dist/node.d.mts",
+      "default": "./dist/node.mjs"
+    }
+  },
+  "dependencies": {
+    "@devframes/agentic": "^1.1.0",
+    "@vue/devtools-kit": "9.0.0-rc.2",
+    "cac": "^7.0.0",
+    "devframe": "^1.1.0",
+    "safe-stable-stringify": "^2.5.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "tsdown": "^0.23.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch"
+  }
+}

@@ -1,0 +1,28 @@
+import { RuntimeCommandRequest, RuntimeCommandResult, RuntimeRequests } from "@vue/devtools-kit";
+//#region src/types.d.ts
+/** A host supplies a connection to its existing Vue runtime. `command` enables state editing and cursor cleanup. */
+type VueDevtoolsAgentConnection = Pick<RuntimeRequests, 'query'> & Partial<Pick<RuntimeRequests, 'command'>>;
+interface VueDevtoolsAgentPage {
+  /** Unique per document: component IDs and value handles expire on reload. */
+  id: string;
+  url: string;
+  title: string;
+}
+interface VueDevtoolsAgentSnapshot {
+  page: VueDevtoolsAgentPage;
+  capturedAt: number;
+  result: unknown;
+}
+//#endregion
+//#region src/session.d.ts
+interface VueDevtoolsAgentSession extends VueDevtoolsAgentConnection {
+  command(request: RuntimeCommandRequest): Promise<RuntimeCommandResult>;
+  dispose(): void;
+}
+/** Connect on the first call and retain the connection until the host disposes it. */
+declare function createVueDevtoolsAgentSession(connect: () => VueDevtoolsAgentConnection & {
+  dispose(): void;
+}): VueDevtoolsAgentSession;
+//#endregion
+export { VueDevtoolsAgentSnapshot as a, VueDevtoolsAgentPage as i, createVueDevtoolsAgentSession as n, VueDevtoolsAgentConnection as r, VueDevtoolsAgentSession as t };
+//# sourceMappingURL=session-1Buaf6lK.d.mts.map

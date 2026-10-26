@@ -1,5 +1,4 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: 'Free LinkedIn Post Formatter | Bold, Italic, Bullets & More in your browser',
@@ -398,27 +397,30 @@ watch(charCount, () => {
 
 <template>
   <div class="min-h-screen bg-[var(--surface-2)] text-[var(--ink-1)] flex flex-col">
-    <div class="flex-1 flex flex-col md:flex-row">
-      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+    <div class="flex-1 flex flex-col">
+      <ClientOnly>
+      <Teleport to="#page-actions">
+        <div class="flex items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
-            <span class="text-[10px] font-medium">Home</span>
+            <span>Home</span>
           </NuxtLink>
-          <button class="rail-btn shrink-0 w-14 h-14 flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Load sample" aria-label="Load sample" @click="loadSample">
+          <button class="rail-btn text-[var(--ink-3)]" title="Load sample" aria-label="Load sample" @click="loadSample">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3h7l3 3v11H5zM12 3v3h3M8 10h4M8 13h4" /></svg>
-            <span class="text-[10px] font-medium">Sample</span>
+            <span>Sample</span>
           </button>
-          <button class="rail-btn shrink-0 w-14 h-14 flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Clear" aria-label="Clear" @click="clearAll">
+          <button class="rail-btn text-[var(--ink-3)]" title="Clear" aria-label="Clear" @click="clearAll">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 6h10M8 6V4h4v2m-6 0l1 10h6l1-10" /></svg>
-            <span class="text-[10px] font-medium">Clear</span>
+            <span>Clear</span>
           </button>
         </div>
-      </aside>
+      </Teleport>
+      </ClientOnly>
 
       <main class="order-1 md:order-2 flex-1 min-w-0 p-4 md:p-8">
         <div class="mx-auto w-full max-w-6xl flex flex-col gap-6">
           <header class="flex flex-wrap items-end justify-between gap-4">
+        <div id="page-actions" class="order-first flex flex-wrap items-center gap-1"></div>
             <div>
               <p class="text-[11px] font-mono uppercase tracking-[0.14em] text-[var(--ink-3)]">Writing · Social</p>
               <h1 class="mt-1 text-3xl md:text-4xl font-extrabold leading-[1.05] tracking-[-0.03em]">LinkedIn Post Formatter</h1>
@@ -538,10 +540,6 @@ watch(charCount, () => {
           </details>
         </div>
       </main>
-    </div>
-
-    <div class="shrink-0 border-t px-5 py-2 text-xs font-mono" style="background: var(--surface-1); color: var(--ink-3)" role="status" aria-live="polite">
-      <span class="truncate block">{{ status }}</span>
     </div>
   </div>
 </template>

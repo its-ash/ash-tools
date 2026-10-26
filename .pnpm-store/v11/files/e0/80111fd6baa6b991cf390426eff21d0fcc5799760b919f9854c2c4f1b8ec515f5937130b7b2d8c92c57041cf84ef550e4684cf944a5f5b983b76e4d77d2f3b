@@ -1,0 +1,56 @@
+import { r as setupDataInspector } from "./setup-Bunkf8Ac.mjs";
+import { defineDevframe } from "devframe";
+//#region package.json
+var name = "@devframes/plugin-data-inspector";
+var version = "1.2.6";
+var description = "Devframe plugin for inspecting live server objects interactively with jora queries.";
+var homepage = "https://github.com/devframes/devframe#readme";
+//#endregion
+//#region src/node/index.ts
+/** Default devframe id, also the RPC namespace. */
+const DEFAULT_ID = "devframes:plugin:data-inspector";
+/** Preferred standalone CLI port. */
+const DEFAULT_PORT = 9014;
+const remoteAssets = {
+	package: `${name}--assets`,
+	version
+};
+/**
+* Build a {@link DevframeDefinition} for the Data Inspector: an interactive
+* jora query workbench over data sources registered by other plugins, hosts,
+* files, or attached processes.
+*
+* The plugin is fully headless about sources; register them via
+* `@devframes/plugin-data-inspector/registry` (process-global, no context
+* needed) or through the `devframes:plugin:data-inspector:sources` context
+* service.
+*
+* @experimental This plugin is experimental and may change without a major
+* version bump until it stabilizes.
+*/
+function createDataInspectorDevframe(options = {}) {
+	const id = options.id ?? DEFAULT_ID;
+	return defineDevframe({
+		id,
+		name: options.name ?? "Data Inspector",
+		version,
+		packageName: name,
+		importMetaUrl: import.meta.url,
+		homepage,
+		description,
+		icon: options.icon ?? "ph:crosshair-duotone",
+		basePath: options.basePath,
+		clientAssets: remoteAssets,
+		cli: {
+			command: "data-inspector",
+			port: options.port ?? DEFAULT_PORT,
+			auth: options.auth ?? true
+		},
+		dock: { category: "~builtin" },
+		setup(ctx) {
+			setupDataInspector(ctx, { exampleSource: options.exampleSource });
+		}
+	});
+}
+//#endregion
+export { version as n, createDataInspectorDevframe as t };

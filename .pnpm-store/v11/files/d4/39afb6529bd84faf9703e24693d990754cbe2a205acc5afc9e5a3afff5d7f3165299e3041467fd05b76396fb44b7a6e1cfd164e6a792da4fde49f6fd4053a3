@@ -1,0 +1,1 @@
+import{C as e,H as t,h as n}from"./vendor/json-editor-vue-nw7w4rej.js";import{t as r}from"./pages-m4t818yo.js";var i={"h-screen":``,"w-screen":``,"bg-black":``},a=e({__name:`__blank`,setup(e){return r({layout:`none`}),(e,r)=>(t(),n(`div`,i))}});export{a as default};

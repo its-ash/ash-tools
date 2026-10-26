@@ -1,0 +1,8 @@
+import { t as createOgDevframe } from "../node-CHyhD4cH.mjs";
+import { createCac } from "devframe/adapters/cac";
+//#region src/node/cli.ts
+function createOgCli() {
+	return createCac(createOgDevframe());
+}
+//#endregion
+export { createOgCli };

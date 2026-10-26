@@ -1,0 +1,7 @@
+import { i as VueDevtoolsAgentPage, n as createVueDevtoolsAgentSession, r as VueDevtoolsAgentConnection, t as VueDevtoolsAgentSession } from "./session-1Buaf6lK.mjs";
+//#region src/mcp/page.d.ts
+/** Register inspection and optional editing tools in Devframe's browser registry, using a unique document namespace. */
+export declare function registerVueDevtoolsAgentPage(connection: VueDevtoolsAgentConnection, page: VueDevtoolsAgentPage): () => void;
+//#endregion
+export { type VueDevtoolsAgentSession, createVueDevtoolsAgentSession };
+//# sourceMappingURL=devframe.d.mts.map

@@ -1,0 +1,482 @@
+import { z } from "zod";
+import { configure } from "safe-stable-stringify";
+//#region src/mcp/schemas.ts
+const jsonRecord = z.record(z.string(), z.json());
+const encodedValue = z.lazy(() => z.union([
+	z.object({ kind: z.enum(["null", "undefined"]) }),
+	z.object({
+		kind: z.literal("boolean"),
+		value: z.boolean()
+	}),
+	z.object({
+		kind: z.literal("number"),
+		value: z.union([z.number(), z.enum([
+			"NaN",
+			"Infinity",
+			"-Infinity"
+		])])
+	}),
+	z.object({
+		kind: z.literal("string"),
+		value: z.string(),
+		truncated: z.boolean().optional(),
+		length: z.number().optional()
+	}),
+	z.object({
+		kind: z.enum([
+			"bigint",
+			"date",
+			"regexp"
+		]),
+		value: z.string()
+	}),
+	z.object({
+		kind: z.literal("symbol"),
+		description: z.string()
+	}),
+	z.object({
+		kind: z.literal("function"),
+		name: z.string().optional(),
+		sourcePreview: z.string().optional()
+	}),
+	z.object({
+		kind: z.literal("array"),
+		length: z.number(),
+		preview: z.array(valueEntry),
+		handle: z.string().optional()
+	}),
+	z.object({
+		kind: z.literal("object"),
+		name: z.string(),
+		entries: z.number(),
+		preview: z.array(valueEntry),
+		handle: z.string().optional()
+	}),
+	z.object({
+		kind: z.enum(["map", "set"]),
+		size: z.number(),
+		preview: z.array(valueEntry),
+		handle: z.string().optional()
+	}),
+	z.object({
+		kind: z.literal("component"),
+		id: z.string().optional(),
+		name: z.string()
+	}),
+	z.object({
+		kind: z.literal("dom"),
+		tag: z.string(),
+		id: z.string().optional(),
+		className: z.string().optional()
+	}),
+	z.looseObject({
+		kind: z.literal("custom"),
+		value: encodedValue,
+		handle: z.string().optional(),
+		readOnly: z.boolean().optional()
+	}),
+	z.object({
+		kind: z.literal("error"),
+		name: z.string(),
+		message: z.string(),
+		stack: z.string().optional()
+	}),
+	z.object({
+		kind: z.literal("circular"),
+		handle: z.string()
+	})
+]));
+const valueEntry = z.object({
+	key: z.string(),
+	value: encodedValue
+});
+const treeNode = z.looseObject({
+	id: z.string(),
+	appId: z.string(),
+	name: z.string(),
+	parentId: z.string().optional(),
+	file: z.string().optional(),
+	childCount: z.number().optional(),
+	updatedAt: z.number()
+});
+const inspectorNode = z.lazy(() => z.looseObject({
+	id: z.string(),
+	label: z.string(),
+	children: z.array(inspectorNode).optional()
+}));
+const route = z.lazy(() => z.object({
+	path: z.string(),
+	name: z.string().optional(),
+	meta: jsonRecord.optional(),
+	children: z.array(route).optional()
+}));
+const pagination = z.object({
+	total: z.number().int().nonnegative(),
+	pageSize: z.number().int().positive(),
+	current: z.number().int().positive(),
+	next: z.number().int().positive().nullable()
+});
+const state = z.object({
+	snapshotId: z.string(),
+	pagination,
+	componentId: z.string(),
+	version: z.number(),
+	sections: z.array(z.object({
+		id: z.string(),
+		label: z.string(),
+		partial: z.boolean().optional(),
+		entries: z.array(valueEntry.extend({
+			path: z.array(z.string()),
+			editable: z.boolean(),
+			meta: jsonRecord.optional()
+		}))
+	})),
+	reactivityGraph: z.object({
+		nodes: z.array(z.object({
+			id: z.string(),
+			type: z.string(),
+			label: z.string(),
+			data: jsonRecord
+		})),
+		relationships: z.array(z.object({
+			id: z.string(),
+			from: z.string(),
+			to: z.string()
+		}))
+	}).optional()
+});
+const stateValueSchema = z.discriminatedUnion("found", [z.object({ found: z.literal(false) }), z.object({
+	found: z.literal(true),
+	editable: z.boolean(),
+	value: encodedValue,
+	snapshotId: z.string().optional(),
+	pagination: pagination.optional()
+})]);
+const resultSchemas = {
+	apps: z.object({ apps: z.array(z.object({
+		id: z.string(),
+		name: z.string(),
+		version: z.string().optional(),
+		componentCount: z.number()
+	})) }),
+	plugins: z.object({ plugins: z.array(z.looseObject({
+		id: z.string(),
+		settings: jsonRecord,
+		settingValues: jsonRecord
+	})) }),
+	health: z.object({
+		status: z.literal("ready"),
+		performance: z.object({
+			receivedEvents: z.number(),
+			emittedEvents: z.number(),
+			droppedEvents: z.number(),
+			coalescedEvents: z.number(),
+			bufferedEvents: z.number(),
+			bufferedBytes: z.number(),
+			collectionActive: z.boolean(),
+			attachedClients: z.number()
+		})
+	}),
+	tree: z.object({
+		appId: z.string().optional(),
+		version: z.number().optional(),
+		nodes: z.array(treeNode)
+	}),
+	children: z.object({
+		nodes: z.array(treeNode),
+		cursor: z.string().optional()
+	}),
+	command: z.object({
+		status: z.union([z.literal(0), z.literal(1)]),
+		error: z.json().optional()
+	}),
+	state: state.nullable(),
+	inspectors: z.object({ inspectors: z.array(z.looseObject({
+		id: z.string(),
+		label: z.string()
+	})) }),
+	inspectorTree: z.object({
+		inspectorId: z.string(),
+		rootNodes: z.array(inspectorNode)
+	}),
+	renderCode: z.string().nullable(),
+	router: z.object({
+		appId: z.string().optional(),
+		currentRoute: z.looseObject({
+			path: z.string().optional(),
+			fullPath: z.string().optional(),
+			matched: z.array(route).optional()
+		}).optional(),
+		routes: z.array(route)
+	}),
+	matches: z.object({
+		appId: z.string().optional(),
+		path: z.string(),
+		routes: z.array(route)
+	}),
+	expanded: z.object({
+		handle: z.string(),
+		path: z.array(z.string()),
+		value: encodedValue,
+		snapshotId: z.string(),
+		pagination
+	}),
+	stateValue: stateValueSchema,
+	edited: z.object({
+		status: z.literal(1),
+		state: stateValueSchema
+	})
+};
+function snapshotSchema(result) {
+	return z.object({
+		page: z.object({
+			id: z.string(),
+			url: z.string(),
+			title: z.string()
+		}),
+		capturedAt: z.number(),
+		result
+	});
+}
+//#endregion
+//#region src/mcp/tools.ts
+const stringify = configure({
+	bigint: false,
+	circularValue: "[Circular]",
+	deterministic: false
+});
+function createVueDevtoolsAgentTools(connection, page) {
+	const appId = z.string().min(1);
+	const target = z.strictObject({ appId });
+	const component = target.extend({ componentId: z.string().min(1) });
+	const inspector = target.extend({ inspectorId: z.string().min(1) });
+	const pagination = {
+		page: z.number().int().min(1).default(1),
+		pageSize: z.number().int().min(1).max(500).default(50),
+		snapshotId: z.string().min(1).optional()
+	};
+	const valuePagination = {
+		page: z.number().int().min(1).optional(),
+		pageSize: z.number().int().min(1).max(5e3).optional(),
+		snapshotId: pagination.snapshotId
+	};
+	const pagingGuide = " Paging: start at page 1, then pass the returned snapshotId and pagination.next as page with the same target and pageSize until next is null. Pages may hold fewer entries to fit the response budget. Restart without snapshotId if it expires.";
+	const previewNote = " Objects and arrays preview 30 entries.";
+	function tool(description, schema, handler, resultSchema, kind = "query") {
+		return {
+			type: kind,
+			jsonSerializable: true,
+			args: [schema],
+			returns: snapshotSchema(resultSchema),
+			agent: {
+				description,
+				safety: kind === "query" ? "read" : "action"
+			},
+			async handler(input) {
+				return toSnapshot(page, await handler(schema.parse(input)));
+			}
+		};
+	}
+	function noArgTool(description, handler, resultSchema) {
+		const definition = tool(description, z.strictObject({}), handler, resultSchema);
+		return {
+			...definition,
+			args: [],
+			handler: () => definition.handler({})
+		};
+	}
+	const field = z.object({
+		sectionId: z.string().min(1),
+		path: z.array(z.string().refine((segment) => ![
+			"__proto__",
+			"prototype",
+			"constructor"
+		].includes(segment), "Unsafe state path")).min(1).max(20)
+	});
+	const componentField = component.extend(field.shape);
+	const inspectorField = inspector.extend({
+		nodeId: z.string().min(1),
+		...field.shape
+	});
+	async function editField(command, read) {
+		if (!connection.command) throw new Error("This host does not support state editing");
+		const result = await connection.command({
+			...command,
+			payload: {
+				...command.payload,
+				requireEditable: true
+			}
+		});
+		if (result.status !== 1) {
+			const reason = stringify(result.error) ?? "the runtime rejected the edit";
+			throw new Error(reason.includes("not found") ? "State path was not found. Read the current component or inspector state and correct the path before editing." : reason.includes("read-only") ? "State field is read-only. Choose an editable field from the current state." : `State edit failed: ${reason}`);
+		}
+		try {
+			return {
+				status: 1,
+				state: await read()
+			};
+		} catch (error) {
+			throw new Error(`The edit command completed, but reading back the value failed. Inspect the state before retrying the edit. ${String(error)}`);
+		}
+	}
+	return {
+		"list-apps": noArgTool("Identify this page and list its Vue apps. Call before inspecting an app. IDs and value handles belong to this document and expire on reload. page.url follows the document location; use router-state for the Vue route.", () => connection.query({ type: "apps:snapshot" }), resultSchemas.apps),
+		"list-plugins": noArgTool("List Vue DevTools plugins registered on this page, including their settings.", () => connection.query({ type: "plugins:snapshot" }), resultSchemas.plugins),
+		"runtime-health": noArgTool("Read whether the Vue runtime is collecting and a small performance snapshot. Use this when component data looks empty or stalled.", () => connection.query({ type: "runtime:health" }), resultSchemas.health),
+		"component-tree": tool("List the initially expanded Vue component tree and source files. With filter, search every component in the app by name or source file (up to 100 matches, each with its parentId) instead. The tree can be partial; use component-children for childCount and cursors. If a cursor expires, restart component-children for that component.", target.extend({ filter: z.string().max(200).optional() }), ({ appId, filter }) => filter ? connection.query({
+			type: "components:search",
+			appId,
+			payload: { filter }
+		}) : connection.query({
+			type: "components:treeSnapshot",
+			appId,
+			payload: {}
+		}), resultSchemas.tree),
+		"component-children": tool("Read one page of a component’s children. Pass the returned cursor to read the next page in the same app and document. If a cursor expires, restart without it. Use cancel-component-children to drop a cursor you will not finish.", component.extend({ cursor: z.string().min(1).optional() }), ({ appId, ...payload }) => connection.query({
+			type: "components:treeChildren",
+			appId,
+			payload
+		}), resultSchemas.children),
+		"cancel-component-children": tool("Drop a component-children cursor that will not be read again.", target.extend({ cursor: z.string().min(1) }), ({ appId, cursor }) => {
+			if (!connection.command) throw new Error("This host cannot cancel component expansion");
+			return connection.command({
+				type: "components:cancelTreeChildren",
+				appId,
+				payload: { cursor }
+			});
+		}, resultSchemas.command),
+		"component-state": tool("Read a page of component state, grouped by section. pagination.total counts top-level fields across all sections. Use expand-value or component-value for nested contents. A null result means the component was not found." + previewNote + pagingGuide, component.extend(pagination), ({ appId, ...payload }) => connection.query({
+			type: "components:stateSnapshot",
+			appId,
+			payload
+		}), resultSchemas.state),
+		"list-inspectors": tool("List plugin inspectors, including Pinia when registered. Use inspector-tree and inspector-state to inspect stores or other plugin data.", target, ({ appId }) => connection.query({
+			type: "inspectors:list",
+			appId
+		}), resultSchemas.inspectors),
+		"inspector-tree": tool("Find nodes in a plugin inspector, such as Pinia stores. Use inspector IDs from list-inspectors. filter is interpreted by that plugin, not as a plain name search.", inspector.extend({ filter: z.string().max(200).optional() }), ({ appId, ...payload }) => connection.query({
+			type: "inspectors:treeSnapshot",
+			appId,
+			payload
+		}), resultSchemas.inspectorTree),
+		"inspector-state": tool("Read a page of Inspector state, such as a Pinia store, grouped by section. pagination.total counts fields across all sections. Use node IDs from inspector-tree and inspector-value for a known path. The plugin state hook runs when starting a batch. A null result means no matching state was found." + previewNote + pagingGuide, inspector.extend({
+			nodeId: z.string().min(1),
+			...pagination
+		}), ({ appId, ...payload }) => connection.query({
+			type: "inspectors:stateSnapshot",
+			appId,
+			payload
+		}), resultSchemas.state),
+		"component-render-code": tool("Read the render function source for one component, when the runtime can recover it.", component, ({ appId, componentId }) => connection.query({
+			type: "components:getRenderCode",
+			appId,
+			payload: { componentId }
+		}), resultSchemas.renderCode),
+		"router-state": tool("Inspect the app’s current route and registered routes to diagnose navigation and matched components.", target, ({ appId }) => connection.query({
+			type: "router:snapshot",
+			appId
+		}), resultSchemas.router),
+		"router-matches": tool("Match a path against the app router without navigating. Use router-state for the current route.", target.extend({ path: z.string().min(1).max(2e3) }), ({ appId, path }) => connection.query({
+			type: "router:matchedRoutes",
+			appId,
+			payload: { path }
+		}), resultSchemas.matches),
+		"component-value": tool("Read a known field in a component state section without a snapshot or handle, including fields outside the current page. Get sectionId from component-state (for example props, data, setup); path uses property names or array indexes as strings. found:false means the target or path is missing; a present null/undefined value has a codec tag. Pass page:1 to paginate (strings default to 5000 UTF-16 units, collections to 50 entries)." + previewNote + pagingGuide, componentField.extend(valuePagination), ({ appId, ...payload }) => connection.query({
+			type: "components:stateValue",
+			appId,
+			payload
+		}), resultSchemas.stateValue),
+		"inspector-value": tool("Read one field through an existing plugin Inspector, including Pinia. Use inspector/node/section IDs from list-inspectors, inspector-tree and inspector-state. path starts with the state entry key, followed by nested keys. found:false means no matching target or path. The plugin getInspectorState hook still runs, but only the requested value is encoded. Pass page:1 to paginate (strings default to 5000 UTF-16 units, collections to 50 entries)." + previewNote + pagingGuide, inspectorField.extend(valuePagination), ({ appId, ...payload }) => connection.query({
+			type: "inspectors:stateValue",
+			appId,
+			payload
+		}), resultSchemas.stateValue),
+		...connection.command ? {
+			"edit-component-state": tool("Change one existing editable component field through the Kit edit command. First read component-value and check editable. Accepts JSON values only; no delete or rename. Props can be overwritten by the parent. Returns the actual value read after the command; status:1 is command acknowledgement, not proof that the requested value persisted. If transport/readback fails, read state before retrying; do not blindly repeat a mutation.", componentField.extend({ value: z.json() }), ({ appId, value, ...payload }) => editField({
+				type: "components:editState",
+				appId,
+				payload: {
+					...payload,
+					value
+				}
+			}, () => connection.query({
+				type: "components:stateValue",
+				appId,
+				payload
+			})), resultSchemas.edited, "action"),
+			"edit-inspector-state": tool("Change one existing editable Inspector field through its plugin edit hook, including Pinia. First read inspector-value and check editable. Accepts a JSON value at the entry path; does not replace the entire store. Returns the actual value read after the command, which a plugin may transform or leave unchanged. If transport/readback fails, inspect state before retrying.", inspectorField.extend({ value: z.json() }), ({ appId, value, ...payload }) => editField({
+				type: "inspectors:editState",
+				appId,
+				payload: {
+					...payload,
+					value
+				}
+			}, () => connection.query({
+				type: "inspectors:stateValue",
+				appId,
+				payload
+			})), resultSchemas.edited, "action")
+		} : {},
+		"expand-value": tool("Expand an encoded value handle from a previous state or inspector query in this app and document. Read only the necessary path. If a handle expired, rerun the original query for a new one. Handles expire when the same target is read again or the page reloads." + pagingGuide, target.extend({
+			handle: z.string().min(1),
+			path: z.array(z.string()).max(20).optional(),
+			...pagination,
+			pageSize: z.number().int().min(1).max(5e3).optional()
+		}), async ({ appId, ...payload }) => {
+			const result = await connection.query({
+				type: "values:expand",
+				appId,
+				payload
+			});
+			if (result == null) throw new Error("Value handle is expired or unknown. Rerun the original component-state or inspector-state query, then retry expand-value with the new handle. If the page reloaded, rediscover its tools first.");
+			if ("found" in result && result.found === false) throw new Error("Value path was not found. Read the current value and correct the path before expanding again.");
+			return result;
+		}, resultSchemas.expanded)
+	};
+}
+function toSnapshot(page, result) {
+	return {
+		page: {
+			id: page.id,
+			url: page.url,
+			title: page.title
+		},
+		capturedAt: Date.now(),
+		result: toJson(result) ?? null
+	};
+}
+function toJson(value) {
+	return JSON.parse(stringify(value) ?? "null");
+}
+//#endregion
+//#region src/session.ts
+/** Connect on the first call and retain the connection until the host disposes it. */
+function createVueDevtoolsAgentSession(connect) {
+	let connection;
+	let disposed = false;
+	function getConnection() {
+		if (disposed) throw new Error("Vue DevTools agent session is disposed");
+		return connection ??= connect();
+	}
+	return {
+		async query(request) {
+			return getConnection().query(request);
+		},
+		async command(request) {
+			const current = getConnection();
+			if (!current.command) throw new Error("Vue DevTools agent session cannot send commands");
+			return current.command(request);
+		},
+		dispose() {
+			disposed = true;
+			const current = connection;
+			connection = void 0;
+			current?.dispose();
+		}
+	};
+}
+//#endregion
+export { createVueDevtoolsAgentTools as n, createVueDevtoolsAgentSession as t };
+
+//# sourceMappingURL=session-D7L9Vjbr.mjs.map

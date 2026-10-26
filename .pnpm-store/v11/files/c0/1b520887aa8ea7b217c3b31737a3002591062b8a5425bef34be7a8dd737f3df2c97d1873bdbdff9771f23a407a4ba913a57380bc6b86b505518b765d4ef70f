@@ -1,0 +1,60 @@
+import "./node/constants.mjs";
+import { t as setupMessages } from "./setup-XNIADaJu.mjs";
+import { defineDevframe } from "devframe";
+//#region package.json
+var name = "@devframes/plugin-messages";
+var version = "1.2.6";
+var description = "Devframe plugin for browsing, filtering, and dismissing the hub message feed.";
+var homepage = "https://github.com/devframes/devframe#readme";
+//#endregion
+//#region src/node/index.ts
+const remoteAssets = {
+	package: `${name}--assets`,
+	version
+};
+/**
+* Build a {@link DevframeDefinition} for the hub message feed panel,
+* a portable view over `ctx.messages`, ported from vitejs/devtools'
+* built-in Messages view. The same definition runs standalone
+* (`/cli`, `/build`) and mounts into a host (`/vite`, hub);
+* a hub host is what feeds it live entries.
+*
+* @experimental This plugin is experimental and may change without a major
+* version bump until it stabilizes.
+*/
+function createMessagesDevframe(options = {}) {
+	const id = options.id ?? "devframes_plugin_messages";
+	return defineDevframe({
+		id,
+		name: options.name ?? "Messages",
+		version,
+		packageName: name,
+		importMetaUrl: import.meta.url,
+		homepage,
+		description,
+		icon: options.icon ?? "ph:notification-duotone",
+		basePath: options.basePath,
+		clientAssets: remoteAssets,
+		cli: {
+			command: id,
+			port: options.port ?? 9014,
+			/**
+			* Gate the standalone server by default; `maybeOpenBrowser` folds the
+			* current OTP into the `--open` URL so the tab lands already trusted.
+			* Hosted adapters (Vite/hub) supply their own auth layer and ignore this.
+			*/
+			auth: options.auth ?? true
+		},
+		dock: { category: "~builtin" },
+		/**
+		* Backs the detail panel's "open file" affordance; the panel hides it
+		* when the service isn't advertised.
+		*/
+		services: [{ package: "@devframes/service-open" }],
+		setup(ctx) {
+			setupMessages(ctx);
+		}
+	});
+}
+//#endregion
+export { createMessagesDevframe as t };

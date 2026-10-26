@@ -1,0 +1,38 @@
+import { createJsonRenderView } from "@devframes/json-render/node";
+import { nanoid } from "@vitejs/devtools-kit/utils/nanoid";
+//#region src/node/json-render.ts
+/** Identity helper that types a json-render spec literal with inference. */
+function defineJsonRenderSpec(spec) {
+	return spec;
+}
+function attachJsonRenderer(context) {
+	const createJsonRenderer = (spec, options = {}) => {
+		const view = createJsonRenderView(context, {
+			id: `kit-${nanoid()}`,
+			spec,
+			...options
+		});
+		const handle = {
+			_stateKey: view.ref.stateKey,
+			view: view.ref
+		};
+		Object.defineProperties(handle, {
+			updateSpec: { value: (next) => view.update(next) },
+			updateState: { value: (state) => {
+				view.patchState(Object.entries(state).map(([key, value]) => ({
+					op: "add",
+					path: `/${key}`,
+					value
+				})));
+			} },
+			dispose: { value: () => view.dispose() }
+		});
+		return handle;
+	};
+	Object.defineProperty(context, "createJsonRenderer", {
+		value: createJsonRenderer,
+		enumerable: true
+	});
+}
+//#endregion
+export { defineJsonRenderSpec as n, attachJsonRenderer as t };

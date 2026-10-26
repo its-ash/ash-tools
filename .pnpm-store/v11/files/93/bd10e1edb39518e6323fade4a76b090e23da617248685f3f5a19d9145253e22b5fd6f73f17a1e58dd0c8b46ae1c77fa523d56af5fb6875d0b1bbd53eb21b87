@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <base href="./" />
+    <title>JSON Render</title>
+    <script type="module" crossorigin src="./assets/index-BiuAHL9u.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CUseRx6X.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>

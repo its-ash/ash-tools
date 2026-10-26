@@ -1,0 +1,54 @@
+import { setupInspect } from "./node/setup.mjs";
+import { defineDevframe } from "devframe";
+//#region package.json
+var name = "@devframes/plugin-inspect";
+var version = "1.2.6";
+var description = "Devframe plugin that inspects the RPC registry, shared state, and agent surface of a connection.";
+var homepage = "https://github.com/devframes/devframe#readme";
+//#endregion
+//#region src/node/index.ts
+/** Default devframe id, driving the hosted mount path `/__<id>/`. */
+const DEFAULT_ID = "devframes_plugin_inspect";
+const distDir = {
+	package: `${name}--assets`,
+	version
+};
+/**
+* Build a {@link DevframeDefinition} for the Devframe Inspector. The
+* same definition runs standalone (`/cli`, `/build`) and mounts
+* into a host (`/vite`, hub).
+*
+* @experimental This plugin is experimental and may change without a major
+* version bump until it stabilizes.
+*/
+function createInspectDevframe(options = {}) {
+	const id = options.id ?? DEFAULT_ID;
+	return defineDevframe({
+		id,
+		name: options.name ?? "Devframe Inspector",
+		version,
+		packageName: name,
+		importMetaUrl: import.meta.url,
+		homepage,
+		description,
+		icon: options.icon ?? "ph:stethoscope-duotone",
+		basePath: options.basePath,
+		clientAssets: distDir,
+		cli: {
+			command: id,
+			port: options.port ?? 9012,
+			/**
+			* Gate the standalone server by default; `maybeOpenBrowser` folds the
+			* current OTP into the `--open` URL so the tab lands already trusted.
+			* Hosted adapters (Vite/hub) supply their own auth layer and ignore this.
+			*/
+			auth: options.auth ?? true
+		},
+		dock: { category: "~builtin" },
+		setup(ctx) {
+			setupInspect(ctx);
+		}
+	});
+}
+//#endregion
+export { createInspectDevframe as t };

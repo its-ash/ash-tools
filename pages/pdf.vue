@@ -1,5 +1,4 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: 'PDF Merger & Compressor | Ash Tools',
@@ -394,25 +393,27 @@ const exportButtonLabel = computed(() => {
 
 <template>
   <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
-    <div class="flex-1 flex flex-col md:flex-row">
+    <div class="flex-1 flex flex-col">
 
-      <!-- Left rail: navigation + primary actions -->
-      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+      <!-- Toolbar: navigation + primary actions -->
+      <ClientOnly>
+      <Teleport to="#page-actions">
+        <div class="flex items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
-            <span class="text-[10px] font-medium">Home</span>
+            <span>Home</span>
           </NuxtLink>
-          <label for="pdf-input" class="rail-btn cursor-pointer shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Open files" aria-label="Open files">
+          <label for="pdf-input" class="rail-btn cursor-pointer text-[var(--ink-3)]" title="Open files" aria-label="Open files">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6a1 1 0 011-1h3l1.5 2H16a1 1 0 011 1v7a1 1 0 01-1 1H4a1 1 0 01-1-1V6z" /><path stroke-linecap="round" d="M3 8h14" /></svg>
-            <span class="text-[10px] font-medium">Open</span>
+            <span>Open</span>
           </label>
-          <button v-if="pdfFiles.length > 0" @click="clearAll" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Clear all" aria-label="Clear all">
+          <button v-if="pdfFiles.length > 0" @click="clearAll" class="rail-btn text-[var(--ink-3)]" title="Clear all" aria-label="Clear all">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
-            <span class="text-[10px] font-medium">Clear</span>
+            <span>Clear</span>
           </button>
         </div>
-      </aside>
+      </Teleport>
+      </ClientOnly>
 
       <!-- Main content -->
       <div class="order-1 md:order-2 flex-1 flex justify-center p-3.5 min-w-0">
@@ -421,7 +422,8 @@ const exportButtonLabel = computed(() => {
       <div class="flex-1 min-w-0 flex flex-col gap-3.5">
 
       <!-- Title bar -->
-      <header class="ui-panel p-4 flex items-center justify-between gap-3">
+      <header class="ui-panel px-4 flex items-center justify-between gap-3">
+        <div id="page-actions" class="order-first flex flex-wrap items-center gap-1"></div>
         <div class="flex items-center gap-2">
           <svg class="h-4 w-4 text-[var(--ink-3)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
@@ -443,7 +445,7 @@ const exportButtonLabel = computed(() => {
           <label for="pdf-input"
             class="ui-dropzone p-8 flex flex-col items-center justify-center text-center gap-2"
             @drop="onDrop" @dragover="onDragOver">
-            <div class="w-12 h-12 rounded-none flex items-center justify-center mb-1" style="background: var(--accent-soft); border: 1px solid var(--border)">
+            <div class="w-12 h-12 rounded-[var(--radius-md)] flex items-center justify-center mb-1" style="background: var(--accent-soft); border: 1px solid var(--border)">
               <svg class="w-6 h-6" style="color: var(--accent)" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -526,7 +528,7 @@ const exportButtonLabel = computed(() => {
               Compression Level
             </label>
             <input id="compression-slider" type="range" min="10" max="100" step="5" v-model.number="compressionLevel"
-              class="ui-range w-full h-2 rounded-none appearance-none cursor-pointer"
+              class="ui-range w-full h-2 rounded-full appearance-none cursor-pointer"
               style="background: var(--surface-3); border: 1px solid var(--border)">
             <div class="flex justify-between text-xs text-[var(--ink-3)]">
               <span>Smaller file</span>
@@ -561,10 +563,10 @@ const exportButtonLabel = computed(() => {
 
           <!-- Progress -->
           <div
-            class="w-full h-2 rounded-none overflow-hidden transition-opacity duration-300"
+            class="w-full h-2 rounded-full overflow-hidden transition-opacity duration-300"
             style="background: var(--surface-2); border: 1px solid var(--border)"
             :class="progressPercent === 0 ? 'opacity-0' : 'opacity-100'">
-            <div class="h-full transition-all duration-200 rounded-none" style="background: var(--accent)"
+            <div class="h-full transition-all duration-200 rounded-full" style="background: var(--accent)"
               :style="{ width: `${progressPercent}%` }" />
           </div>
 
@@ -584,12 +586,6 @@ const exportButtonLabel = computed(() => {
       </div>
       </div>
       </div>
-    </div>
-
-    <!-- Bottom status strip -->
-    <div class="shrink-0 border-t px-5 py-2 flex items-center gap-4 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
-      <span class="truncate">{{ statusMessage }}</span>
-      <span v-if="pdfFiles.length > 0" class="ml-auto shrink-0">{{ pdfFiles.length }} file{{ pdfFiles.length > 1 ? 's' : '' }} · {{ totalPages }} page{{ totalPages !== 1 ? 's' : '' }} · {{ prettySize(totalSize) }}</span>
     </div>
   </div>
 </template>

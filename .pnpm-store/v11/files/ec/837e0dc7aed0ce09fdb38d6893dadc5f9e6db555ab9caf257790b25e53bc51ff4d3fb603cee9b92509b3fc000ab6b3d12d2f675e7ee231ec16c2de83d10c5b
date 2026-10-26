@@ -1,0 +1,76 @@
+{
+  "name": "@devframes/hub-ui",
+  "type": "module",
+  "version": "1.2.6",
+  "description": "Reference UI for the devframe hub, providing the floating dock and standalone viewer.",
+  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/devframes/devframe#readme",
+  "repository": {
+    "directory": "packages/hub-ui",
+    "type": "git",
+    "url": "git+https://github.com/devframes/devframe.git"
+  },
+  "bugs": "https://github.com/devframes/devframe/issues",
+  "keywords": [
+    "devtools",
+    "devframe",
+    "hub",
+    "dock",
+    "ui"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "@devframes/hub": "1.2.6",
+    "@devframes/json-render": "1.2.6",
+    "devframe": "1.2.6"
+  },
+  "peerDependenciesMeta": {
+    "@devframes/json-render": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@antfu/design": "^0.6.0",
+    "@devframes/hub": "1.2.6",
+    "@devframes/json-render": "1.2.6",
+    "@devframes/plugin-git": "1.2.6",
+    "@iconify-json/ph": "^1.2.2",
+    "@storybook/addon-docs": "^10.6.1",
+    "@storybook/vue3-vite": "^10.6.1",
+    "@types/node": "^26.6.4",
+    "@unocss/reset": "^66.10.5",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "@vueuse/core": "^15.0.0",
+    "devframe": "1.2.6",
+    "dompurify": "^3.4.16",
+    "fuse.js": "^7.5.0",
+    "iframe-pane": "^1.1.0",
+    "storybook": "^10.6.1",
+    "tsdown": "^0.23.0",
+    "tsx": "^4.23.15",
+    "unocss": "^66.10.5",
+    "vite": "^8.3.3",
+    "vue": "^3.5.43",
+    "vue-afloat": "^0.2.0"
+  },
+  "scripts": {
+    "build": "pnpm run build:css && pnpm run build:node && pnpm run build:embedded && pnpm run build:standalone",
+    "build:css": "tsx scripts/build-css.ts",
+    "build:node": "tsdown",
+    "build:embedded": "vite build --config vite.embedded.config.ts",
+    "build:standalone": "vite build --config src/client/standalone/vite.config.ts",
+    "dev": "pnpm -C ../.. exec turbo run build --filter=@devframes/hub... --filter=@devframes/plugin-git... && vite --config playground/vite.config.ts",
+    "typecheck": "tsc --noEmit",
+    "storybook": "storybook dev -p 6014",
+    "build-storybook": "storybook build"
+  }
+}

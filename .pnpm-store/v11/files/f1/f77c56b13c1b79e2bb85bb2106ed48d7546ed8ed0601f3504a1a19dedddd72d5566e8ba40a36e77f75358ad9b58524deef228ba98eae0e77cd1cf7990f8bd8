@@ -1,0 +1,15 @@
+import { n as createVueDevtoolsAgentTools, t as createVueDevtoolsAgentSession } from "./session-D7L9Vjbr.mjs";
+import { createPageScriptChannel } from "devframe/in-page-channel";
+//#region src/mcp/page.ts
+/** Register inspection and optional editing tools in Devframe's browser registry, using a unique document namespace. */
+function registerVueDevtoolsAgentPage(connection, page) {
+	const channel = createPageScriptChannel({
+		name: `vue-devtools:agent:${page.id}`,
+		functions: createVueDevtoolsAgentTools(connection, page)
+	});
+	return () => channel.close();
+}
+//#endregion
+export { createVueDevtoolsAgentSession, registerVueDevtoolsAgentPage };
+
+//# sourceMappingURL=devframe.mjs.map

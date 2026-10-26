@@ -1,0 +1,243 @@
+export type ToolCategory = 'media' | 'files' | 'code' | 'convert' | 'text' | 'life'
+
+export type Tool = {
+  title: string
+  route: string
+  description: string
+  category: ToolCategory
+  keywords: string
+  icon: string
+}
+
+export const toolCategories: { id: ToolCategory, label: string, color: string }[] = [
+  { id: 'media', label: 'Media', color: 'var(--c-media)' },
+  { id: 'files', label: 'Files', color: 'var(--c-files)' },
+  { id: 'code', label: 'Code', color: 'var(--c-code)' },
+  { id: 'convert', label: 'Convert', color: 'var(--c-convert)' },
+  { id: 'text', label: 'Text', color: 'var(--c-text)' },
+  { id: 'life', label: 'Everyday', color: 'var(--c-life)' },
+]
+
+export const categoryColor = (id: ToolCategory) => toolCategories.find((c) => c.id === id)?.color ?? 'var(--accent)'
+
+export const toolList: Tool[] = [
+  {
+    title: 'Image Editor',
+    route: '/image',
+    description: 'Crop, warp, and optimize images in your browser.',
+    category: 'media',
+    keywords: 'photo crop resize rotate filter heic compress',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M3 18l5.5-6 3.5 4 3-3 6 5v2H3z"/><circle cx="16.5" cy="8" r="2.2" fill="#fff"/>',
+  },
+  {
+    title: 'Image ⇄ Base64',
+    route: '/base64-image',
+    description: 'Convert images to Base64 data URIs and back.',
+    category: 'media',
+    keywords: 'data uri base64 image encode decode',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M9 5L4 12l5 7 1.8-1.3L7.5 12l3.3-5.7zM15 5l-1.8 1.3L16.5 12l-3.3 5.7L15 19l5-7z"/>',
+  },
+  {
+    title: 'QR Code Generator',
+    route: '/qr',
+    description: 'Turn text or links into a downloadable QR code.',
+    category: 'media',
+    keywords: 'qrcode generate scan link',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h2v2h-2zM17 13h3v2h-3zM13 17h2v3h-2zM17 17h3v3h-3z"/>',
+  },
+  {
+    title: 'Color Picker',
+    route: '/color',
+    description: 'Pick colors and convert HEX, RGB, and HSL.',
+    category: 'media',
+    keywords: 'hex rgb hsl palette convert',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M16.5 3.5l4 4-2 2-4-4zM14.5 5.5l-8 8L5 19l5.5-1.5 8-8z"/>',
+  },
+  {
+    title: 'ZIP Compressor',
+    route: '/zip',
+    description: 'Make ZIP archives from files and folders.',
+    category: 'files',
+    keywords: 'compress archive folder unzip',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M4 4h16v4H4zM5 9h14v11H5z"/><path fill="currentColor" d="M10.5 11h3v3h-3zM10.5 15h3v3h-3z"/>',
+  },
+  {
+    title: 'PDF Merger',
+    route: '/pdf',
+    description: 'Merge, reorder, and compress PDF files.',
+    category: 'files',
+    keywords: 'merge combine compress document',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M6 3h8l4 4v14H6z"/><path fill="currentColor" d="M9 12h6v1.5H9zM9 15h6v1.5H9z"/>',
+  },
+  {
+    title: 'PDF Sign',
+    route: '/pdf-sign',
+    description: 'Draw or upload a signature and sign a PDF.',
+    category: 'files',
+    keywords: 'signature sign esign document draw',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M4 20l1.2-4.2L15.5 4.5a1.6 1.6 0 0 1 2.3 0l1.7 1.7a1.6 1.6 0 0 1 0 2.3L9.2 18.8z"/>',
+  },
+  {
+    title: 'Code Sandbox',
+    route: '/sandbox',
+    description: 'Run JavaScript, Python, and Rust in the browser.',
+    category: 'code',
+    keywords: 'javascript python rust run execute code editor',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M3 5h18v14H3z"/><path fill="currentColor" d="M5.5 9l3 3-3 3-1.2-1.2L6.6 12 4.3 10.2zM11 15h6v1.6h-6z"/>',
+  },
+  {
+    title: 'JSON Formatter',
+    route: '/json',
+    description: 'Format, minify, and validate JSON.',
+    category: 'code',
+    keywords: 'validate beautify minify pretty',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M7 4h3v2H9v12h1v2H7v-2h1V6H7zM17 4h-3v2h1v12h-1v2h3v-2h-1V6h1z"/>',
+  },
+  {
+    title: 'Regex Tester',
+    route: '/regex',
+    description: 'Test regular expressions with live matches.',
+    category: 'code',
+    keywords: 'regexp pattern match test',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M11 3h2v7.3l5.3-3 1 1.8-5.3 3 5.3 3-1 1.8-5.3-3V21h-2v-7.2l-5.3 3-1-1.8 5.3-3-5.3-3 1-1.8 5.3 3z"/>',
+  },
+  {
+    title: 'Diff Checker',
+    route: '/diff',
+    description: 'Compare two texts line by line.',
+    category: 'code',
+    keywords: 'compare text changes',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M5 4h6v16H5zM13 4h6v16h-6z"/><path fill="currentColor" d="M7 8h2v2H7zM15 14h2v2h-2z"/>',
+  },
+  {
+    title: 'Encode / Decode / Hash',
+    route: '/encode',
+    description: 'Base64, URL, and hex encoding plus SHA hashes.',
+    category: 'code',
+    keywords: 'base64 url hex sha md5 hash',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3h-2V8a1.5 1.5 0 0 0-3 0v3zM6 11h12v9H6z"/>',
+  },
+  {
+    title: 'Cron Explainer',
+    route: '/cron',
+    description: 'Read cron expressions in plain English.',
+    category: 'code',
+    keywords: 'cron schedule crontab next run',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M4 6h16v15H4z"/><path fill="currentColor" d="M7 2h2v4H7zM15 2h2v4h-2zM7 10h3v3H7zM14 10h3v3h-3zM7 15h3v3H7z"/>',
+  },
+  {
+    title: 'CSV ⇄ JSON',
+    route: '/csv',
+    description: 'Convert CSV or TSV tables to JSON and back.',
+    category: 'convert',
+    keywords: 'csv tsv table convert spreadsheet',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M3 5h18v3H3zM3 10h18v3H3zM3 15h18v4H3z"/>',
+  },
+  {
+    title: 'Unit Converter',
+    route: '/units',
+    description: 'Length, weight, temperature, data, and time.',
+    category: 'convert',
+    keywords: 'length weight temperature convert metric',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M3 15.5L15.5 3 21 8.5 8.5 21z"/><path fill="currentColor" d="M7 14l1.5 1.5L10 14l1.5 1.5L13 14l1.5 1.5"/>',
+  },
+  {
+    title: 'Timestamp Converter',
+    route: '/timestamp',
+    description: 'Convert Unix, ISO 8601, and readable dates.',
+    category: 'convert',
+    keywords: 'unix epoch iso date time',
+    icon: '<rect width="24" height="24" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="#fff"/><path fill="currentColor" d="M11 6.5h2V12h-2zM11 11h5v2h-5z"/>',
+  },
+  {
+    title: 'UUID & Passwords',
+    route: '/uuid',
+    description: 'Generate v4 UUIDs and strong passwords.',
+    category: 'convert',
+    keywords: 'guid random password generator',
+    icon: '<rect width="24" height="24" fill="currentColor"/><circle cx="8" cy="12" r="3.5" fill="#fff"/><path fill="#fff" d="M11 11h9v2h-2v2h-2v-2h-5z"/>',
+  },
+  {
+    title: 'Text Case & Lorem',
+    route: '/text',
+    description: 'Change text case, count words, make filler text.',
+    category: 'text',
+    keywords: 'uppercase lowercase camel snake lorem ipsum word count',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M3 6h18v3h-6v9h-3V9H3z"/>',
+  },
+  {
+    title: 'Markdown Previewer',
+    route: '/markdown',
+    description: 'Write Markdown and see live HTML.',
+    category: 'text',
+    keywords: 'md html preview render',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M3 6h18v12H3z"/><path fill="currentColor" d="M6 15V9h2l2 2.5L12 9h2v6h-2v-3.5l-2 2.5-2-2.5V15zM16 9h2v4h1.5L17 16l-2.5-3H16z"/>',
+  },
+  {
+    title: 'LinkedIn Formatter',
+    route: '/linkedin',
+    description: 'Bold, italic, and bullets that work in LinkedIn posts.',
+    category: 'text',
+    keywords: 'linkedin post bold italic unicode social',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M5 9h3v10H5zM6.5 4a1.7 1.7 0 1 1 0 3.4 1.7 1.7 0 0 1 0-3.4zM10 9h3v1.4c.5-.9 1.6-1.7 3.2-1.7 3.2 0 3.8 2.1 3.8 4.8V19h-3v-4.9c0-1.2 0-2.7-1.6-2.7s-1.9 1.3-1.9 2.6V19h-3z"/>',
+  },
+  {
+    title: 'Time Zone Converter',
+    route: '/timezone',
+    description: 'Compare time zones and find shared work hours.',
+    category: 'life',
+    keywords: 'timezone time zone world clock meeting planner overlap utc gmt',
+    icon: '<rect width="24" height="24" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="#fff"/><path fill="currentColor" d="M11.2 4.5h1.6v15h-1.6zM4.5 11.2h15v1.6h-15z"/>',
+  },
+  {
+    title: 'Recipe Scaler',
+    route: '/recipe',
+    description: 'Scale ingredient amounts to any number of servings.',
+    category: 'life',
+    keywords: 'recipe scale servings ingredients cooking baking multiply',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M3 11h18a9 9 0 0 1-18 0zM11 3.5h2V9h-2zM6.5 5.5h2V9h-2zM15.5 5.5h2V9h-2z"/>',
+  },
+  {
+    title: 'Savings Calculator',
+    route: '/savings',
+    description: 'Compound interest growth and savings goal planner.',
+    category: 'life',
+    keywords: 'compound interest savings goal investment growth finance money',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M4 15h3.5v5H4zM10.25 10.5h3.5V20h-3.5zM16.5 5h3.5v15h-3.5z"/>',
+  },
+  {
+    title: 'Loan Calculator',
+    route: '/loan',
+    description: 'Monthly payment, total interest, and payoff date.',
+    category: 'life',
+    keywords: 'loan mortgage emi repayment amortization interest finance car',
+    icon: '<rect width="24" height="24" fill="currentColor"/><path fill="#fff" d="M3 6h18v12H3z"/><path fill="currentColor" d="M3 9h18v2.5H3zM6 14h5v1.6H6z"/>',
+  },
+  {
+    title: 'Wheel Spinner',
+    route: '/picker',
+    description: 'Spin a wheel to pick a random name or option.',
+    category: 'life',
+    keywords: 'random picker wheel spinner name choose raffle decide lottery',
+    icon: '<rect width="24" height="24" fill="currentColor"/><circle cx="12" cy="13" r="7.5" fill="#fff"/><path fill="currentColor" d="M12 13V5.5a7.5 7.5 0 0 1 7.5 7.5z"/><path fill="#fff" d="M9.5 2h5L12 5z"/>',
+  },
+  {
+    title: 'Breathing Timer',
+    route: '/breathe',
+    description: 'Guided box breathing and 4-7-8 sessions.',
+    category: 'life',
+    keywords: 'breathing meditation timer box breathing 4-7-8 relax calm mindfulness',
+    icon: '<rect width="24" height="24" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="#fff"/><circle cx="12" cy="12" r="5" fill="currentColor"/><circle cx="12" cy="12" r="2.5" fill="#fff"/>',
+  },
+]
+
+export const matchTools = (query: string, list: Tool[] = toolList) => {
+  const q = query.trim().toLowerCase()
+  if (!q) return list
+  return list.filter((t) =>
+    t.title.toLowerCase().includes(q)
+    || t.description.toLowerCase().includes(q)
+    || t.keywords.includes(q)
+    || t.category.includes(q),
+  )
+}

@@ -1,0 +1,81 @@
+import "./json-render-CjVeI4oN.js";
+import { c as ViteDevToolsUiOptions, r as ResolvedDevToolsConfig, s as DevToolsOptions } from "./config-6XbYqMBA.js";
+import { ConnectionMeta, DevToolsDockEntry, DevToolsDocksUserSettings, DevToolsMessageEntry, DevToolsServerCommandEntry, DockRendererRegistration, RpcDefinitionsToFunctions, ViteDevToolsNodeContext } from "@vitejs/devtools-kit";
+import { HubInstance } from "@devframes/hub/initiate";
+import "@devframes/hub-ui";
+import { DevframeInternalContext as DevToolsInternalContext, InternalAnonymousAuthStorage } from "devframe/node/hub-internals";
+import { Plugin, ResolvedConfig, ViteDevServer } from "vite";
+import { Server } from "node:http";
+//#region src/node/context.d.ts
+export declare function createDevToolsContext(viteConfig: ResolvedConfig, viteServer?: ViteDevServer, devtoolsConfig?: ResolvedDevToolsConfig): Promise<ViteDevToolsNodeContext>;
+//#endregion
+//#region src/node/rpc/internal/messages-list.d.ts
+interface MessagesListResult {
+  entries: DevToolsMessageEntry[];
+  removedIds: string[];
+  /** The version cursor — pass back as `since` on next call */
+  version: number;
+}
+//#endregion
+//#region src/node/rpc/index.d.ts
+declare const builtinRpcDeclarations: readonly [import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"vite:core:open-in-editor", "action", [path: string], Promise<void>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"vite:core:open-in-finder", "action", [path: string], Promise<void>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devtoolskit:internal:commands:execute", "action", [id: string, ...args: any[]], Promise<unknown>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devtoolskit:internal:commands:list", "static", [], Promise<DevToolsServerCommandEntry[]>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devtoolskit:internal:docks:on-launch", "action", [entryId: string, payload?: unknown], Promise<unknown>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devtoolskit:internal:messages:add", "action", [input: import("@devframes/hub").DevframeMessageEntryInput], Promise<import("@devframes/hub").DevframeMessageEntry>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devtoolskit:internal:messages:clear", "action", [], Promise<void>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devtoolskit:internal:messages:list", "static", [since?: number | null | undefined], Promise<MessagesListResult>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devtoolskit:internal:messages:remove", "action", [id: string], Promise<void>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devtoolskit:internal:messages:update", "action", [id: string, patch: Partial<import("@devframes/hub").DevframeMessageEntryInput>], Promise<import("@devframes/hub").DevframeMessageEntry | null>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devtoolskit:internal:rpc:server:list", "static", [], Promise<{
+  [k: string]: {
+    type: any;
+    cacheable: boolean;
+  };
+}>, undefined, undefined, import("@vitejs/devtools-kit").ViteDevToolsNodeContext>];
+type BuiltinServerFunctions = RpcDefinitionsToFunctions<typeof builtinRpcDeclarations>;
+declare module 'devframe/types' {
+  interface DevframeRpcServerFunctions extends BuiltinServerFunctions {}
+  interface DevframeRpcClientFunctions {}
+  interface DevframeRpcSharedStates {
+    'devframe:commands': DevToolsServerCommandEntry[];
+    'devframe:docks': DevToolsDockEntry[];
+    'devframe:user-settings': DevToolsDocksUserSettings;
+  }
+}
+//#endregion
+//#region src/node/plugins/index.d.ts
+export declare function DevTools(options?: DevToolsOptions): Promise<Plugin[]>;
+//#endregion
+//#region src/node/server.d.ts
+interface CreateDevToolsHubOptions {
+  context: ViteDevToolsNodeContext;
+  /** Dock renderer modules served by the hub, replacing built-ins by matching type. */
+  renderers?: readonly DockRendererRegistration[];
+  /**
+   * Reference-UI options forwarded to `createUi` — the embedded dock's
+   * reveal policy and the dock-bar rendering preferences.
+   */
+  ui?: ViteDevToolsUiOptions;
+  /**
+   * Share this node HTTP server for the WebSocket upgrade (the embedded Vite
+   * dev server). The socket binds route-bound at `<base>__ws`, so no extra
+   * port opens — proxy-friendly. When absent, a side-car WS server is used.
+   */
+  server?: Server;
+  /** Bind host for a dedicated side-car WS server (standalone, no shared server). */
+  host?: string;
+  /** Pin the side-car WS port (standalone); auto-allocated when omitted. */
+  wsPort?: number;
+}
+interface DevToolsHub {
+  hub: HubInstance;
+  /** Connect/Express-style middleware over the whole DevTools surface. */
+  middleware: HubInstance['nodeMiddleware'];
+  getConnectionMeta: () => ConnectionMeta;
+  close: () => Promise<void>;
+}
+/**
+ * Stand up the DevTools client + RPC surface as a devframe hub instance
+ * (`initHub`). The hub serves the branded `@devframes/hub-ui` viewer and its
+ * embedded bootstrap (the `ui` slot), the RPC connection meta, and the shared
+ * WebSocket transport — all under the kit-pinned `/__devtools/` base. Vite
+ * DevTools supplies its own already-assembled kit context, so the hub runs in
+ * "bring your own context" mode and only owns the hub-level endpoints; each
+ * mounted devframe (Rolldown, Vite, …) keeps serving its own SPA at its own
+ * base and gets its `__connection.json` from {@link provideConnectionMeta}.
+ */
+export declare function createDevToolsHub(options: CreateDevToolsHubOptions): Promise<DevToolsHub>;
+//#endregion
+export type { BuiltinServerFunctions, CreateDevToolsHubOptions, DevToolsHub, DevToolsInternalContext, InternalAnonymousAuthStorage };

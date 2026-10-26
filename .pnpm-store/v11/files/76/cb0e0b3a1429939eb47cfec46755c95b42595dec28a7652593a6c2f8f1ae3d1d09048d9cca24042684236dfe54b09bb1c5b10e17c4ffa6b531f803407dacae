@@ -1,0 +1,106 @@
+{
+  "name": "@vitejs/devtools",
+  "type": "module",
+  "version": "0.8.0",
+  "description": "Vite DevTools",
+  "author": "VoidZero Inc.",
+  "license": "MIT",
+  "homepage": "https://github.com/vitejs/devtools#readme",
+  "repository": {
+    "directory": "packages/core",
+    "type": "git",
+    "url": "git+https://github.com/vitejs/devtools.git"
+  },
+  "bugs": "https://github.com/vitejs/devtools/issues",
+  "keywords": [
+    "vite",
+    "vite-plugin",
+    "devtools",
+    "rpc"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.js",
+    "./cli": "./dist/cli.js",
+    "./cli-commands": "./dist/cli-commands.js",
+    "./config": "./dist/config.js",
+    "./dirs": "./dist/dirs.js",
+    "./integration": "./dist/integration.js",
+    "./internal": "./dist/internal.js",
+    "./json-render": "./dist/json-render.js",
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "vite-devtools": "./bin.js"
+  },
+  "files": [
+    "assets",
+    "bin.js",
+    "dist"
+  ],
+  "peerDependencies": {
+    "@vitejs/devtools-oxc": "^0.8.0",
+    "@vitejs/devtools-rolldown": "^0.8.0",
+    "@vitejs/devtools-vite": "^0.8.0",
+    "@vitejs/devtools-vitest": "^0.8.0",
+    "vite": "*"
+  },
+  "peerDependenciesMeta": {
+    "@vitejs/devtools-oxc": {
+      "optional": true
+    },
+    "@vitejs/devtools-rolldown": {
+      "optional": true
+    },
+    "@vitejs/devtools-vite": {
+      "optional": true
+    },
+    "@vitejs/devtools-vitest": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@devframes/agentic": "^1.2.4",
+    "@devframes/hub": "^1.2.4",
+    "@devframes/hub-ui": "^1.2.4",
+    "@devframes/json-render": "^1.2.4",
+    "@devframes/json-render-ui": "^1.2.4",
+    "@devframes/plugin-inspect": "^1.2.4",
+    "@devframes/plugin-messages": "^1.2.4",
+    "@devframes/plugin-terminals": "^1.2.4",
+    "@vitejs/devtools-kit": "0.8.0",
+    "cac": "^7.1.0",
+    "devframe": "^1.2.4",
+    "h3": "^2.0.2",
+    "local-pkg": "^1.2.1",
+    "nostics": "^1.3.0",
+    "obug": "^3.0.0",
+    "pathe": "^2.0.3"
+  },
+  "devDependencies": {
+    "@clack/prompts": "^1.8.1",
+    "@vitejs/devtools-rolldown": "0.8.0",
+    "@vitejs/devtools-ui": "0.8.0",
+    "@vitejs/devtools-vite": "0.8.0",
+    "@vitejs/devtools-vitest": "0.8.0",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "dompurify": "^3.4.17",
+    "fuse.js": "^7.5.0",
+    "iframe-pane": "^1.1.0",
+    "tsdown": "^0.23.1",
+    "typescript": "^6.0.3",
+    "unocss": "^66.11.0",
+    "unplugin-vue": "^8.0.0",
+    "unrun": "^0.3.1",
+    "vite": "^8.3.4",
+    "vue": "^3.5.44",
+    "vue-router": "^5.4.0",
+    "vue-tsc": "^3.3.13"
+  },
+  "scripts": {
+    "build": "tsdown --config-loader=unrun",
+    "watch": "tsdown --watch --config-loader=unrun",
+    "cli": "DEBUG='vite:devtools:*' tsx src/node/cli.ts"
+  }
+}

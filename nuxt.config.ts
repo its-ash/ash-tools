@@ -24,7 +24,7 @@ export default defineNuxtConfig({
         },
         {
           name: 'keywords',
-          content: 'video compressor, image editor, pdf merger, zip compressor, code sandbox, json formatter, regex tester, qr code generator, uuid generator, local processing, offline tools, privacy tools, browser tools'
+          content: 'image editor, pdf merger, zip compressor, code sandbox, json formatter, regex tester, qr code generator, uuid generator, local processing, offline tools, privacy tools, browser tools'
         },
         {
           name: 'author',
@@ -36,11 +36,11 @@ export default defineNuxtConfig({
         },
         {
           name: 'theme-color',
-          content: '#faf8f5'
+          content: '#f5f6fa'
         },
         {
           name: 'color-scheme',
-          content: 'light'
+          content: 'light dark'
         },
         // Robots
         {
@@ -63,7 +63,7 @@ export default defineNuxtConfig({
         // Microsoft
         {
           name: 'msapplication-TileColor',
-          content: '#faf8f5'
+          content: '#f5f6fa'
         },
         // Open Graph
         {
@@ -149,6 +149,9 @@ export default defineNuxtConfig({
         }
       ],
       script: [
+        {
+          innerHTML: `try{var t=localStorage.getItem('theme');if(t==='dark'||t==='light')document.documentElement.classList.add(t)}catch(e){}`,
+        },
         // Google Tag Manager (gtag.js)
         {
           src: 'https://www.googletagmanager.com/gtag/js?id=G-GVC5N24NVF',
@@ -183,10 +186,11 @@ export default defineNuxtConfig({
     prerender: {
       crawlLinks: true,
       routes: [
-        '/', '/image', '/zip', '/video', '/sandbox', '/pdf', '/pdf-sign',
+        '/', '/image', '/zip', '/sandbox', '/pdf', '/pdf-sign',
         '/json', '/csv', '/regex', '/encode', '/color', '/qr',
         '/markdown', '/uuid', '/diff', '/units', '/timestamp',
         '/text', '/cron', '/base64-image', '/linkedin',
+        '/timezone', '/recipe', '/savings', '/loan', '/picker', '/breathe',
         '/sitemap.xml', '/robots.txt',
       ]
     },
@@ -215,8 +219,8 @@ export default defineNuxtConfig({
       name: 'Ash Tools',
       short_name: 'Ash Tools',
       description: 'Free, privacy-first browser tools for media, docs, and developer workflows. Runs locally, no uploads.',
-      theme_color: '#faf8f5',
-      background_color: '#faf8f5',
+      theme_color: '#f5f6fa',
+      background_color: '#f5f6fa',
       display: 'standalone',
       orientation: 'portrait',
       icons: [

@@ -1,0 +1,26 @@
+import { t as diagnostics } from "./diagnostics-uBEOg880.js";
+import { colors } from "devframe/utils/colors";
+import { resolve } from "pathe";
+//#region src/node/cli-commands.ts
+async function start(options) {
+	const { startDevTools } = await import("./start-BEmLlTz9.js");
+	return startDevTools(options);
+}
+async function build(options) {
+	console.log(colors.cyan`${"⬢"} Building static Vite DevTools...`);
+	const { startStandaloneDevTools } = await import("./standalone-iBdhbcTA.js");
+	const devtools = await startStandaloneDevTools({
+		cwd: options.root,
+		config: options.config
+	});
+	const outDir = resolve(devtools.config.root, options.outDir);
+	const { buildStaticDevTools } = await import("./build-static-CmchrehP.js");
+	await buildStaticDevTools({
+		context: devtools.context,
+		outDir,
+		base: options.base
+	});
+	diagnostics.DTK0010();
+}
+//#endregion
+export { build, start };

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: 'Free Text Case Converter & Lorem Ipsum Generator in your browser',
@@ -134,23 +133,26 @@ onMounted(generateLorem)
 
 <template>
   <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
-    <div class="flex-1 flex flex-col md:flex-row">
-      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+    <div class="flex-1 flex flex-col">
+      <ClientOnly>
+      <Teleport to="#page-actions">
+        <div class="flex items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
-            <span class="text-[10px] font-medium">Home</span>
+            <span>Home</span>
           </NuxtLink>
-          <button class="rail-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Clear" aria-label="Clear" @click="clearAll">
+          <button class="rail-btn text-[var(--ink-3)]" title="Clear" aria-label="Clear" @click="clearAll">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 6h10M8 6V4h4v2m-6 0l1 10h6l1-10" /></svg>
-            <span class="text-[10px] font-medium">Clear</span>
+            <span>Clear</span>
           </button>
         </div>
-      </aside>
+      </Teleport>
+      </ClientOnly>
 
       <main class="order-1 md:order-2 flex-1 min-w-0 flex flex-col p-4 md:p-6">
       <div class="mx-auto w-full max-w-6xl flex flex-col gap-4">
-        <div class="ui-panel p-4 flex items-center justify-between gap-3">
+        <div class="ui-panel px-4 flex items-center justify-between gap-3">
+        <div id="page-actions" class="order-first flex flex-wrap items-center gap-1"></div>
           <div class="flex items-center gap-2">
             <svg class="h-4 w-4 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5h12M10 5v10M7 15h6" /></svg>
             <h1 class="text-sm font-bold text-[var(--ink-1)]">Text Case &amp; Lorem Ipsum</h1>
@@ -172,7 +174,7 @@ onMounted(generateLorem)
               <button
                 v-for="t in caseTransforms"
                 :key="t.label"
-                class="px-2.5 py-1 text-xs font-semibold rounded-none transition-colors duration-150"
+                class="px-2.5 py-1 text-xs font-semibold rounded-full transition-colors duration-150"
                 :class="activeTransform === t.label ? 'ui-button !py-1 !px-2.5' : 'ui-button-secondary !py-1 !px-2.5'"
                 @click="activeTransform = t.label"
               >
@@ -214,10 +216,6 @@ onMounted(generateLorem)
       </main>
     </div>
 
-    <div class="shrink-0 border-t px-5 py-2 flex items-center gap-3 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
-      <span class="status-dot ok w-2 h-2 rounded-full inline-block shrink-0"></span>
-      <span class="truncate">{{ status }}</span>
-    </div>
   </div>
 </template>
 

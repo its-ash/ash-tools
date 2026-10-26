@@ -1,0 +1,2008 @@
+import os, { homedir } from 'node:os';
+import { onDevtoolsReady, deprecate, registerHostDiagnostics, NUXT_DEVTOOLS_GROUP_ID } from '@nuxt/devtools-kit';
+import { logger, useNuxt, addPlugin, addVitePlugin, addTemplate, extendViteConfig, addImports } from '@nuxt/kit';
+import { colors } from 'consola/utils';
+import { serveStaticNodeMiddleware } from 'devframe/utils/serve-static';
+import { join, dirname, resolve } from 'pathe';
+import { isLessThan, isGreaterThanOrEqual } from 'verkit';
+import { version as version$1, searchForWorkspaceRoot } from 'vite';
+import { c as createDefaultTabOptions, s as setServerTasksEnabledByDefault } from '../shared/devtools.C3s9ubDZ.mjs';
+import { runtimeDir, packageDir } from '../dirs.mjs';
+import { execFile } from 'node:child_process';
+import fs$1, { existsSync } from 'node:fs';
+import fs from 'node:fs/promises';
+import { promisify } from 'node:util';
+import { glob } from 'tinyglobby';
+import destr from 'destr';
+import { setupHooksDebug } from '../../dist/runtime/shared/hooks.js';
+import path, { dirname as dirname$1 } from 'node:path';
+import { hash } from 'devframe/utils/hash';
+import { parseModule } from 'magicast';
+import { getDefaultExportOptions, addNuxtModule } from 'magicast/helpers';
+import process$1 from 'node:process';
+import { createRequire } from 'node:module';
+import { getPackageInfo } from 'local-pkg';
+import { DEVTOOLS_TERMINALS_DOCK_ID } from '@vitejs/devtools-kit/constants';
+import { debounce } from 'perfect-debounce';
+
+const version = "4.0.0-beta.7";
+const peerDependencies = {
+	"@nuxt/kit": "^4.0.0-0 || ^5.0.0-0",
+	nitro: "*",
+	nitropack: "^2.0.0",
+	unstorage: "^1.0.0 || ^2.0.0-0",
+	vite: "^8.1.5",
+	"vite-plugin-inspect": "catalog:prod"
+};
+
+function createTerminalAuthBanner(terminal) {
+  let notice;
+  return {
+    banner({ code, url }) {
+      notice?.dismiss();
+      notice = terminal().notify({
+        title: colors.green("Nuxt DevTools"),
+        message: `Authorize with code ${colors.inverse(colors.green(colors.bold(` ${code} `)))} or open ${colors.cyan(url)}
+`
+      });
+    },
+    onTrusted() {
+      notice?.dismiss();
+      notice = void 0;
+    }
+  };
+}
+
+const RPC_NAMESPACE = "nuxt:devtools";
+
+let counter = 0;
+function createUniqueSessionId(baseId) {
+  counter += 1;
+  return `${baseId}#${counter}`;
+}
+
+const execFileAsync = promisify(execFile);
+const COLON_RE = /:/g;
+function setupAnalyzeBuildRPC(ctx) {
+  const { nuxt, refresh } = ctx;
+  let builds = [];
+  let promise;
+  let initalized;
+  let activeSessionId;
+  const devtoolsAnalyzeDir = join(nuxt.options.rootDir, "node_modules/.cache/nuxt-devtools/analyze");
+  async function startAnalyzeBuild(name) {
+    if (promise)
+      throw new Error("[Nuxt DevTools] A building process is already running");
+    const kit = ctx.devtoolsKit;
+    if (!kit)
+      throw new Error("[Nuxt DevTools] Vite DevTools kit is not connected yet.");
+    const sessionId = createUniqueSessionId("devtools:analyze-build");
+    activeSessionId = sessionId;
+    const session = await kit.terminals.startChildProcess({
+      command: "npx",
+      args: ["nuxi", "analyze", "--no-serve", "--name", name],
+      cwd: nuxt.options.rootDir
+    }, {
+      id: sessionId,
+      title: "Analyze Build",
+      icon: "logos-nuxt-icon"
+    });
+    refresh("getAnalyzeBuildInfo");
+    initalized = void 0;
+    promise = Promise.resolve(session.getResult()).then((result) => {
+      if (result.exitCode && result.exitCode !== 0) {
+        ctx.notify({
+          message: `Build analysis "${name}" failed`,
+          level: "error",
+          description: `Process exited with code ${result.exitCode}. Check the Analyze Build terminal for details.`,
+          category: "build",
+          notify: true
+        });
+      } else {
+        ctx.notify({
+          message: `Build analysis "${name}" complete`,
+          level: "success",
+          category: "build",
+          notify: true
+        });
+      }
+      refresh("getAnalyzeBuildInfo");
+      return readBuildInfo();
+    }).catch((error) => {
+      ctx.notify({
+        message: `Build analysis "${name}" failed`,
+        level: "error",
+        description: error instanceof Error ? error.message : String(error),
+        category: "build",
+        notify: true
+      });
+    }).finally(() => {
+      promise = void 0;
+      initalized = void 0;
+      activeSessionId = void 0;
+      refresh("getAnalyzeBuildInfo");
+    });
+    return sessionId;
+  }
+  async function readBuildInfo() {
+    for (const dir of /* @__PURE__ */ new Set([
+      join(nuxt.options.rootDir, ".nuxt/analyze"),
+      join(nuxt.options.rootDir, "node_modules/.cache/nuxt/.nuxt/analyze"),
+      nuxt.options.analyzeDir
+    ])) {
+      const files2 = await glob(["**/meta.json", "meta.json"], {
+        cwd: dir,
+        onlyFiles: true,
+        absolute: true
+      });
+      for (const file of files2) {
+        const slug = JSON.parse(await fs.readFile(file, "utf-8")).slug;
+        const dir2 = dirname(file);
+        await fs.mkdir(devtoolsAnalyzeDir, { recursive: true });
+        await fs.rename(dir2, join(devtoolsAnalyzeDir, slug));
+      }
+    }
+    const files = await glob(["**/meta.json"], {
+      cwd: devtoolsAnalyzeDir,
+      onlyFiles: true,
+      absolute: true
+    });
+    builds = await Promise.all(files.map(async (file) => {
+      const dir = dirname(file);
+      const json = JSON.parse(await fs.readFile(file, "utf-8"));
+      return {
+        ...json,
+        features: {
+          bundleClient: fs$1.existsSync(join(dir, "client.html")),
+          bundleNitro: fs$1.existsSync(join(dir, "nitro.html")),
+          viteInspect: fs$1.existsSync(join(dir, ".vite-inspect"))
+        }
+      };
+    }));
+    return builds.sort((a, b) => b.endTime - a.endTime);
+  }
+  async function git(...args) {
+    const { stdout } = await execFileAsync("git", args, { cwd: nuxt.options.rootDir });
+    return stdout.trim();
+  }
+  async function generateAnalyzeBuildName() {
+    try {
+      const branchName = await git("rev-parse", "--abbrev-ref", "HEAD") || "head";
+      const sha = await git("rev-parse", "--short", "HEAD");
+      const status = await git("status", "--porcelain");
+      const isClean = status === "";
+      if (isClean)
+        return `${branchName}#${sha}`;
+      return `${branchName}#${sha}-dirty`;
+    } catch {
+      return (/* @__PURE__ */ new Date()).toISOString().replace(COLON_RE, "-");
+    }
+  }
+  return {
+    async getAnalyzeBuildInfo() {
+      if (!initalized)
+        initalized = readBuildInfo();
+      await initalized;
+      return {
+        isBuilding: !!promise,
+        activeSessionId,
+        builds
+      };
+    },
+    async clearAnalyzeBuilds(names) {
+      if (!names) {
+        await fs.rm(devtoolsAnalyzeDir, { recursive: true, force: true });
+      } else {
+        const targets = builds.filter((build) => names.includes(build.name));
+        await Promise.all(targets.map((target) => fs.rm(join(devtoolsAnalyzeDir, target.slug), { recursive: true, force: true })));
+      }
+      initalized = readBuildInfo();
+      refresh("getAnalyzeBuildInfo");
+    },
+    generateAnalyzeBuildName,
+    async startAnalyzeBuild(...args) {
+      return startAnalyzeBuild(...args);
+    }
+  };
+}
+
+function setupCustomTabRPC({ nuxt, options, refresh }) {
+  const iframeTabs = [];
+  const customTabs = [];
+  if (options.customTabs?.length)
+    customTabs.push(...options.customTabs);
+  async function initHooks() {
+    nuxt.hook("devtools:customTabs:refresh", initCustomTabs);
+    await initCustomTabs();
+  }
+  async function initCustomTabs() {
+    customTabs.length = 0;
+    if (options.customTabs?.length)
+      customTabs.push(...options.customTabs);
+    await nuxt.callHook("devtools:customTabs", customTabs);
+    refresh("getCustomTabs");
+  }
+  nuxt.hook("app:resolve", async () => {
+    await initHooks();
+  });
+  return {
+    getCustomTabs() {
+      return [
+        ...iframeTabs,
+        ...customTabs
+      ].map((i) => {
+        i.category = i.category || "modules";
+        return i;
+      });
+    },
+    async customTabAction(name, actionIndex) {
+      const tab = customTabs.find((i) => i.name === name);
+      if (!tab)
+        return false;
+      const view = tab.view;
+      if (view.type !== "launch")
+        return false;
+      const action = view.actions?.[actionIndex];
+      if (!action)
+        return false;
+      Promise.resolve(action.handle?.()).catch((e) => {
+        console.error(e);
+      }).finally(() => {
+        nuxt.callHook("devtools:customTabs:refresh");
+      });
+      nuxt.callHook("devtools:customTabs:refresh");
+      return true;
+    }
+  };
+}
+
+const NUMBER_CHAR_RE = /\d/;
+const STR_SPLITTERS = ["-", "_", "/", "."];
+function isUppercase(char = "") {
+  if (NUMBER_CHAR_RE.test(char)) {
+    return void 0;
+  }
+  return char !== char.toLowerCase();
+}
+function splitByCase(str, separators) {
+  const splitters = STR_SPLITTERS;
+  const parts = [];
+  if (!str || typeof str !== "string") {
+    return parts;
+  }
+  let buff = "";
+  let previousUpper;
+  let previousSplitter;
+  for (const char of str) {
+    const isSplitter = splitters.includes(char);
+    if (isSplitter === true) {
+      parts.push(buff);
+      buff = "";
+      previousUpper = void 0;
+      continue;
+    }
+    const isUpper = isUppercase(char);
+    if (previousSplitter === false) {
+      if (previousUpper === false && isUpper === true) {
+        parts.push(buff);
+        buff = char;
+        previousUpper = isUpper;
+        continue;
+      }
+      if (previousUpper === true && isUpper === false && buff.length > 1) {
+        const lastChar = buff.at(-1);
+        parts.push(buff.slice(0, Math.max(0, buff.length - 1)));
+        buff = lastChar + char;
+        previousUpper = isUpper;
+        continue;
+      }
+    }
+    buff += char;
+    previousUpper = isUpper;
+    previousSplitter = isSplitter;
+  }
+  parts.push(buff);
+  return parts;
+}
+function kebabCase(str, joiner) {
+  return str ? (Array.isArray(str) ? str : splitByCase(str)).map((p) => p.toLowerCase()).join(joiner) : "";
+}
+function snakeCase(str) {
+  return kebabCase(str || "", "_");
+}
+
+const VALID_IDENTIFIER_RE = /^[a-z_$][\w$]*$/i;
+function toJsLiteral(value, seen = /* @__PURE__ */ new Set()) {
+  if (value === null) {
+    return "null";
+  }
+  if (typeof value === "undefined") {
+    return "undefined";
+  }
+  if (typeof value === "boolean" || typeof value === "number") {
+    return String(value);
+  }
+  if (value instanceof RegExp) {
+    return value.toString();
+  }
+  if (typeof value === "function") {
+    if (value.name) {
+      return `function ${value.name}() { /* code */ }`;
+    }
+    return "function () { /* code */ }";
+  }
+  if (typeof value === "string") {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    if (seen.has(value)) {
+      return "[Circular]";
+    }
+    seen.add(value);
+    const elements = value.map((item) => toJsLiteral(item, seen));
+    const content = elements.join(", ");
+    return `[${content}]`;
+  }
+  if (typeof value === "object") {
+    if (seen.has(value)) {
+      return "{Circular}";
+    }
+    seen.add(value);
+    const entries = [];
+    for (const key of Object.keys(value)) {
+      entries.push(`${safeKey(key)}: ${toJsLiteral(value[key], seen)}`);
+    }
+    if (entries.length === 0) {
+      return "{}";
+    }
+    return `{ ${entries.join(", ")} }`;
+  }
+  return JSON.stringify(value);
+}
+function safeKey(key) {
+  if (VALID_IDENTIFIER_RE.test(key)) {
+    return key;
+  }
+  return JSON.stringify(key);
+}
+
+function getHomeDir() {
+  return process.env.XDG_CONFIG_HOME || homedir();
+}
+async function readLocalOptions(defaults, options) {
+  const { filePath } = getOptionsFilepath(options);
+  if (existsSync(filePath)) {
+    try {
+      const options2 = {
+        ...defaults,
+        ...JSON.parse(await fs.readFile(filePath, "utf-8")).settings || {}
+      };
+      return options2;
+    } catch (e) {
+      console.error(`[DevTools] failed to parse local options file: ${filePath}, fallback to defaults`);
+      console.error(e);
+      return { ...defaults };
+    }
+  } else {
+    return { ...defaults };
+  }
+}
+function getOptionsFilepath(options) {
+  let hashedKey;
+  if (options.key)
+    hashedKey = hash(`${options.root}:${options.key}`);
+  else
+    hashedKey = hash(options.root);
+  const home = getHomeDir();
+  const filePath = join(home, ".nuxt/devtools", `${hashedKey}.json`);
+  return {
+    filePath,
+    hashedKey
+  };
+}
+async function clearLocalOptions(options) {
+  const { filePath } = getOptionsFilepath(options);
+  if (existsSync(filePath))
+    await fs.unlink(filePath);
+}
+async function writeLocalOptions(settings, options) {
+  const { filePath, hashedKey } = getOptionsFilepath(options);
+  await fs.mkdir(dirname$1(filePath), { recursive: true });
+  await fs.writeFile(
+    filePath,
+    JSON.stringify(
+      {
+        root: options.root,
+        hash: hashedKey,
+        settings
+      },
+      null,
+      2
+    ),
+    "utf-8"
+  );
+}
+
+let options;
+function getOptions() {
+  return options;
+}
+function setupOptionsRPC({ nuxt }) {
+  const hasReadOnce = /* @__PURE__ */ new Set();
+  async function getOptions2(tab) {
+    if (!options)
+      options = createDefaultTabOptions();
+    if (!hasReadOnce.has(tab))
+      await read(tab);
+    return options[tab];
+  }
+  async function read(tab) {
+    options[tab] = await readLocalOptions(createDefaultTabOptions()[tab], {
+      root: nuxt.options.rootDir,
+      key: tab !== "ui" && tab
+    });
+    hasReadOnce.add(tab);
+    return options;
+  }
+  getOptions2("ui");
+  async function clearOptions() {
+    options = void 0;
+    await clearLocalOptions({
+      root: nuxt.options.rootDir
+    });
+  }
+  return {
+    async updateOptions(tab, _settings) {
+      const settings = await getOptions2(tab);
+      Object.assign(settings, _settings);
+      await writeLocalOptions(
+        { ...settings },
+        {
+          root: nuxt.options.rootDir,
+          key: tab !== "ui" && tab
+        }
+      );
+      nuxt.callHook("builder:generateApp", {
+        filter(template) {
+          return template.filename.includes("devtools/settings.js");
+        }
+      });
+    },
+    getOptions: getOptions2,
+    clearOptions
+  };
+}
+
+const ABSOLUTE_PATH_RE = /^[a-z]:|^\//i;
+const FILE_LINE_COL_RE = /^(.*?)(:[:\d]*)$/;
+const NUXT_WELCOME_RE = /<NuxtWelcome\s*\/>/;
+function setupGeneralRPC({
+  nuxt,
+  options,
+  refresh,
+  openInEditorHooks
+}) {
+  const components = [];
+  let importDirs = [];
+  const serverPages = [];
+  let serverApp;
+  const serverHooks = setupHooksDebug(nuxt.hooks);
+  let unimport;
+  let app;
+  nuxt.hook("components:extend", (v) => {
+    components.length = 0;
+    components.push(...v);
+    components.sort((a, b) => a.pascalName.localeCompare(b.pascalName));
+    refresh("getComponents");
+  });
+  nuxt.hook("imports:extend", () => {
+    refresh("getAutoImports");
+  });
+  nuxt.hook("pages:extend", (v) => {
+    serverPages.length = 0;
+    const pagesSet = new Set(v);
+    function searchChildren(page) {
+      if (pagesSet.has(page))
+        return;
+      pagesSet.add(page);
+      page.children?.forEach(searchChildren);
+    }
+    v.forEach(searchChildren);
+    serverPages.push(...[...pagesSet].toSorted((a, b) => a.path.localeCompare(b.path)));
+    refresh("getServerPages");
+  });
+  nuxt.hook("app:resolve", (app2) => {
+    serverApp = app2;
+  });
+  nuxt.hook("imports:context", (_unimport) => {
+    unimport = _unimport;
+  });
+  nuxt.hook("imports:dirs", (dirs) => {
+    importDirs = dirs;
+  });
+  nuxt.hook("app:resolve", (v) => {
+    app = v;
+  });
+  return {
+    getServerConfig() {
+      return nuxt.options;
+    },
+    async getServerDebugContext() {
+      if (!nuxt._debug)
+        return;
+      return {
+        ...nuxt._debug,
+        moduleMutationRecords: await Promise.all(
+          nuxt._debug.moduleMutationRecords?.map(async (i) => {
+            let value = i.value;
+            try {
+              const json = toJsLiteral(value);
+              if (json.length > 200)
+                value = `${json.slice(0, 200)}...`;
+              else
+                value = json;
+            } catch {
+              value = "[Circular]";
+            }
+            let name = (await i.module.getMeta?.())?.name;
+            if (!name) {
+              const installedModule = nuxt.options._installedModules.find((m) => m.module === i.module);
+              name = installedModule?.meta.name || installedModule?.entryPath;
+            }
+            return {
+              ...i,
+              module: void 0,
+              name: name || "(unknown)",
+              value
+            };
+          }) || []
+        )
+      };
+    },
+    getServerRuntimeConfig() {
+      const ENV_PREFIX = "NITRO_";
+      const ENV_PREFIX_ALT = "NUXT_";
+      function _getEnv(key) {
+        const envKey = snakeCase(key).toUpperCase();
+        return destr(process.env[ENV_PREFIX + envKey] ?? process.env[ENV_PREFIX_ALT + envKey]);
+      }
+      function _isObject(input) {
+        return typeof input === "object" && !Array.isArray(input);
+      }
+      function _applyEnv(obj, parentKey = "") {
+        for (const key in obj) {
+          const subKey = parentKey ? `${parentKey}_${key}` : key;
+          const envValue = _getEnv(subKey);
+          if (_isObject(obj[key])) {
+            if (_isObject(envValue))
+              obj[key] = { ...obj[key], ...envValue };
+            _applyEnv(obj[key], subKey);
+          } else {
+            obj[key] = envValue ?? obj[key];
+          }
+        }
+        return obj;
+      }
+      const runtime = { ...nuxt.options.runtimeConfig };
+      _applyEnv(runtime);
+      return runtime;
+    },
+    getModuleOptions() {
+      return options;
+    },
+    getServerApp() {
+      return serverApp;
+    },
+    getComponents() {
+      return components;
+    },
+    async getComponentsRelationships() {
+      return [];
+    },
+    getServerPages() {
+      return serverPages;
+    },
+    async getAutoImports() {
+      return {
+        // presets, config `imports` and scanned dirs, as Nuxt resolves them
+        imports: await unimport?.getImports() ?? [],
+        metadata: unimport?.getMetadata(),
+        dirs: importDirs
+      };
+    },
+    getServerLayouts() {
+      return Object.values(app?.layouts || []);
+    },
+    getServerHooks() {
+      return Object.values(serverHooks);
+    },
+    async openInEditor(input) {
+      const isRelative = input.startsWith("./") || !ABSOLUTE_PATH_RE.test(input);
+      const match = input.match(FILE_LINE_COL_RE);
+      let suffix = "";
+      if (match) {
+        input = match[1];
+        suffix = match[2];
+      }
+      const candidates = isRelative ? [...new Set([process.cwd(), nuxt.options.rootDir, nuxt.options.workspaceDir].filter(Boolean))].map((dir) => resolve(dir, input)) : [input];
+      const path = candidates.flatMap((i) => [i, `${i}.js`, `${i}.mjs`, `${i}.ts`]).find((i) => existsSync(i));
+      if (!path) {
+        console.error("File not found:", candidates[0]);
+        return false;
+      }
+      try {
+        for (const hook of openInEditorHooks) {
+          const result = await hook(path + suffix);
+          if (result)
+            return true;
+        }
+        let editor = getOptions()?.behavior.openInEditor ?? void 0;
+        if (editor === "auto")
+          editor = void 0;
+        await import('devframe/utils/launch-editor').then((r) => r.launchEditor(path + suffix, editor));
+        return true;
+      } catch (e) {
+        console.error(e);
+        return false;
+      }
+    },
+    async enablePages() {
+      const baseDir = nuxt.options.future.compatibilityVersion === 4 ? nuxt.options.dir.app : nuxt.options.srcDir;
+      const pathApp = join(baseDir, "app.vue");
+      const pathPageIndex = join(baseDir, "pages/index.vue");
+      if (existsSync(pathPageIndex)) {
+        logger.warn("pages/index.vue already exists, skipping");
+        return;
+      }
+      const pagesIndexTemplate = `<script setup lang="ts">
+const route = useRoute()
+<\/script>
+
+<template>
+  <div>
+    <h1>Nuxt Routing set up successfully!</h1>
+    <p>Current route: {{ route.path }}</p>
+    <a href="https://nuxt.com/docs/getting-started/routing" target="_blank">Learn more about Nuxt Routing</a>
+  </div>
+</template>
+`;
+      await fs.mkdir(dirname(pathPageIndex), { recursive: true });
+      await fs.writeFile(pathPageIndex, pagesIndexTemplate, "utf-8");
+      let appContent = existsSync(pathApp) ? await fs.readFile(pathApp, "utf-8") : void 0;
+      if (appContent && !appContent.includes("<NuxtPage")) {
+        appContent = appContent.replace("</template>", "  <NuxtPage />\n</template>").replace(NUXT_WELCOME_RE, "");
+        await fs.writeFile(pathApp, appContent, "utf-8");
+      }
+      logger.success("Routing creation completed");
+    },
+    async restartNuxt(hard = true) {
+      logger.info("Restarting Nuxt...");
+      return nuxt.callHook("restart", { hard });
+    },
+    /** @deprecated Auth is now handled by Vite DevTools */
+    async requestForAuth() {
+      logger.warn("[nuxt-devtools] `requestForAuth` is deprecated. Auth is now handled by Vite DevTools.");
+    },
+    /** @deprecated Auth is now handled by Vite DevTools */
+    async verifyAuthToken() {
+      logger.warn("[nuxt-devtools] `verifyAuthToken` is deprecated. Auth is now handled by Vite DevTools.");
+      return true;
+    }
+  };
+}
+
+function toEntryInput(input) {
+  return {
+    message: input.message,
+    level: input.level ?? "info",
+    description: input.description,
+    labels: input.labels,
+    category: input.category,
+    filePosition: input.filePosition,
+    stacktrace: input.stacktrace,
+    notify: input.notify,
+    autoDismiss: input.autoDismiss,
+    autoDelete: input.autoDelete
+  };
+}
+function createNotifier(nuxt) {
+  let messages;
+  const pending = [];
+  function add(input) {
+    void messages.add(toEntryInput(input)).catch(() => {
+    });
+  }
+  function notify(input) {
+    if (!messages) {
+      pending.push(input);
+      return;
+    }
+    add(input);
+  }
+  onDevtoolsReady((kit) => {
+    messages = kit.messages;
+    for (const input of pending)
+      add(input);
+    pending.length = 0;
+  }, nuxt);
+  nuxt.hook("devtools:notify", notify);
+  return notify;
+}
+function setupMessagesRPC(ctx) {
+  return {
+    async notify(input) {
+      ctx.notify(input);
+    }
+  };
+}
+
+const AGENTS = [
+  "npm",
+  "yarn",
+  "yarn@berry",
+  "pnpm",
+  "pnpm@6",
+  "pnpm-rush",
+  "bun",
+  "deno",
+  "nub",
+  "aube",
+  "upm"
+];
+const LOCKS = {
+  "aube-lock.yaml": "aube",
+  "aube-workspace.yaml": "aube",
+  "bun.lock": "bun",
+  "bun.lockb": "bun",
+  "deno.lock": "deno",
+  "nub.lock": "nub",
+  "upm.lock": "upm",
+  "pnpm-lock.yaml": "pnpm",
+  "pnpm-workspace.yaml": "pnpm",
+  "yarn.lock": "yarn",
+  "package-lock.json": "npm",
+  "npm-shrinkwrap.json": "npm"
+};
+const INSTALL_METADATA = {
+  "node_modules/.aube/": "aube",
+  "node_modules/.deno/": "deno",
+  "node_modules/.pnpm/": "pnpm",
+  "node_modules/.upm/": "upm",
+  "node_modules/.yarn-state.yml": "yarn",
+  // yarn v2+ (node-modules)
+  "node_modules/.yarn_integrity": "yarn",
+  // yarn v1
+  "node_modules/.package-lock.json": "npm",
+  ".pnp.cjs": "yarn",
+  // yarn v3+ (pnp)
+  ".pnp.js": "yarn",
+  // yarn v2 (pnp)
+  "bun.lock": "bun",
+  "bun.lockb": "bun"
+};
+
+async function pathExists(path2, type) {
+  try {
+    const stat = await fs.stat(path2);
+    return type === "file" ? stat.isFile() : stat.isDirectory();
+  } catch {
+    return false;
+  }
+}
+function* lookup(cwd = process$1.cwd()) {
+  let directory = path.resolve(cwd);
+  const { root } = path.parse(directory);
+  while (directory && directory !== root) {
+    yield directory;
+    directory = path.dirname(directory);
+  }
+}
+async function parsePackageJson(filepath, options) {
+  if (!filepath || !await pathExists(filepath, "file"))
+    return null;
+  return await handlePackageManager(filepath, options);
+}
+async function detect(options = {}) {
+  const {
+    cwd,
+    strategies = ["lockfile", "packageManager-field", "devEngines-field"]
+  } = options;
+  let stopDir;
+  if (typeof options.stopDir === "string") {
+    const resolved = path.resolve(options.stopDir);
+    stopDir = (dir) => dir === resolved;
+  } else {
+    stopDir = options.stopDir;
+  }
+  for (const directory of lookup(cwd)) {
+    for (const strategy of strategies) {
+      switch (strategy) {
+        case "lockfile": {
+          if (await pathExists(path.join(directory, "rush.json"), "file")) {
+            return { name: "pnpm", agent: "pnpm-rush" };
+          }
+          for (const lock of Object.keys(LOCKS)) {
+            if (await pathExists(path.join(directory, lock), "file")) {
+              const name = LOCKS[lock];
+              const result = await parsePackageJson(path.join(directory, "package.json"), options);
+              if (result)
+                return result;
+              else
+                return { name, agent: name };
+            }
+          }
+          break;
+        }
+        case "packageManager-field":
+        case "devEngines-field": {
+          const result = await parsePackageJson(path.join(directory, "package.json"), options);
+          if (result)
+            return result;
+          break;
+        }
+        case "install-metadata": {
+          for (const metadata of Object.keys(INSTALL_METADATA)) {
+            const fileOrDir = metadata.endsWith("/") ? "dir" : "file";
+            if (await pathExists(path.join(directory, metadata), fileOrDir)) {
+              const name = INSTALL_METADATA[metadata];
+              const agent = name === "yarn" ? isMetadataYarnClassic(metadata) ? "yarn" : "yarn@berry" : name;
+              return { name, agent };
+            }
+          }
+          break;
+        }
+      }
+    }
+    if (stopDir?.(directory))
+      break;
+  }
+  return null;
+}
+function normalizeAgentVersion(version) {
+  return version?.match(/\d+(\.\d+){0,2}/)?.[0] ?? version;
+}
+function getNameAndVer(pkg) {
+  if (typeof pkg.packageManager === "string") {
+    const [name, ver] = pkg.packageManager.replace(/^\^/, "").split("@");
+    return { name, ver: normalizeAgentVersion(ver) };
+  }
+  if (typeof pkg.devEngines?.packageManager?.name === "string") {
+    return {
+      name: pkg.devEngines.packageManager.name,
+      ver: normalizeAgentVersion(pkg.devEngines.packageManager.version)
+    };
+  }
+  return void 0;
+}
+async function handlePackageManager(filepath, options) {
+  try {
+    const content = await fs.readFile(filepath, "utf8");
+    const pkg = options.packageJsonParser ? await options.packageJsonParser(content, filepath) : JSON.parse(content);
+    const nameAndVer = getNameAndVer(pkg);
+    if (nameAndVer) {
+      return resolveAgent(nameAndVer.name, nameAndVer.ver) ?? options.onUnknown?.(pkg.packageManager) ?? null;
+    }
+  } catch {
+  }
+  return null;
+}
+function resolveAgent(name, ver) {
+  let agent;
+  let version = ver;
+  if (name === "yarn" && ver && Number.parseInt(ver) > 1) {
+    agent = "yarn@berry";
+    version = "berry";
+    return { name, agent, version };
+  } else if (name === "pnpm" && ver && Number.parseInt(ver) < 7) {
+    agent = "pnpm@6";
+    return { name, agent, version };
+  } else if (AGENTS.includes(name)) {
+    agent = name;
+    return { name, agent, version };
+  }
+}
+function isMetadataYarnClassic(metadataPath) {
+  return metadataPath.endsWith(".yarn_integrity");
+}
+
+async function checkForUpdateOf(name, current, nuxt = useNuxt()) {
+  try {
+    if (!current) {
+      const require = createRequire(nuxt.options.rootDir);
+      const modulePaths = [
+        ...nuxt.options.modulesDir,
+        ...require.resolve.paths(name) || []
+      ];
+      const info = await getPackageInfo(name, { paths: modulePaths });
+      if (!info)
+        return;
+      current = info.packageJson.version;
+    }
+    if (!current)
+      return;
+    const { getLatestVersion } = await import('fast-npm-meta');
+    const { version: latest } = await getLatestVersion(name);
+    const needsUpdate = !!latest && latest !== current && isLessThan(current, latest);
+    return {
+      name,
+      current,
+      latest: latest || current,
+      needsUpdate
+    };
+  } catch (e) {
+    logger.warn(`Failed to check for update of ${name}:`);
+    logger.warn(e);
+  }
+}
+
+async function magicastGuard(fn, message = "") {
+  let generated;
+  try {
+    generated = await fn();
+  } catch (e) {
+    logger.error(e);
+    throw new Error(`[Nuxt DevTools] Magicast failed to modify Nuxt config automatically. Maybe the config are composed too dynamically that we failed to statically analyze it. ${message}`);
+  }
+  return generated;
+}
+
+function removeNuxtModuleFromCode(source, name, filepath) {
+  const mod = parseModule(source, filepath ? { sourceFileName: filepath } : void 0);
+  const config = getDefaultExportOptions(mod);
+  if (!Array.isArray(config.modules))
+    return mod.generate().code;
+  for (let i = config.modules.length - 1; i >= 0; i--) {
+    const entry = config.modules[i];
+    const matches = typeof entry === "string" ? entry === name : Array.isArray(entry) && entry[0] === name;
+    if (matches)
+      config.modules.splice(i, 1);
+  }
+  return mod.generate().code;
+}
+
+function broadcastTerminalExit(ctx, id, code) {
+  ctx.devtoolsKit?.rpc.broadcast({ method: "onTerminalExit", args: [{ id, code }], event: true });
+}
+function statusForExit(code) {
+  return code == null || code === 0 ? "stopped" : "error";
+}
+function setupTerminalsBridge(ctx) {
+  const { nuxt } = ctx;
+  const runs = /* @__PURE__ */ new Map();
+  const generations = /* @__PURE__ */ new Map();
+  let host;
+  function createRun(terminal) {
+    const legacyId = terminal.id;
+    const generation = (generations.get(legacyId) ?? 0) + 1;
+    generations.set(legacyId, generation);
+    let controller;
+    const stream = new ReadableStream({
+      start(c) {
+        controller = c;
+      }
+    });
+    const session = {
+      id: createUniqueSessionId(legacyId),
+      title: terminal.name,
+      description: terminal.description,
+      icon: terminal.icon,
+      status: "running",
+      interactive: false,
+      stream
+    };
+    return {
+      legacyId,
+      sessionId: session.id,
+      generation,
+      session,
+      controller,
+      registered: false,
+      streamClosed: false,
+      pendingChunks: []
+    };
+  }
+  function isCurrent(run) {
+    return runs.get(run.legacyId) === run;
+  }
+  function closeStream(run) {
+    if (run.streamClosed)
+      return;
+    run.streamClosed = true;
+    try {
+      run.controller?.close();
+    } catch {
+    }
+  }
+  function applyExit(run, code) {
+    if (!isCurrent(run) || run.streamClosed)
+      return;
+    closeStream(run);
+    run.session.status = statusForExit(code);
+    host?.update(run.session);
+  }
+  function registerWithHost(run) {
+    if (!host || run.registered || !isCurrent(run))
+      return;
+    host.register(run.session);
+    run.registered = true;
+    for (const chunk of run.pendingChunks) {
+      try {
+        run.controller?.enqueue(chunk);
+      } catch {
+      }
+    }
+    run.pendingChunks.length = 0;
+    if (run.pendingExit) {
+      const { code } = run.pendingExit;
+      run.pendingExit = void 0;
+      applyExit(run, code);
+    }
+  }
+  nuxt.hook("devtools:terminal:register", (terminal) => {
+    const existing = runs.get(terminal.id);
+    if (existing) {
+      closeStream(existing);
+      if (host && existing.registered)
+        host.remove(existing.session);
+    }
+    const run = createRun(terminal);
+    runs.set(terminal.id, run);
+    if (host)
+      registerWithHost(run);
+    return terminal.id;
+  });
+  nuxt.hook("devtools:terminal:write", ({ id, data }) => {
+    const run = runs.get(id);
+    if (!run || run.streamClosed)
+      return false;
+    if (run.registered) {
+      try {
+        run.controller?.enqueue(data);
+      } catch {
+      }
+    } else {
+      run.pendingChunks.push(data);
+    }
+    return true;
+  });
+  nuxt.hook("devtools:terminal:exit", ({ id, code }) => {
+    const run = runs.get(id);
+    if (!run)
+      return false;
+    if (run.registered)
+      applyExit(run, code);
+    else
+      run.pendingExit = { code };
+    return true;
+  });
+  nuxt.hook("devtools:terminal:remove", ({ id }) => {
+    const run = runs.get(id);
+    if (!run)
+      return false;
+    closeStream(run);
+    runs.delete(id);
+    if (host && run.registered)
+      host.remove(run.session);
+    return true;
+  });
+  nuxt.hook("devtools:ready", (kit) => {
+    host = kit.terminals;
+    for (const run of runs.values())
+      registerWithHost(run);
+  });
+  return {
+    /**
+     * Focus the built-in **Terminals** dock on a session (Devframe 0.7
+     * `docks.activate`, driven by the `hub:docks:activate` RPC). Replaces the
+     * old in-client "go to Terminals tab" navigation now that terminals live in
+     * the hub dock. `id` is a unique Devframe session id (from a bridged run or
+     * a `startChildProcess` call). Returns `false` when the kit isn't connected
+     * or the session is unknown.
+     */
+    async revealTerminal(id) {
+      const kit = ctx.devtoolsKit;
+      if (!kit)
+        return false;
+      if (!kit.terminals.sessions.has(id))
+        return false;
+      kit.docks.activate(DEVTOOLS_TERMINALS_DOCK_ID, { sessionId: id });
+      return true;
+    }
+  };
+}
+
+function setupNpmRPC(ctx) {
+  const { nuxt } = ctx;
+  function getTerminals() {
+    const kit = ctx.devtoolsKit;
+    if (!kit)
+      throw new Error("[Nuxt DevTools] Vite DevTools kit is not connected yet.");
+    return kit.terminals;
+  }
+  let detectPromise;
+  const updatesPromise = /* @__PURE__ */ new Map();
+  function getPackageManager() {
+    detectPromise ||= detect({ cwd: nuxt.options.rootDir });
+    return detectPromise;
+  }
+  async function getNpmCommand(command, packageName, options = {}) {
+    const {
+      dev = true
+    } = options;
+    const agent = await getPackageManager();
+    const name = agent?.name || "npm";
+    if (command === "install" || command === "update") {
+      return [
+        name,
+        name === "npm" ? "install" : "add",
+        `${packageName}@latest`,
+        dev ? "-D" : "",
+        // In yarn berry, `--ignore-scripts` is removed
+        name === "yarn" && !agent?.version?.startsWith("1.") ? "" : "--ignore-scripts"
+      ].filter(Boolean);
+    }
+    if (command === "uninstall") {
+      return [
+        name,
+        name === "npm" ? "uninstall" : "remove",
+        packageName
+      ].filter(Boolean);
+    }
+  }
+  async function runNpmCommand(command, packageName, options = {}) {
+    const args = await getNpmCommand(command, packageName, options);
+    if (!args)
+      return;
+    const processId = createUniqueSessionId(`npm:${command}:${packageName}`);
+    const session = await getTerminals().startChildProcess({
+      command: args[0],
+      args: args.slice(1)
+    }, {
+      id: processId,
+      title: `${command} ${packageName}`,
+      icon: "i-logos-npm-icon"
+    });
+    void Promise.resolve(session.getResult()).then((result) => {
+      broadcastTerminalExit(ctx, processId, result.exitCode);
+    }).catch(() => {
+    });
+    return {
+      processId
+    };
+  }
+  const installSet = /* @__PURE__ */ new Set();
+  let latestGenerated = null;
+  return {
+    checkForUpdateFor(name) {
+      if (!updatesPromise.has(name))
+        updatesPromise.set(name, checkForUpdateOf(name, void 0, nuxt));
+      return updatesPromise.get(name);
+    },
+    getNpmCommand,
+    async runNpmCommand(...args) {
+      return runNpmCommand(...args);
+    },
+    async installNuxtModule(name, dry = true, sessionId) {
+      const commands = await getNpmCommand("install", name, { dev: true });
+      const filepath = nuxt.options._nuxtConfigFile;
+      let source = latestGenerated;
+      source ??= await fs.readFile(filepath, "utf-8");
+      const generated = await magicastGuard(async () => {
+        const mod = parseModule(source, { sourceFileName: filepath });
+        addNuxtModule(mod, name);
+        return mod.generate().code;
+      });
+      const processId = sessionId ?? createUniqueSessionId(`nuxt:add-module:${name}`);
+      if (!dry) {
+        latestGenerated = generated;
+        installSet.add(name);
+        const session = await getTerminals().startChildProcess({
+          command: commands[0],
+          args: commands.slice(1)
+        }, {
+          id: processId,
+          title: `Install ${name}`,
+          icon: "carbon:intent-request-create"
+        });
+        const result = await session.getResult();
+        await Promise.resolve();
+        installSet.delete(name);
+        const code = result.exitCode;
+        if (code !== 0) {
+          console.error(result.stderr);
+          ctx.notify({
+            message: `Failed to install ${name}`,
+            level: "error",
+            description: `Process exited with code ${code}. Check the Install ${name} terminal for details.`,
+            category: "module",
+            notify: true
+          });
+          throw new Error(`[Nuxt DevTools] Failed to install module, process exited with ${code}`);
+        }
+        ctx.notify({
+          message: `Installed ${name}`,
+          level: "success",
+          category: "module",
+          notify: true
+        });
+        if (installSet.size === 0) {
+          latestGenerated = null;
+          await fs.writeFile(filepath, generated, "utf-8");
+        }
+      }
+      return {
+        configOriginal: source,
+        configGenerated: generated,
+        commands,
+        processId
+      };
+    },
+    async uninstallNuxtModule(name, dry = true, sessionId) {
+      const commands = await getNpmCommand("uninstall", name);
+      const filepath = nuxt.options._nuxtConfigFile;
+      const source = await fs.readFile(filepath, "utf-8");
+      const generated = await magicastGuard(async () => {
+        return removeNuxtModuleFromCode(source, name, filepath);
+      });
+      const processId = sessionId ?? createUniqueSessionId(`nuxt:remove-module:${name}`);
+      if (!dry) {
+        const session = await getTerminals().startChildProcess({
+          command: commands[0],
+          args: commands.slice(1)
+        }, {
+          id: processId,
+          title: `Uninstall ${name}`,
+          icon: "carbon:intent-request-uninstall"
+        });
+        const result = await session.getResult();
+        await Promise.resolve();
+        const code = result.exitCode;
+        if (code !== 0) {
+          console.error(result.stderr);
+          ctx.notify({
+            message: `Failed to uninstall ${name}`,
+            level: "error",
+            description: `Process exited with code ${code}. Check the Uninstall ${name} terminal for details.`,
+            category: "module",
+            notify: true
+          });
+          throw new Error(`[Nuxt DevTools] Failed to uninstall module, process exited with ${code}`);
+        }
+        ctx.notify({
+          message: `Uninstalled ${name}`,
+          level: "success",
+          category: "module",
+          notify: true
+        });
+        await fs.writeFile(filepath, generated, "utf-8");
+      }
+      return {
+        configOriginal: source,
+        configGenerated: generated,
+        commands,
+        processId
+      };
+    }
+  };
+}
+
+function onDevReload(nitro, callback) {
+  return nitro.hooks.hook("dev:reload", callback);
+}
+
+function setupServerRoutesRPC({ nuxt, refresh }) {
+  let nitro;
+  let unhookDevReload;
+  let cache = null;
+  const refreshDebounced = debounce(() => {
+    cache = null;
+    refresh("getServerRoutes");
+  }, 500);
+  nuxt.hook("nitro:init", (_nitro) => {
+    nitro = _nitro;
+    cache = null;
+    refresh("getServerRoutes");
+    unhookDevReload?.();
+    unhookDevReload = onDevReload(_nitro, () => refreshDebounced());
+  });
+  nuxt.hook("close", () => {
+    unhookDevReload?.();
+    unhookDevReload = void 0;
+  });
+  function scan() {
+    if (cache)
+      return cache;
+    cache = (() => {
+      if (!nitro)
+        return [];
+      return [
+        ...nitro.scannedHandlers.filter((item) => !item.middleware).map((item) => ({
+          route: item.route,
+          filepath: item.handler,
+          method: item.method,
+          type: item.route?.startsWith("/api") ? "api" : "route"
+        })),
+        ...nitro.options.handlers.filter((item) => !item.route?.startsWith("/_nitro") && !item.route?.startsWith("/__nuxt") && !item.middleware).map((item) => ({
+          route: item.route,
+          filepath: item.handler,
+          method: item.method,
+          type: "runtime"
+        }))
+      ];
+    })();
+    return cache;
+  }
+  return {
+    getServerRoutes() {
+      return scan();
+    }
+  };
+}
+
+function setupServerTasksRPC({ nuxt, refresh }) {
+  let nitro;
+  let unhookDevReload;
+  let cache = null;
+  const refreshDebounced = debounce(() => {
+    cache = null;
+    refresh("getServerTasks");
+  }, 500);
+  nuxt.hook("nitro:init", (_nitro) => {
+    nitro = _nitro;
+    cache = null;
+    refresh("getServerTasks");
+    unhookDevReload?.();
+    unhookDevReload = onDevReload(_nitro, () => refreshDebounced());
+  });
+  nuxt.hook("close", () => {
+    unhookDevReload?.();
+    unhookDevReload = void 0;
+  });
+  function scan() {
+    if (cache)
+      return cache;
+    cache = (() => {
+      if (!nitro) {
+        return {
+          tasks: {},
+          scheduledTasks: {}
+        };
+      }
+      return {
+        // Nitro v3's task config types `handler`/`description` as optional
+        // (they're always populated in practice by Nitro's own task scanner),
+        // so normalize with fallbacks to satisfy `ScannedNitroTasks`.
+        tasks: Object.fromEntries(
+          Object.entries(nitro.options.tasks ?? {}).map(([name, task]) => [
+            name,
+            { handler: task.handler ?? "", description: task.description ?? "" }
+          ])
+        ),
+        scheduledTasks: Object.entries(nitro.options.scheduledTasks ?? {}).reduce((acc, [cron, tasks]) => {
+          acc[cron] = Array.isArray(tasks) ? tasks : [tasks];
+          return acc;
+        }, {})
+      };
+    })();
+    return cache;
+  }
+  return {
+    getServerTasks() {
+      return scan();
+    }
+  };
+}
+
+function skipInSSR(ctx) {
+  return Boolean(ctx?.viteConfig?.build?.ssr);
+}
+
+async function watchStorageMount(storage, mountName, onChange) {
+  const { normalizeBaseKey, normalizeKey } = await import('unstorage');
+  const mountKey = normalizeBaseKey(mountName);
+  const mount = storage.getMount(mountKey);
+  if (!mount || normalizeBaseKey(mount.base) !== mountKey || !mount.driver?.watch)
+    return () => {
+    };
+  const unwatch = await mount.driver.watch((event, key) => {
+    const fullKey = key.startsWith(mountKey) ? key : `${mountKey}${key}`;
+    onChange(event, normalizeKey(fullKey));
+  });
+  return unwatch ?? (() => {
+  });
+}
+
+const IGNORE_STORAGE_MOUNTS = ["root", "build", "src", "cache"];
+function setupStorageRPC(ctx) {
+  const { nuxt } = ctx;
+  const storageMounts = {};
+  let unstorage;
+  let storage;
+  let unwatchStorageMounts = [];
+  function shouldIgnoreStorageKey(key) {
+    return !unstorage || IGNORE_STORAGE_MOUNTS.includes(unstorage.normalizeKey(key).split(":")[0]);
+  }
+  nuxt.hook("nitro:init", async (nitro) => {
+    const loaded = await import('unstorage').catch((err) => {
+      nitro.logger.warn("Failed to load `unstorage`, the DevTools storage browser is disabled:", err);
+    });
+    if (!loaded)
+      return;
+    unstorage = loaded;
+    const mounts = {
+      ...nitro.options.storage,
+      ...nitro.options.devStorage
+    };
+    const nextStorage = unstorage.createStorage();
+    for (const [path, opts] of Object.entries(mounts)) {
+      if (!opts?.driver) {
+        nitro.logger.warn(`No \`driver\` set for storage mount point "${path}".`);
+        continue;
+      }
+      try {
+        const driverImport = unstorage.builtinDrivers[opts.driver] || opts.driver;
+        const driverFactory = await import(driverImport).then((r) => r.default || r);
+        nextStorage.mount(path, driverFactory(opts));
+      } catch (err) {
+        nitro.logger.warn(`Failed to mount storage driver "${opts.driver}" for the DevTools storage browser:`, err);
+      }
+    }
+    storage = nextStorage;
+    for (const key of Object.keys(storageMounts))
+      delete storageMounts[key];
+    for (const name of Object.keys(mounts)) {
+      if (shouldIgnoreStorageKey(name))
+        continue;
+      storageMounts[name] = mounts[name];
+    }
+  });
+  nuxt.hook("ready", async () => {
+    const activeStorage = storage;
+    if (!activeStorage)
+      return;
+    await Promise.all(unwatchStorageMounts.map((unwatch) => unwatch()));
+    unwatchStorageMounts = await Promise.all(Object.keys(storageMounts).map((mountName) => watchStorageMount(activeStorage, mountName, (event, key) => {
+      ctx.devtoolsKit?.rpc.broadcast({ method: "callHook", args: ["storage:key:update", key, event], event: true });
+    })));
+  });
+  nuxt.hook("close", async () => {
+    await Promise.all(unwatchStorageMounts.map((unwatch) => unwatch()));
+    unwatchStorageMounts = [];
+  });
+  return {
+    async getStorageMounts() {
+      return storageMounts;
+    },
+    async getStorageKeys(base) {
+      if (!storage)
+        return [];
+      try {
+        const keys = await storage.getKeys(base);
+        return keys.filter((key) => !shouldIgnoreStorageKey(key));
+      } catch (err) {
+        console.error(`Cloud not fetch storage keys for ${base}:`, err);
+        return [];
+      }
+    },
+    async getStorageItem(key) {
+      if (!storage || shouldIgnoreStorageKey(key))
+        return null;
+      return await storage.getItem(key);
+    },
+    async setStorageItem(key, value) {
+      if (!storage || shouldIgnoreStorageKey(key))
+        return;
+      return await storage.setItem(key, value);
+    },
+    async removeStorageItem(key) {
+      if (!storage || shouldIgnoreStorageKey(key))
+        return;
+      return await storage.removeItem(key);
+    }
+  };
+}
+
+const SEND_DELAY = 5e3;
+function isDoNotTrackEnabled() {
+  const value = process.env.DO_NOT_TRACK;
+  return value === "1" || value?.toLowerCase() === "true";
+}
+function throttle(fn, delay) {
+  let timer;
+  return () => {
+    if (!timer) {
+      timer = setTimeout(() => {
+        timer = void 0;
+        fn();
+      }, delay);
+    }
+  };
+}
+let telemetry;
+const throttledSend = throttle(() => {
+  telemetry?.sendEvents();
+}, SEND_DELAY);
+function setupTelemetryRPC({ nuxt, options }) {
+  if (options.telemetry !== false && !isDoNotTrackEnabled()) {
+    nuxt.hook("telemetry:setup", (t) => {
+      telemetry = t;
+      t.eventFactories.devtools = (_, payload) => {
+        return {
+          name: "devtools",
+          version,
+          ...payload
+        };
+      };
+      t.createEvent("devtools", { event: "enabled" });
+    });
+  }
+  return {
+    telemetryEvent(payload, immediate = false) {
+      telemetryEvent(payload, immediate);
+    }
+  };
+}
+function telemetryEvent(payload, immediate = false) {
+  if (!telemetry)
+    return;
+  if (getOptions()?.behavior.telemetry === false)
+    return;
+  if (isDoNotTrackEnabled())
+    return;
+  telemetry.createEvent("devtools", payload);
+  if (immediate)
+    telemetry.sendEvents();
+  else
+    throttledSend();
+}
+
+function setupTimelineRPC({ nuxt }) {
+  return {
+    async enableTimeline(dry) {
+      const filepath = nuxt.options._nuxtConfigFile;
+      const source = await fs.readFile(filepath, "utf-8");
+      const generated = await magicastGuard(async () => {
+        const mod = parseModule(source, { sourceFileName: filepath });
+        const options = getDefaultExportOptions(mod);
+        options.devtools = options.devtools || {};
+        options.devtools.timeline = options.devtools.timeline || {};
+        options.devtools.timeline.enabled = true;
+        return mod.generate().code;
+      }, "\nYou can enable timeline manually by adding `devtools: { timeline: { enabled: true } }`");
+      if (!dry) {
+        await fs.writeFile(filepath, generated, "utf-8");
+        await nuxt.callHook("restart", { hard: true });
+      }
+      return [source, generated];
+    }
+  };
+}
+
+function setupRPC(nuxt, options) {
+  const serverFunctions = {};
+  const extendedRpcMap = /* @__PURE__ */ new Map();
+  let devtoolsKitCtx;
+  const pendingBroadcasts = [];
+  function broadcast(method, ...args) {
+    if (!devtoolsKitCtx) {
+      pendingBroadcasts.push({ method, args });
+      return;
+    }
+    devtoolsKitCtx.rpc.broadcast({
+      method,
+      args,
+      event: true
+    });
+  }
+  function createBroadcastProxy(prefix = "") {
+    return new Proxy({}, {
+      get: (_, method) => {
+        if (typeof method !== "string")
+          return;
+        const fullMethod = prefix ? `${prefix}:${method}` : method;
+        const fn = (...args) => broadcast(fullMethod, ...args);
+        fn.asEvent = (...args) => broadcast(fullMethod, ...args);
+        return fn;
+      }
+    });
+  }
+  const functionsProxy = new Proxy(serverFunctions, {
+    set(target, prop, value) {
+      target[prop] = value;
+      if (devtoolsKitCtx && typeof prop === "string") {
+        if (devtoolsKitCtx.rpc.has(prop)) {
+          devtoolsKitCtx.rpc.update({ name: prop, handler: value });
+        } else {
+          devtoolsKitCtx.rpc.register({ name: prop, handler: value });
+        }
+      }
+      return true;
+    }
+  });
+  const rpc = new Proxy({
+    broadcast: createBroadcastProxy(),
+    functions: functionsProxy
+  }, {
+    get(target, prop, receiver) {
+      if (prop === "broadcast" || prop === "functions") {
+        deprecate(nuxt, "NDT_DEP_0007", {
+          api: `nuxt.devtools.rpc.${prop}`,
+          replacement: "the connected ctx.rpc from onDevtoolsReady((ctx) => ...)"
+        }, { key: prop });
+      }
+      return Reflect.get(target, prop, receiver);
+    }
+  });
+  function refresh(event) {
+    broadcast("refresh", event);
+  }
+  const notify = createNotifier(nuxt);
+  function extendServerRpc(namespace, functions) {
+    deprecate(nuxt, "NDT_DEP_0003", {
+      api: "extendServerRpc",
+      replacement: "onDevtoolsReady((ctx) => ctx.rpc.register(defineRpcFunction(...)))"
+    }, { key: namespace });
+    extendedRpcMap.set(namespace, functions);
+    if (devtoolsKitCtx) {
+      for (const [fnName, handler] of Object.entries(functions)) {
+        if (typeof handler === "function") {
+          devtoolsKitCtx.rpc.register({ name: `${namespace}:${fnName}`, handler });
+        }
+      }
+    }
+    return {
+      broadcast: createBroadcastProxy(namespace),
+      functions,
+      clients: [],
+      updateChannels: () => []
+    };
+  }
+  const ctx = {
+    nuxt,
+    options,
+    rpc,
+    get devtoolsKit() {
+      return devtoolsKitCtx;
+    },
+    refresh,
+    notify,
+    extendServerRpc,
+    openInEditorHooks: []
+  };
+  nuxt.devtools = ctx;
+  Object.assign(serverFunctions, {
+    ...setupGeneralRPC(ctx),
+    ...setupMessagesRPC(ctx),
+    ...setupCustomTabRPC(ctx),
+    ...setupStorageRPC(ctx),
+    ...setupNpmRPC(ctx),
+    // Bridge the `devtools:terminal:*` hooks onto the Vite DevTools terminals
+    // host so module terminals surface in the built-in Terminals dock. Also
+    // registers its own hook listeners (including `devtools:ready`) as a side
+    // effect, and contributes the `revealTerminal` RPC.
+    ...setupTerminalsBridge(ctx),
+    ...setupServerRoutesRPC(ctx),
+    ...setupServerTasksRPC(ctx),
+    ...setupAnalyzeBuildRPC(ctx),
+    ...setupOptionsRPC(ctx),
+    ...setupTimelineRPC(ctx),
+    ...setupTelemetryRPC(ctx),
+    // Deprecated compat shim (NDT_DEP_0009). The capture + live source now live
+    // in the Data Inspector integration; `getServerConfig` is served by the
+    // canonical `setupGeneralRPC` above.
+    getServerData: async () => import('./data-inspector.mjs').then(({ getServerData }) => getServerData(nuxt))
+  });
+  async function connectDevToolsKit(kitCtx) {
+    if (devtoolsKitCtx || skipInSSR(kitCtx))
+      return;
+    devtoolsKitCtx = kitCtx;
+    const host = kitCtx.rpc;
+    for (const { method, args } of pendingBroadcasts) {
+      broadcast(method, ...args);
+    }
+    pendingBroadcasts.length = 0;
+    registerHostDiagnostics(ctx);
+    function registerFn(name, handler) {
+      try {
+        host.register({ name, handler });
+      } catch (e) {
+        logger.warn(
+          colors.yellow(`[nuxt-devtools] Failed to register RPC function "${name}":
+`) + colors.red(e?.message || "")
+        );
+      }
+    }
+    for (const [name, handler] of Object.entries(serverFunctions)) {
+      if (typeof handler !== "function")
+        continue;
+      registerFn(`${RPC_NAMESPACE}:${name}`, handler);
+      registerFn(name, handler);
+    }
+    for (const [namespace, fns] of extendedRpcMap) {
+      for (const [fnName, handler] of Object.entries(fns)) {
+        if (typeof handler === "function")
+          registerFn(`${namespace}:${fnName}`, handler);
+      }
+    }
+    await nuxt.callHook("devtools:ready", kitCtx);
+  }
+  return {
+    connectDevToolsKit,
+    ctx
+  };
+}
+
+const MULTIPLE_SLASHES_RE = /\/+/g;
+const ASSETS_PACKAGE = "@nuxt/devtools-assets";
+function resolveClientAssetsSource() {
+  const range = peerDependencies[ASSETS_PACKAGE] ?? "";
+  const name = range.startsWith("npm:") ? range.slice("npm:".length, range.lastIndexOf("@")) : ASSETS_PACKAGE;
+  return {
+    package: name,
+    version,
+    resolveFrom: import.meta.url
+  };
+}
+async function enableModule(options, nuxt) {
+  if (process.env.TEST || process.env.NODE_ENV === "test" || nuxt.options.test)
+    return;
+  if (nuxt.options.builder !== "@nuxt/vite-builder") {
+    logger.warn("Nuxt DevTools only supports Vite mode, module is disabled.");
+    return;
+  }
+  if (!nuxt.options.dev) {
+    if (nuxt.options.build.analyze && (nuxt.options.build.analyze === true || nuxt.options.build.analyze.enabled))
+      await import('./analyze-build.mjs').then(({ setup }) => setup(nuxt, options));
+    return;
+  }
+  await nuxt.callHook("devtools:before");
+  if (options.disableAuthorization) {
+    extendViteDevToolsConfig((devtools) => {
+      devtools.clientAuth ??= false;
+    });
+  }
+  const kit = await import('@nuxt/kit');
+  if ("useTerminal" in kit) {
+    const { banner, onTrusted } = createTerminalAuthBanner(kit.useTerminal);
+    extendViteDevToolsConfig((devtools) => {
+      devtools.banner ??= banner;
+      devtools.onTrusted ??= onTrusted;
+    });
+  }
+  nuxt.options.imports.collectMeta = true;
+  addPlugin({
+    src: join(runtimeDir, "plugins/devtools.client"),
+    mode: "client"
+  });
+  addPlugin({
+    src: join(runtimeDir, "plugins/devtools.server"),
+    mode: "server"
+  });
+  if (nuxt.options.dev) {
+    nuxt.options.vite.optimizeDeps ||= {};
+    nuxt.options.vite.optimizeDeps.include ||= [];
+    nuxt.options.vite.optimizeDeps.include.push(
+      // Vite DevTools 0.5's embedded client is served by the hub as an external
+      // `embedded.js` script (see `runtime/plugins/vite-devtools.client`), so it
+      // is no longer a bundler-resolved `@vitejs/devtools/client/inject` import to
+      // pre-bundle here.
+      "nuxt > @nuxt/devtools > @vitejs/devtools-kit/client",
+      "nuxt > @nuxt/devtools > error-stack-parser-es",
+      "nuxt > @nuxt/devtools > vite-plugin-vue-devtools/client",
+      "nuxt > @nuxt/devtools > vite-plugin-vue-tracer/client/overlay"
+    );
+  }
+  const ROUTE_PATH = `${nuxt.options.app.baseURL || "/"}/__nuxt_devtools__`.replace(MULTIPLE_SLASHES_RE, "/");
+  const ROUTE_CLIENT = `${ROUTE_PATH}/client`;
+  const ROUTE_ANALYZE = `${ROUTE_PATH}/analyze`;
+  const isSelfClient = resolve(nuxt.options.rootDir) === resolve(packageDir, "client");
+  const clientAssetsSource = isSelfClient ? void 0 : resolveClientAssetsSource();
+  const clientUrl = clientAssetsSource ? `${ROUTE_CLIENT}/` : `${nuxt.options.app.baseURL || "/"}/`.replace(MULTIPLE_SLASHES_RE, "/");
+  let publicDevServerOrigin;
+  nuxt.hook("listen", (_server, listener) => {
+    if (listener?.url)
+      publicDevServerOrigin = new URL(listener.url).origin;
+  });
+  const branding = {
+    productName: "Nuxt DevTools",
+    tagline: "DevTools for Nuxt",
+    primaryColor: "#099e61",
+    logo: "https://nuxt.com/assets/design-kit/icon-green.svg",
+    wordmark: {
+      light: "https://cdn.jsdelivr.net/gh/nuxt/devtools@main/assets/nuxt-devtools-light.svg",
+      dark: "https://cdn.jsdelivr.net/gh/nuxt/devtools@main/assets/nuxt-devtools-dark.svg"
+    },
+    windowTitle: "Nuxt DevTools"
+  };
+  if (isGreaterThanOrEqual(version$1, "8.3.0")) {
+    extendViteDevToolsConfig((devtools) => {
+      devtools.branding ??= branding;
+    });
+  } else {
+    const DevTools = await import('@vitejs/devtools').then((r) => r.DevTools({ branding }));
+    addVitePlugin(DevTools);
+  }
+  let connectDevToolsKit;
+  addVitePlugin(defineViteDevToolsPlugin({
+    name: "nuxt:devtools",
+    devtools: {
+      async setup(ctx2) {
+        if (!skipInSSR(ctx2)) {
+          const resolveViteOrigin = ctx2.host.resolveOrigin.bind(ctx2.host);
+          ctx2.host.resolveOrigin = () => publicDevServerOrigin || resolveViteOrigin();
+          if (clientAssetsSource) {
+            ctx2.viteServer?.middlewares.use((req, res, next) => {
+              const [pathname = "", search = ""] = (req.url ?? "").split("?");
+              if (pathname !== ROUTE_CLIENT)
+                return next();
+              res.statusCode = 302;
+              res.setHeader("Location", `${ROUTE_CLIENT}/${search ? `?${search}` : ""}`);
+              res.end();
+            });
+            if (ctx2.host.mountConnectionMeta)
+              await ctx2.host.mountConnectionMeta(`${ROUTE_CLIENT}/`);
+            ctx2.views.hostStatic(ROUTE_CLIENT, clientAssetsSource);
+          }
+          ctx2.docks.register({
+            id: NUXT_DEVTOOLS_GROUP_ID,
+            type: "group",
+            title: "Nuxt",
+            icon: `${clientUrl}nuxt.svg`,
+            category: "framework",
+            defaultOrder: -2e3,
+            defaultChildId: "nuxt:devtools",
+            categoryOrder: {
+              pinned: 0,
+              app: 1,
+              analyze: 2,
+              server: 3,
+              modules: 4,
+              documentation: 5,
+              advanced: 6
+            }
+          });
+          ctx2.docks.register({
+            id: "nuxt:devtools",
+            type: "iframe",
+            title: "Nuxt DevTools",
+            icon: `${clientUrl}nuxt.svg`,
+            url: clientUrl,
+            groupId: NUXT_DEVTOOLS_GROUP_ID,
+            frameId: "nuxt:devtools",
+            subTabs: { protocol: "postmessage" },
+            visibility: "false",
+            defaultOrder: -300
+          });
+        }
+        await connectDevToolsKit?.(ctx2);
+      }
+    }
+  }));
+  addPlugin({
+    src: join(runtimeDir, "plugins/vite-devtools.client"),
+    mode: "client"
+  });
+  addTemplate({
+    filename: "devtools/settings.mjs",
+    async getContents() {
+      const uiOptions = await readLocalOptions(
+        createDefaultTabOptions().ui,
+        { root: nuxt.options.rootDir }
+      );
+      return `export default ${JSON.stringify({
+        ui: uiOptions
+      })}`;
+    }
+  });
+  nuxt.hook("nitro:config", (config) => {
+    if (config.experimental?.tasks)
+      setServerTasksEnabledByDefault(true);
+    const inlinePath = join(runtimeDir, "nitro");
+    if ("externals" in config) {
+      config.externals ||= {};
+      config.externals.inline ||= [];
+      config.externals.inline.push(inlinePath);
+    } else if (Array.isArray(config.noExternals)) {
+      config.noExternals.push(inlinePath);
+    } else if (config.noExternals === void 0) {
+      config.noExternals = [inlinePath];
+    }
+    config.virtual = config.virtual || {};
+    config.virtual["#nuxt-devtools-inline"] = `export const script = \`
+if (!window.__NUXT_DEVTOOLS_TIME_METRIC__) {
+  Object.defineProperty(window, '__NUXT_DEVTOOLS_TIME_METRIC__', {
+    value: {},
+    enumerable: false,
+    configurable: true,
+  })
+}
+window.__NUXT_DEVTOOLS_TIME_METRIC__.appInit = Date.now()
+\``;
+    config.plugins = config.plugins || [];
+    config.plugins.unshift(join(runtimeDir, "nitro/inline"));
+  });
+  const {
+    connectDevToolsKit: _connectDevToolsKit,
+    ctx
+  } = setupRPC(nuxt, options);
+  connectDevToolsKit = _connectDevToolsKit;
+  extendViteConfig((config) => {
+    config.server ||= {};
+    config.server.fs ||= {};
+    config.server.fs.allow ||= [
+      searchForWorkspaceRoot(process.cwd())
+    ];
+    config.server.fs.allow.push(packageDir);
+    config.server.watch ||= {};
+    config.server.watch.ignored ||= [];
+    if (!Array.isArray(config.server.watch.ignored))
+      config.server.watch.ignored = [config.server.watch.ignored];
+    config.server.watch.ignored.push("**/.nuxt/analyze/**");
+    config.server.watch.ignored.push("**/.cache/nuxt-devtools/**");
+  });
+  addImports({
+    name: "useNuxtDevTools",
+    from: join(runtimeDir, "use-nuxt-devtools")
+  });
+  nuxt.hook("vite:serverCreated", (server) => {
+    const devtoolsAnalyzeDir = join(nuxt.options.rootDir, "node_modules/.cache/nuxt-devtools/analyze");
+    server.middlewares.use(ROUTE_ANALYZE, serveStaticNodeMiddleware(devtoolsAnalyzeDir, { single: false }));
+  });
+  await import('./plugin-metrics.mjs').then(({ setup }) => setup(ctx));
+  if (options.dataInspector !== false)
+    await import('./data-inspector.mjs').then(({ setup }) => setup(ctx));
+  await import('./assets.mjs').then(({ setup }) => setup(ctx));
+  await import('./og.mjs').then(({ setup }) => setup(ctx));
+  if (options.viteInspect !== false)
+    await import('./vite-inspect.mjs').then(({ setup }) => setup(ctx));
+  if (options.componentInspector !== false)
+    await import('./vue-tracer.mjs').then(({ setup }) => setup(ctx));
+  if (options.vueDevTools !== false)
+    await import('./vue-devtools.mjs').then(({ setup }) => setup(ctx));
+  if (options.codeServer?.enabled === false && options.vscode !== void 0) {
+    deprecate(nuxt, "NDT_DEP_0008", {
+      api: "devtools.vscode",
+      replacement: "devtools.codeServer"
+    });
+  }
+  const integrations = [
+    options.codeServer?.enabled !== false ? import('./code-server.mjs').then(({ setup }) => setup(ctx)) : null,
+    options.experimental?.timeline || options.timeline?.enabled ? import('./timeline.mjs').then(({ setup }) => setup(ctx)) : null
+  ];
+  await Promise.all(integrations);
+  nuxt.hook("modules:done", () => nuxt.callHook("devtools:initialized", {
+    version,
+    packagePath: packageDir
+  }));
+  const isMac = os.platform() === "darwin";
+  logger.log([
+    colors.yellow(`  \u279C DevTools: `),
+    colors.dim("press "),
+    colors.green("Shift"),
+    colors.dim(" + "),
+    colors.green(isMac ? "Option" : "Alt"),
+    colors.dim(" + "),
+    colors.green("D"),
+    colors.dim(` in the browser (v${version})`),
+    "\n"
+  ].join(""));
+}
+function defineViteDevToolsPlugin(plugin) {
+  return plugin;
+}
+function extendViteDevToolsConfig(extend) {
+  extendViteConfig((config) => {
+    if (config.devtools === false)
+      return;
+    const devtools = typeof config.devtools === "object" ? config.devtools : {};
+    extend(devtools);
+    config.devtools = devtools;
+  });
+}
+
+const moduleMain = {
+  __proto__: null,
+  enableModule: enableModule
+};
+
+export { RPC_NAMESPACE as R, moduleMain as m, skipInSSR as s };

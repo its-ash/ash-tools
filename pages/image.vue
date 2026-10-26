@@ -1,5 +1,4 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: 'Free Image Editor | Crop, Resize, Rotate & Filters in your browser',
@@ -1237,106 +1236,104 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-[var(--surface-0)] text-[var(--ink-1)]">
+  <div class="flex-1 flex flex-col bg-[var(--surface-0)] text-[var(--ink-1)]">
+    <main class="flex-1 min-w-0 flex flex-col p-4 md:p-6">
+    <div class="mx-auto w-full max-w-6xl flex flex-col gap-4">
 
-    <!-- Top Bar -->
-    <header class="h-16 shrink-0 border-b border-[var(--border)] flex items-center justify-between px-4 md:px-6 sticky top-0 z-30 bg-[var(--surface-1)]">
-      <div class="flex items-center gap-3 md:gap-8 min-w-0">
-        <div class="flex items-center gap-2 shrink-0">
-          <NuxtLink to="/" class="ide-tool-btn flex items-center justify-center h-8 w-8 rounded-none shrink-0" title="Back to home" aria-label="Back to home">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
+      <div class="ui-panel px-4 flex items-center justify-between gap-3">
+        <div id="page-actions" class="order-first flex flex-wrap items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+            <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
+            <span>Home</span>
           </NuxtLink>
-          <div class="w-8 h-8 rounded-none flex items-center justify-center shrink-0 bg-[var(--ink-1)]">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 6h18M3 6a2.25 2.25 0 00-2.25 2.25v11.25A2.25 2.25 0 003 21.75h18a2.25 2.25 0 002.25-2.25V8.25A2.25 2.25 0 0021 6H3z" /></svg>
-          </div>
-          <span class="font-bold text-[15px] tracking-tight hidden sm:block">Image Editor</span>
         </div>
-        <span class="hidden lg:block text-sm font-mono truncate text-[var(--ink-3)]">local · offline · nothing uploaded</span>
+        <div class="flex items-center gap-2">
+          <svg class="h-4 w-4 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="14" height="12" rx="1.5" /><circle cx="7.5" cy="8.5" r="1.5" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 14l4-4 3 3 2-2 3 3" /></svg>
+          <h1 class="text-sm font-bold text-[var(--ink-1)]">Image Editor</h1>
+        </div>
+        <span class="text-xs font-mono text-[var(--ink-3)]">local · offline · no upload</span>
       </div>
 
-      <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
-        <button id="resetBtn" :disabled="!hasImage" class="ui-button-secondary hidden sm:flex h-9 px-3.5 items-center gap-1.5 text-sm disabled:opacity-40 disabled:pointer-events-none">
-          <span>Reset</span>
-        </button>
-        <button id="downloadBtn" :disabled="!hasImage" class="ui-button h-9 px-4 text-sm font-bold flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          <span>Download</span>
-        </button>
-      </div>
-    </header>
-
-    <div class="flex flex-1 min-h-0 flex-col md:flex-row">
-
-      <!-- Left rail: mode switch (real feature set: crop / perspective) -->
-      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r border-[var(--border)] md:w-[76px] w-full bg-[var(--surface-1)]">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible" :class="(!hasImage || isProcessing) && 'opacity-40 pointer-events-none'">
+      <!-- Toolbar: mode switch + actions -->
+      <div class="ui-panel p-2 flex flex-wrap items-center gap-1">
+        <div class="flex flex-wrap items-center gap-1" :class="(!hasImage || isProcessing) && 'opacity-40 pointer-events-none'">
           <button id="modeCrop" data-mode="crop"
-            class="rail-btn ide-tool-btn active shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1" title="Crop" aria-label="Crop">
+            class="rail-btn ide-tool-btn active" title="Crop" aria-label="Crop">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"></path><path d="M18 22V8a2 2 0 0 0-2-2H2"></path></svg>
-            <span class="text-[10px] font-medium">Crop</span>
+            <span>Crop</span>
           </button>
           <button id="modePerspective" data-mode="perspective"
-            class="rail-btn ide-tool-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1" title="Perspective" aria-label="Perspective">
+            class="rail-btn ide-tool-btn" title="Perspective" aria-label="Perspective">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l6-2 8 2 2-1v14l-2 1-8-2-6 2V6z"></path></svg>
-            <span class="text-[10px] font-medium leading-tight text-center">Perspective</span>
+            <span>Perspective</span>
           </button>
           <button type="button" @click="setMode('rotate')"
-            class="rail-btn ide-tool-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1"
+            class="rail-btn ide-tool-btn"
             :class="activeModeDisplay === 'rotate' && 'active'" title="Rotate" aria-label="Rotate">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3.02-6.71"></path><polyline points="21 3 21 9 15 9"></polyline></svg>
-            <span class="text-[10px] font-medium">Rotate</span>
+            <span>Rotate</span>
           </button>
           <button type="button" @click="setMode('resize')"
-            class="rail-btn ide-tool-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1"
+            class="rail-btn ide-tool-btn"
             :class="activeModeDisplay === 'resize' && 'active'" title="Resize" aria-label="Resize">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-            <span class="text-[10px] font-medium">Resize</span>
+            <span>Resize</span>
           </button>
-          <div class="w-8 border-t md:border-t-0 md:w-8 md:h-px my-1 border-[var(--border)]"></div>
+          <div class="h-8 w-px mx-1 bg-[var(--border)]"></div>
           <button type="button" @click="setMode('adjust')"
-            class="rail-btn ide-tool-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1"
+            class="rail-btn ide-tool-btn"
             :class="activeModeDisplay === 'adjust' && 'active'" :disabled="!hasImage" title="Adjust" aria-label="Adjust">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
-            <span class="text-[10px] font-medium">Adjust</span>
+            <span>Adjust</span>
           </button>
           <button type="button" @click="setMode('filters')"
-            class="rail-btn ide-tool-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1"
+            class="rail-btn ide-tool-btn"
             :class="activeModeDisplay === 'filters' && 'active'" :disabled="!hasImage" title="Filters" aria-label="Filters">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6"></circle><circle cx="15" cy="15" r="6" opacity="0.5"></circle></svg>
-            <span class="text-[10px] font-medium">Filters</span>
+            <span>Filters</span>
           </button>
           <button type="button" @click="setMode('text')"
-            class="rail-btn ide-tool-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1"
+            class="rail-btn ide-tool-btn"
             :class="activeModeDisplay === 'text' && 'active'" :disabled="!hasImage" title="Text" aria-label="Text">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
-            <span class="text-[10px] font-medium">Text</span>
+            <span>Text</span>
           </button>
           <button type="button" @click="setMode('layers')"
-            class="rail-btn ide-tool-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1"
+            class="rail-btn ide-tool-btn"
             :class="activeModeDisplay === 'layers' && 'active'" :disabled="!hasImage" title="Layers" aria-label="Layers">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-            <span class="text-[10px] font-medium">Layers</span>
+            <span>Layers</span>
           </button>
         </div>
-      </aside>
+        <div class="ml-auto flex items-center gap-1.5 md:gap-2">
+          <button id="resetBtn" :disabled="!hasImage" class="ui-button-secondary hidden sm:flex h-9 px-3.5 items-center gap-1.5 text-sm disabled:opacity-40 disabled:pointer-events-none">
+            <span>Reset</span>
+          </button>
+          <button id="downloadBtn" :disabled="!hasImage" class="ui-button h-9 px-4 text-sm font-bold flex items-center gap-2 disabled:opacity-40 disabled:pointer-events-none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Download</span>
+          </button>
+        </div>
+      </div>
 
+      <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-4 items-start">
       <!-- Main Canvas -->
-      <main class="order-1 md:order-2 flex-1 min-w-0 flex flex-col bg-[var(--surface-2)]">
+      <section class="ui-panel overflow-hidden min-w-0 flex flex-col">
         <!-- Canvas toolbar -->
-        <div class="h-12 shrink-0 flex items-center justify-between px-4 md:px-8 border-b border-[var(--border)]">
+        <div class="h-11 shrink-0 flex items-center justify-between px-4 border-b border-[var(--border)]">
           <div id="meta" class="text-sm mono text-[var(--ink-3)]"></div>
           <div id="stats" class="text-xs mono text-[var(--ink-3)]" aria-live="polite"></div>
         </div>
 
         <!-- Canvas stage -->
-        <div class="flex-1 flex items-center justify-center p-6 md:p-12 overflow-auto">
-          <div class="preview-stage relative w-full max-w-[720px] rounded-none border border-[var(--border)]" id="previewStage">
+        <div class="flex-1 min-h-[360px] flex items-center justify-center p-6 md:p-10 overflow-auto bg-[var(--surface-2)]">
+          <div class="preview-stage relative w-full rounded-[var(--radius-sm)] border border-[var(--border)]" :class="!hasImage && 'is-empty'" id="previewStage">
             <div class="preview-frame">
-              <img id="preview" alt="Preview" class="w-full h-auto rounded-none"
+              <img id="preview" alt="Preview" class="w-full h-auto rounded-[var(--radius-sm)]"
                 :style="{ filter: adjustCssFilter, transform: `rotate(${rotateState.degrees}deg) scaleX(${rotateState.flipH ? -1 : 1}) scaleY(${rotateState.flipV ? -1 : 1})`, transition: 'transform 200ms cubic-bezier(0.23, 1, 0.32, 1)' }"
                 src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1280 720'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23e8dfce'/%3E%3Cstop offset='28%25' stop-color='%23cbb896'/%3E%3Cstop offset='52%25' stop-color='%239a8768'/%3E%3Cstop offset='74%25' stop-color='%235c6b56'/%3E%3Cstop offset='100%25' stop-color='%2333443a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1280' height='720' fill='url(%23g)'/%3E%3Ccircle cx='980' cy='160' r='120' fill='%23f6dfa1' opacity='0.7'/%3E%3Ctext x='120' y='340' fill='%23fdfaf3' font-size='44' font-family='-apple-system,sans-serif' font-weight='600'%3EDrop an image or browse%3C/text%3E%3Ctext x='120' y='384' fill='%23eee7d6' font-size='22' font-family='-apple-system,sans-serif'%3EEverything runs locally on your device%3C/text%3E%3C/svg%3E" />
               <!-- Text layer overlay (live preview only; baked into export via canvas) -->
-              <div v-if="hasImage" class="absolute inset-0 pointer-events-none rounded-none overflow-hidden">
+              <div v-if="hasImage" class="absolute inset-0 pointer-events-none rounded-[var(--radius-sm)] overflow-hidden">
                 <div
                   v-for="layer in textLayers"
                   :key="layer.id"
@@ -1366,11 +1363,10 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-      </main>
+      </section>
 
       <!-- Right Panel -->
-      <aside class="order-3 shrink-0 w-full md:w-[300px] border-t md:border-t-0 md:border-l border-[var(--border)] flex flex-col max-h-[60vh] md:max-h-none overflow-y-auto bg-[var(--surface-1)]">
-        <div class="p-4 md:p-6 flex flex-col gap-6">
+      <aside class="min-w-0 flex flex-col gap-4">
 
           <!-- Upload card: dropzone/fileInput stay permanently mounted (drag/drop + Ctrl/Cmd+O
                listeners are bound to them once on mount), only the presentation shrinks once
@@ -1444,7 +1440,7 @@ onUnmounted(() => {
                     class="ui-input mono !h-9 !py-0">
                 </div>
                 <button type="button" @click="resizeState.lockAspect = !resizeState.lockAspect" title="Lock aspect ratio"
-                  class="h-9 w-9 mt-5 rounded-none flex items-center justify-center shrink-0"
+                  class="h-9 w-9 mt-5 rounded-[var(--radius-sm)] flex items-center justify-center shrink-0"
                   :class="resizeState.lockAspect ? 'ui-button' : 'ui-button-secondary'">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 </button>
@@ -1512,7 +1508,7 @@ onUnmounted(() => {
                 { key: 'fade', label: 'Fade' },
               ]" :key="f.key" type="button" @click="activeFilter = f.key as FilterPreset"
                 class="chip-btn flex flex-col items-center gap-1.5 group" :aria-label="`${f.label} filter`">
-                <span class="w-full aspect-square rounded-none relative overflow-hidden border"
+                <span class="w-full aspect-square rounded-[var(--radius-sm)] relative overflow-hidden border"
                   :style="{ filter: FILTER_CSS[f.key as FilterPreset] || 'none', background: 'linear-gradient(160deg, #e8dfce 0%, #cbb896 28%, #9a8768 52%, #5c6b56 74%, #33443a 100%)', borderColor: 'var(--border)', outline: activeFilter === f.key ? '2px solid var(--accent)' : 'none', outlineOffset: '2px' }"></span>
                 <span class="text-[11px] font-bold" :class="activeFilter === f.key ? 'text-[var(--ink-1)]' : 'text-[var(--ink-3)]'">{{ f.label }}</span>
               </button>
@@ -1523,7 +1519,7 @@ onUnmounted(() => {
           <section v-if="activeModeDisplay === 'text'" class="ui-panel p-4" :class="!hasImage && 'opacity-40 pointer-events-none'">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-[11px] font-bold uppercase tracking-wider text-[var(--ink-3)]">Text</h2>
-              <button type="button" @click="addTextLayer" class="ui-button-secondary w-6 h-6 rounded-none flex items-center justify-center !p-0" aria-label="Add text layer">
+              <button type="button" @click="addTextLayer" class="ui-button-secondary w-6 h-6 rounded-[var(--radius-sm)] flex items-center justify-center !p-0" aria-label="Add text layer">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
               </button>
             </div>
@@ -1532,7 +1528,7 @@ onUnmounted(() => {
 
             <div v-else class="flex flex-col gap-3">
               <button type="button" v-for="layer in textLayers" :key="layer.id" @click="selectedLayerId = layer.id"
-                class="text-left rounded-none px-2.5 py-2 text-sm truncate"
+                class="text-left rounded-[var(--radius-sm)] px-2.5 py-2 text-sm truncate"
                 :class="selectedLayerId === layer.id ? 'bg-[var(--surface-2)] text-[var(--ink-1)]' : 'text-[var(--ink-2)]'">
                 {{ layer.text || '(empty)' }}
               </button>
@@ -1540,15 +1536,15 @@ onUnmounted(() => {
               <div v-if="selectedLayer" class="flex flex-col gap-3 pt-1 border-t border-[var(--border)]">
                 <input type="text" v-model="selectedLayer.text" placeholder="Caption text" class="ui-input !h-9 !py-0 text-sm">
                 <div class="flex items-center gap-2">
-                  <input type="color" v-model="selectedLayer.color" class="h-9 w-9 rounded-none cursor-pointer shrink-0 border border-[var(--border)]">
+                  <input type="color" v-model="selectedLayer.color" class="h-9 w-9 rounded-[var(--radius-sm)] cursor-pointer shrink-0 border border-[var(--border)]">
                   <input type="range" min="16" max="160" v-model.number="selectedLayer.size" class="ui-range ide-range flex-1" aria-label="Text size">
                   <button type="button" @click="selectedLayer.visible = !selectedLayer.visible"
-                    class="ui-button-secondary h-9 w-9 rounded-none flex items-center justify-center shrink-0 !p-0" :aria-label="selectedLayer.visible ? 'Hide layer' : 'Show layer'">
+                    class="ui-button-secondary h-9 w-9 rounded-[var(--radius-sm)] flex items-center justify-center shrink-0 !p-0" :aria-label="selectedLayer.visible ? 'Hide layer' : 'Show layer'">
                     <svg v-if="selectedLayer.visible" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M10.58 10.58a2 2 0 0 0 2.83 2.83"></path><path d="M16.68 16.68A9.77 9.77 0 0 1 12 18c-7 0-11-8-11-8a18.5 18.5 0 0 1 4.06-5.06M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path></svg>
                   </button>
                   <button type="button" @click="removeTextLayer(selectedLayer.id)"
-                    class="ui-button-secondary h-9 w-9 rounded-none flex items-center justify-center shrink-0 !p-0 text-[var(--danger)]" aria-label="Delete layer">
+                    class="ui-button-secondary h-9 w-9 rounded-[var(--radius-sm)] flex items-center justify-center shrink-0 !p-0 text-[var(--danger)]" aria-label="Delete layer">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6M14 11v6"></path></svg>
                   </button>
                 </div>
@@ -1570,21 +1566,21 @@ onUnmounted(() => {
           <section v-if="activeModeDisplay === 'layers'" class="ui-panel p-4" :class="!hasImage && 'opacity-40 pointer-events-none'">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-[11px] font-bold uppercase tracking-wider text-[var(--ink-3)]">Layers</h2>
-              <button type="button" @click="addTextLayer(); setMode('text')" class="ui-button-secondary w-6 h-6 rounded-none flex items-center justify-center !p-0" aria-label="Add text layer">
+              <button type="button" @click="addTextLayer(); setMode('text')" class="ui-button-secondary w-6 h-6 rounded-[var(--radius-sm)] flex items-center justify-center !p-0" aria-label="Add text layer">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
               </button>
             </div>
 
             <div class="flex flex-col gap-1.5">
-              <div class="flex items-center gap-3 px-2.5 py-2 rounded-none bg-[var(--surface-2)] border border-[var(--border)]">
-                <span class="w-9 h-9 rounded-none shrink-0 border border-[var(--border)]" style="background: linear-gradient(160deg, #e8dfce 0%, #cbb896 28%, #9a8768 52%, #5c6b56 74%, #33443a 100%)"></span>
+              <div class="flex items-center gap-3 px-2.5 py-2 rounded-[var(--radius-sm)] bg-[var(--surface-2)] border border-[var(--border)]">
+                <span class="w-9 h-9 rounded-[var(--radius-sm)] shrink-0 border border-[var(--border)]" style="background: linear-gradient(160deg, #e8dfce 0%, #cbb896 28%, #9a8768 52%, #5c6b56 74%, #33443a 100%)"></span>
                 <span class="text-sm flex-1 min-w-0 truncate text-[var(--ink-1)]">Background</span>
               </div>
               <div v-for="layer in textLayers" :key="layer.id"
-                class="flex items-center gap-3 px-2.5 py-2 rounded-none transition-colors cursor-pointer border border-transparent"
+                class="flex items-center gap-3 px-2.5 py-2 rounded-[var(--radius-sm)] transition-colors cursor-pointer border border-transparent"
                 :class="selectedLayerId === layer.id ? 'bg-[var(--surface-2)] border-[var(--border)]' : ''"
                 @click="selectedLayerId = layer.id; setMode('text')">
-                <span class="w-9 h-9 rounded-none shrink-0 flex items-center justify-center bg-[var(--surface-1)] border border-[var(--border)]">
+                <span class="w-9 h-9 rounded-[var(--radius-sm)] shrink-0 flex items-center justify-center bg-[var(--surface-1)] border border-[var(--border)]">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-[var(--ink-2)]" stroke-width="1.7"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
                 </span>
                 <span class="text-sm flex-1 min-w-0 truncate" :class="layer.visible ? 'text-[var(--ink-1)]' : 'text-[var(--ink-3)]'">{{ layer.text || '(empty)' }}</span>
@@ -1641,13 +1637,11 @@ onUnmounted(() => {
             <div id="status" class="mono text-xs leading-relaxed min-h-5"></div>
           </section>
 
-        </div>
       </aside>
-
-    </div>
+      </div>
 
     <!-- Status bar: upload -> adjust -> process -> download -->
-    <footer class="shrink-0 border-t border-[var(--border)] h-9 flex items-center px-4 md:px-6 gap-4 text-[11px] mono bg-[var(--surface-1)]">
+    <footer class="ui-panel h-10 flex items-center px-4 gap-4 text-[11px] mono">
       <div
         v-for="(label, i) in ['Upload', 'Adjust', 'Process', 'Download']"
         :key="label"
@@ -1662,6 +1656,8 @@ onUnmounted(() => {
         <span :class="activeStep >= i + 1 ? 'font-semibold' : ''">{{ label }}</span>
       </div>
     </footer>
+    </div>
+    </main>
   </div>
 </template>
 
@@ -1674,8 +1670,12 @@ onUnmounted(() => {
 
 #previewStage {
   position: relative;
-  max-width: 100%;
+  max-width: min(100%, 420px);
   height: auto;
+}
+
+#previewStage.is-empty {
+  max-width: min(100%, 340px);
 }
 
 .preview-frame {
@@ -1709,8 +1709,8 @@ onUnmounted(() => {
 .ide-tool-btn.active,
 #modeCrop.active,
 #modePerspective.active {
-  background: var(--ink-1);
-  color: #ffffff;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .ide-tool-btn:disabled {

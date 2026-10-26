@@ -1,0 +1,103 @@
+import { n as setupAssets } from "./setup-C83m-OKB.mjs";
+import process from "node:process";
+import { defineDevframe } from "devframe";
+import { resolve } from "pathe";
+//#region package.json
+var name = "@devframes/plugin-assets";
+var version = "1.2.6";
+var description = "Devframe plugin for browsing, previewing, uploading, and managing static assets in a directory.";
+var homepage = "https://github.com/devframes/devframe#readme";
+//#endregion
+//#region src/node/types.ts
+/** Mirrors Nuxt DevTools' own default upload allow-list. */
+const DEFAULT_ALLOWED_UPLOAD_EXTENSIONS = [
+	"png",
+	"jpg",
+	"jpeg",
+	"gif",
+	"svg",
+	"webp",
+	"ico",
+	"mp4",
+	"ogg",
+	"mp3",
+	"wav",
+	"mov",
+	"mkv",
+	"mpg",
+	"txt",
+	"ttf",
+	"woff",
+	"woff2",
+	"eot"
+];
+//#endregion
+//#region src/node/index.ts
+const remoteAssets = {
+	package: `${name}--assets`,
+	version
+};
+const DEFAULT_ID = "devframes_plugin_assets";
+/**
+* Create the assets manager devframe, a framework-neutral port of Nuxt
+* DevTools' Assets tab. Mount it into any host via devframe's adapters, or
+* run it standalone with the bundled CLI (`devframe-assets`).
+*
+* @experimental This plugin is experimental and may change without a major
+* version bump until it stabilizes.
+*/
+function createAssetsDevframe(options = {}) {
+	const id = options.id ?? DEFAULT_ID;
+	const dir = options.dir ? resolve(process.cwd(), options.dir) : resolve(process.cwd(), "public");
+	const distDir = options.distDir ?? remoteAssets;
+	const write = options.write ?? true;
+	const serveStatic = options.serveStatic ?? false;
+	const baseURL = options.baseURL ?? (serveStatic ? `/__${id}-raw/` : "/");
+	return defineDevframe({
+		id,
+		name: options.name ?? "Assets",
+		version,
+		packageName: name,
+		importMetaUrl: import.meta.url,
+		homepage,
+		description,
+		icon: options.icon ?? "ph:folder-notch-open-duotone",
+		basePath: options.basePath,
+		capabilities: { build: options.build ?? false },
+		clientAssets: distDir,
+		cli: {
+			command: "devframe-assets",
+			port: options.port ?? 9015,
+			auth: options.auth ?? true,
+			configure(cli) {
+				cli.option("--read-only", "Disable upload, rename, delete, and folder creation");
+			}
+		},
+		dock: { category: "~builtin" },
+		/**
+		* Both wire services are declared, not imperatively installed: devframe
+		* constructs them (deep-merging options across every declarer) before
+		* setup runs. `service-open` gets the managed dir as an allowed root so
+		* out-of-workspace dirs open; the client hits it directly with the
+		* dev-only absolute `fsPath`. `service-shiki` backs server-highlighted
+		* text previews, with a plain `<pre>` fallback when it isn't advertised.
+		*/
+		services: [{
+			package: "@devframes/service-open",
+			options: { roots: [dir] }
+		}, { package: "@devframes/service-shiki" }],
+		async setup(ctx, info) {
+			const readOnlyFlag = info?.flags?.readOnly === true;
+			await setupAssets(ctx, {
+				dir,
+				write: readOnlyFlag ? false : write,
+				uploadExtensions: options.uploadExtensions ?? DEFAULT_ALLOWED_UPLOAD_EXTENSIONS,
+				baseURL,
+				serveStatic,
+				watch: options.watch ?? true
+			});
+		}
+	});
+}
+//#endregion
+export { DEFAULT_ALLOWED_UPLOAD_EXTENSIONS as n, createAssetsDevframe as t };

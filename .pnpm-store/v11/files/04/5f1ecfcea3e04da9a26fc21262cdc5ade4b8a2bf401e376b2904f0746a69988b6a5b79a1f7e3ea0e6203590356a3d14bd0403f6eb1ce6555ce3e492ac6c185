@@ -1,0 +1,16 @@
+import { n as DevToolsConfig } from "./config-6XbYqMBA.js";
+//#region src/integration.d.ts
+export interface DevToolsIntegrationConfig {
+  host?: string | boolean;
+  options: boolean | DevToolsConfig | undefined;
+}
+export interface DevToolsIntegrationOptions {
+  command: 'serve' | 'build';
+  root?: string;
+  devtools: DevToolsIntegrationConfig;
+}
+export declare function DevToolsIntegration(options: DevToolsIntegrationOptions): Promise<{
+  name: string;
+}[]>;
+export declare function runDevTools(builder: unknown): Promise<void>;
+//#endregion

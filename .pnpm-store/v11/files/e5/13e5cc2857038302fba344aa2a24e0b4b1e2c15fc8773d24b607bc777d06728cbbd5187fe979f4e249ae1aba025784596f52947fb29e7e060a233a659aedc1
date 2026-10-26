@@ -1,0 +1,2 @@
+import { n as DEFAULT_ALLOWED_UPLOAD_EXTENSIONS, t as createAssetsDevframe } from "../node-Bl3Yf4xV.mjs";
+export { DEFAULT_ALLOWED_UPLOAD_EXTENSIONS, createAssetsDevframe, createAssetsDevframe as default };

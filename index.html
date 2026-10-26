@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Forsyte — Premium work management & analytics platform. Unify projects, insights, and team collaboration in one luminous workspace.">
+  <title>Forsyte | Premium Work Management & Analytics Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=dark_mode,light_mode,menu,close,bolt,insights,shield,format_quote,star,expand_more,check_circle,arrow_forward,person,business,security,integration,support,cancel,groups,bolt,trending_up,verified,chat_bubble,schedule,lock,cloud_sync" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <div id="theme-announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
+  <header class="header" role="banner">
+    <div class="container header__inner">
+      <a href="/" class="header__logo" aria-label="Forsyte home">
+        <span class="header__logo-dot" aria-hidden="true"></span>
+        <span class="header__logo-text">Forsyte</span>
+      </a>
+
+      <nav class="header__nav" id="main-nav" aria-label="Primary navigation">
+        <ul class="header__nav-list">
+          <li><a href="#features" class="header__nav-link">Features</a></li>
+          <li><a href="#how-it-works" class="header__nav-link">How It Works</a></li>
+          <li><a href="#pricing" class="header__nav-link">Pricing</a></li>
+          <li><a href="#faq" class="header__nav-link">FAQ</a></li>
+        </ul>
+      </nav>
+
+      <div class="header__actions">
+        <button class="header__theme-toggle" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark theme" type="button">
+          <span class="material-symbols-rounded header__theme-icon" aria-hidden="true">dark_mode</span>
+        </button>
+        <a href="#pricing" class="btn btn--primary header__cta">Get Started</a>
+        <button class="header__hamburger" id="hamburger" aria-expanded="false" aria-controls="main-nav" aria-label="Open navigation menu" type="button">
+          <span class="material-symbols-rounded header__hamburger-icon" aria-hidden="true">menu</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="container hero__inner">
+        <div class="hero__content">
+          <span class="hero__eyebrow">
+            <span class="material-symbols-rounded hero__eyebrow-icon" aria-hidden="true">bolt</span>
+            <span>New: AI-Powered Workflows</span>
+          </span>
+          <h1 id="hero-heading" class="hero__title">
+            Unify work, insights, and teams in one <span class="hero__highlight">luminous workspace</span>
+          </h1>
+          <p class="hero__description">Forsyte replaces fragmented tools with a single intelligent platform. Plan projects, surface insights automatically, and keep every stakeholder aligned — without the noise.</p>
+          <div class="hero__cta-group">
+            <a href="#pricing" class="btn btn--primary hero__cta-primary">Start Free Trial</a>
+            <a href="#how-it-works" class="btn btn--ghost hero__cta-secondary">See How It Works</a>
+          </div>
+          <div class="hero__stats" role="list" aria-label="Platform statistics">
+            <div class="hero__stat" role="listitem">
+              <span class="hero__stat-value">10k+</span>
+              <span class="hero__stat-label">Teams</span>
+            </div>
+            <div class="hero__stat" role="listitem">
+              <span class="hero__stat-value">99.9%</span>
+              <span class="hero__stat-label">Uptime</span>
+            </div>
+            <div class="hero__stat" role="listitem">
+              <span class="hero__stat-value">4.9</span>
+              <span class="material-symbols-rounded hero__stat-star" aria-hidden="true">star</span>
+              <span class="hero__stat-label">Rating</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero__visual" aria-hidden="true">
+          <div class="hero__visual-bg">
+            <div class="hero__shape hero__shape--1"></div>
+            <div class="hero__shape hero__shape--2"></div>
+            <div class="hero__shape hero__shape--3"></div>
+            <div class="hero__shape hero__shape--4"></div>
+            <div class="hero__shape hero__shape--5"></div>
+            <div class="hero__float-card">
+              <span class="material-symbols-rounded hero__float-icon" aria-hidden="true">trending_up</span>
+              <div class="hero__float-content">
+                <span class="hero__float-label">Active Projects</span>
+                <span class="hero__float-value">24</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section features" id="features" aria-labelledby="features-heading">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-head__kicker">Core Capabilities</span>
+          <h2 id="features-heading" class="section-head__title">Built for how modern teams actually work</h2>
+          <p class="section-head__description">Three pillars that eliminate context switching and surface what matters — automatically.</p>
+        </div>
+        <div class="features__grid">
+          <article class="card feature">
+            <div class="feature__icon">
+              <span class="material-symbols-rounded" aria-hidden="true">bolt</span>
+            </div>
+            <h3 class="feature__title">Lightning-Fast Planning</h3>
+            <p class="feature__description">Drag-and-drop roadmaps, AI-suggested sprint scopes, and instant dependency mapping — go from idea to execution in minutes, not meetings.</p>
+          </article>
+          <article class="card feature">
+            <div class="feature__icon">
+              <span class="material-symbols-rounded" aria-hidden="true">insights</span>
+            </div>
+            <h3 class="feature__title">Autonomous Insights</h3>
+            <p class="feature__description">Real-time health scores, bottleneck detection, and predictive forecasting surface risks before they become blockers — no dashboards to build.</p>
+          </article>
+          <article class="card feature">
+            <div class="feature__icon">
+              <span class="material-symbols-rounded" aria-hidden="true">shield</span>
+            </div>
+            <h3 class="feature__title">Enterprise-Grade Security</h3>
+            <p class="feature__description">SOC 2 Type II, SSO/SCIM, granular RBAC, and audit logs built in. Your data never leaves your controlled environment.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section how-it-works" id="how-it-works" aria-labelledby="how-it-works-heading">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-head__kicker">Get Started in Minutes</span>
+          <h2 id="how-it-works-heading" class="section-head__title">From signup to insights in three steps</h2>
+          <p class="section-head__description">No implementation projects, no consultants. Connect your tools and Forsyte starts learning immediately.</p>
+        </div>
+        <div class="steps">
+          <article class="steps__item">
+            <div class="steps__number">01</div>
+            <div class="steps__content">
+              <div class="steps__icon">
+                <span class="material-symbols-rounded" aria-hidden="true">integration</span>
+              </div>
+              <h3 class="steps__title">Connect Your Stack</h3>
+              <p class="steps__description">One-click OAuth for Jira, Linear, GitHub, GitLab, Slack, and 50+ tools. Historical data syncs in background — zero config.</p>
+            </div>
+          </article>
+          <article class="steps__item">
+            <div class="steps__number">02</div>
+            <div class="steps__content">
+              <div class="steps__icon">
+                <span class="material-symbols-rounded" aria-hidden="true">bolt</span>
+              </div>
+              <h3 class="steps__title">Invite Your Team</h3>
+              <p class="steps__description">SSO provisioning maps roles automatically. Custom views, notifications, and permissions apply instantly per team and project.</p>
+            </div>
+          </article>
+          <article class="steps__item">
+            <div class="steps__number">03</div>
+            <div class="steps__content">
+              <div class="steps__icon">
+                <span class="material-symbols-rounded" aria-hidden="true">insights</span>
+              </div>
+              <h3 class="steps__title">Act on Insights</h3>
+              <p class="steps__description">Weekly executive briefings, daily standup summaries, and real-time risk alerts delivered where you work — Slack, email, or in-app.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section testimonials" id="testimonials" aria-labelledby="testimonials-heading">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-head__kicker">Trusted by Leaders</span>
+          <h2 id="testimonials-heading" class="section-head__title">Teams ship faster with Forsyte</h2>
+          <p class="section-head__description">Real results from engineering and product leaders at growing companies.</p>
+        </div>
+        <div class="testimonials__grid">
+          <article class="card testimonial">
+            <span class="material-symbols-rounded testimonial__quote-icon" aria-hidden="true">format_quote</span>
+            <div class="testimonial__rating" aria-label="Rated 5 out of 5">
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+            </div>
+            <p class="testimonial__text">"Forsyte eliminated our weekly status meetings. The AI briefings are scarily accurate — leadership finally trusts engineering velocity without asking for spreadsheets."</p>
+            <hr class="testimonial__divider">
+            <div class="testimonial__author">
+              <div class="testimonial__avatar">MC</div>
+              <div class="testimonial__author-info">
+                <span class="testimonial__name">Marcus Chen</span>
+                <span class="testimonial__role">VP Engineering, Velocity.io</span>
+              </div>
+            </div>
+          </article>
+          <article class="card testimonial">
+            <span class="material-symbols-rounded testimonial__quote-icon" aria-hidden="true">format_quote</span>
+            <div class="testimonial__rating" aria-label="Rated 5 out of 5">
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+            </div>
+            <p class="testimonial__text">"We consolidated four tools into Forsyte. The predictive forecasting caught two delayed launches before they happened. ROI was visible in week two."</p>
+            <hr class="testimonial__divider">
+            <div class="testimonial__author">
+              <div class="testimonial__avatar">SR</div>
+              <div class="testimonial__author-info">
+                <span class="testimonial__name">Sarah Rodriguez</span>
+                <span class="testimonial__role">Product Director, Apex Labs</span>
+              </div>
+            </div>
+          </article>
+          <article class="card testimonial">
+            <span class="material-symbols-rounded testimonial__quote-icon" aria-hidden="true">format_quote</span>
+            <div class="testimonial__rating" aria-label="Rated 5 out of 5">
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+              <span class="material-symbols-rounded testimonial__star" aria-hidden="true">star</span>
+            </div>
+            <p class="testimonial__text">"SOC 2 compliance used to take months. With Forsyte's built-in controls and audit trails, we passed our audit with zero findings. Security team actually smiled."</p>
+            <hr class="testimonial__divider">
+            <div class="testimonial__author">
+              <div class="testimonial__avatar">JT</div>
+              <div class="testimonial__author-info">
+                <span class="testimonial__name">James Thornton</span>
+                <span class="testimonial__role">CTO, Meridian Health</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section pricing" id="pricing" aria-labelledby="pricing-heading">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-head__kicker">Simple, Transparent Pricing</span>
+          <h2 id="pricing-heading" class="section-head__title">Choose the plan that fits your stage</h2>
+          <p class="section-head__description">All plans include a 14-day free trial. No credit card required. Cancel anytime.</p>
+        </div>
+        <div class="pricing__grid">
+          <article class="card pricing-card pricing-card--starter">
+            <div class="pricing-card__header">
+              <h3 class="pricing-card__name">Starter</h3>
+              <p class="pricing-card__blurb">For small teams getting organized</p>
+            </div>
+            <div class="pricing-card__price">
+              <span class="pricing-card__amount">$0</span>
+              <span class="pricing-card__period">/month</span>
+            </div>
+            <ul class="pricing-card__features" role="list">
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Up to 5 team members</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>3 project boards</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Basic insights dashboard</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>10 integrations</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Community support</li>
+            </ul>
+            <a href="#pricing" class="btn btn--ghost pricing-card__cta">Start Free</a>
+          </article>
+          <article class="card pricing-card pricing-card--pro" aria-labelledby="pro-heading">
+            <span class="pricing-card__badge">Most Popular</span>
+            <div class="pricing-card__header">
+              <h3 id="pro-heading" class="pricing-card__name">Pro</h3>
+              <p class="pricing-card__blurb">For growing teams that need intelligence</p>
+            </div>
+            <div class="pricing-card__price">
+              <span class="pricing-card__amount">$29</span>
+              <span class="pricing-card__period">/member/month</span>
+            </div>
+            <ul class="pricing-card__features" role="list">
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Unlimited team members</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Unlimited projects & boards</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>AI insights & forecasting</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>50+ integrations + API</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Priority support + SLA</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Advanced permissions & SSO</li>
+            </ul>
+            <a href="#pricing" class="btn btn--primary pricing-card__cta">Start Free Trial</a>
+          </article>
+          <article class="card pricing-card pricing-card--enterprise">
+            <div class="pricing-card__header">
+              <h3 class="pricing-card__name">Enterprise</h3>
+              <p class="pricing-card__blurb">For organizations with advanced needs</p>
+            </div>
+            <div class="pricing-card__price">
+              <span class="pricing-card__amount">$99</span>
+              <span class="pricing-card__period">/member/month</span>
+            </div>
+            <ul class="pricing-card__features" role="list">
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Everything in Pro</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Dedicated success manager</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Custom AI model tuning</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>On-premise / VPC deploy</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>Advanced audit & compliance</li>
+              <li class="pricing-card__feature"><span class="material-symbols-rounded pricing-card__check" aria-hidden="true">check_circle</span>24/7 phone support</li>
+            </ul>
+            <a href="#pricing" class="btn btn--ghost pricing-card__cta">Contact Sales</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section faq" id="faq" aria-labelledby="faq-heading">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-head__kicker">Common Questions</span>
+          <h2 id="faq-heading" class="section-head__title">Everything you need to know</h2>
+          <p class="section-head__description">Can't find your answer? <a href="mailto:support@forsyte.io" class="faq__contact-link">Email our team</a> — we respond within 4 hours.</p>
+        </div>
+        <div class="faq__list">
+          <article class="faq__item">
+            <h3 class="faq__question-wrapper">
+              <button class="faq__question" aria-expanded="false" aria-controls="faq-panel-1" type="button">
+                <span class="faq__question-text">How does the 14-day free trial work?</span>
+                <span class="material-symbols-rounded faq__question-icon" aria-hidden="true">expand_more</span>
+              </button>
+            </h3>
+            <div id="faq-panel-1" class="faq__panel" role="region" aria-labelledby="faq-panel-1" hidden>
+              <div class="faq__panel-content">
+                <p>Start any plan free for 14 days — no credit card required. You'll have full access to all Pro features during the trial. At the end, you can choose a plan or downgrade to Starter. Your data and configuration remain intact.</p>
+              </div>
+            </div>
+          </article>
+          <article class="faq__item">
+            <h3 class="faq__question-wrapper">
+              <button class="faq__question" aria-expanded="false" aria-controls="faq-panel-2" type="button">
+                <span class="faq__question-text">Is my data secure and compliant?</span>
+                <span class="material-symbols-rounded faq__question-icon" aria-hidden="true">expand_more</span>
+              </button>
+            </h3>
+            <div id="faq-panel-2" class="faq__panel" role="region" aria-labelledby="faq-panel-2" hidden>
+              <div class="faq__panel-content">
+                <p>Yes. Forsyte is SOC 2 Type II certified, GDPR compliant, and supports HIPAA BAAs on Enterprise plans. Data is encrypted at rest (AES-256) and in transit (TLS 1.3). We never use your data to train models. Enterprise customers can deploy in their own VPC or on-premise.</p>
+              </div>
+            </div>
+          </article>
+          <article class="faq__item">
+            <h3 class="faq__question-wrapper">
+              <button class="faq__question" aria-expanded="false" aria-controls="faq-panel-3" type="button">
+                <span class="faq__question-text">What integrations are supported?</span>
+                <span class="material-symbols-rounded faq__question-icon" aria-hidden="true">expand_more</span>
+              </button>
+            </h3>
+            <div id="faq-panel-3" class="faq__panel" role="region" aria-labelledby="faq-panel-3" hidden>
+              <div class="faq__panel-content">
+                <p>Native two-way sync with Jira, Linear, GitHub, GitLab, Slack, Teams, Notion, Asana, ClickUp, and 40+ other tools. Our open API and webhooks let you build custom connections. New integrations ship monthly based on customer requests.</p>
+              </div>
+            </div>
+          </article>
+          <article class="faq__item">
+            <h3 class="faq__question-wrapper">
+              <button class="faq__question" aria-expanded="false" aria-controls="faq-panel-4" type="button">
+                <span class="faq__question-text">How does AI forecasting work?</span>
+                <span class="material-symbols-rounded faq__question-icon" aria-hidden="true">expand_more</span>
+              </button>
+            </h3>
+            <div id="faq-panel-4" class="faq__panel" role="region" aria-labelledby="faq-panel-4" hidden>
+              <div class="faq__panel-content">
+                <p>Our models learn from your team's historical velocity, cycle times, and scope changes — not industry averages. Predictions improve automatically each sprint. You can inspect confidence intervals and adjust assumptions. All AI runs in your isolated tenant.</p>
+              </div>
+            </div>
+          </article>
+          <article class="faq__item">
+            <h3 class="faq__question-wrapper">
+              <button class="faq__question" aria-expanded="false" aria-controls="faq-panel-5" type="button">
+                <span class="faq__question-text">What support is included?</span>
+                <span class="material-symbols-rounded faq__question-icon" aria-hidden="true">expand_more</span>
+              </button>
+            </h3>
+            <div id="faq-panel-5" class="faq__panel" role="region" aria-labelledby="faq-panel-5" hidden>
+              <div class="faq__panel-content">
+                <p>Starter includes community forum and documentation. Pro adds priority email support with 4-hour SLA and a shared Slack channel. Enterprise includes a dedicated success manager, 24/7 phone support, quarterly business reviews, and custom onboarding.</p>
+              </div>
+            </div>
+          </article>
+          <article class="faq__item">
+            <h3 class="faq__question-wrapper">
+              <button class="faq__question" aria-expanded="false" aria-controls="faq-panel-6" type="button">
+                <span class="faq__question-text">Can I cancel or change plans anytime?</span>
+                <span class="material-symbols-rounded faq__question-icon" aria-hidden="true">expand_more</span>
+              </button>
+            </h3>
+            <div id="faq-panel-6" class="faq__panel" role="region" aria-labelledby="faq-panel-6" hidden>
+              <div class="faq__panel-content">
+                <p>Yes. Downgrades take effect at the next billing cycle. Upgrades are prorated immediately. Cancel anytime — your data exports in full (JSON, CSV) within 30 days. No lock-in, no termination fees, no questions asked.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta" id="cta" aria-labelledby="cta-heading">
+      <div class="container cta__inner">
+        <div class="cta__content">
+          <h2 id="cta-heading" class="cta__title">Ready to unify your workflow?</h2>
+          <p class="cta__description">Join 10,000+ teams shipping faster with Forsyte. Start your free trial in under 2 minutes.</p>
+          <a href="#pricing" class="btn btn--primary cta__button">Start Free Trial</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <a href="/" class="footer__logo" aria-label="Forsyte home">
+          <span class="footer__logo-dot" aria-hidden="true"></span>
+          <span class="footer__logo-text">Forsyte</span>
+        </a>
+        <p class="footer__tagline">Premium work management & analytics for teams that ship.</p>
+        <div class="footer__social" role="list" aria-label="Social links">
+          <a href="https://twitter.com" class="footer__social-link" aria-label="Follow us on Twitter" target="_blank" rel="noopener noreferrer">
+            <span class="material-symbols-rounded" aria-hidden="true">chat_bubble</span>
+          </a>
+          <a href="https://github.com" class="footer__social-link" aria-label="Follow us on GitHub" target="_blank" rel="noopener noreferrer">
+            <span class="material-symbols-rounded" aria-hidden="true">cloud_sync</span>
+          </a>
+          <a href="https://linkedin.com" class="footer__social-link" aria-label="Follow us on LinkedIn" target="_blank" rel="noopener noreferrer">
+            <span class="material-symbols-rounded" aria-hidden="true">business</span>
+          </a>
+        </div>
+      </div>
+      <nav class="footer__nav" aria-label="Footer navigation">
+        <div class="footer__nav-column">
+          <h4 class="footer__nav-title">Product</h4>
+          <ul class="footer__nav-list">
+            <li><a href="#features" class="footer__nav-link">Features</a></li>
+            <li><a href="#pricing" class="footer__nav-link">Pricing</a></li>
+            <li><a href="#how-it-works" class="footer__nav-link">How It Works</a></li>
+            <li><a href="#" class="footer__nav-link">Integrations</a></li>
+            <li><a href="#" class="footer__nav-link">Changelog</a></li>
+            <li><a href="#" class="footer__nav-link">Roadmap</a></li>
+          </ul>
+        </div>
+        <div class="footer__nav-column">
+          <h4 class="footer__nav-title">Company</h4>
+          <ul class="footer__nav-list">
+            <li><a href="#" class="footer__nav-link">About</a></li>
+            <li><a href="#" class="footer__nav-link">Careers</a></li>
+            <li><a href="#" class="footer__nav-link">Blog</a></li>
+            <li><a href="#" class="footer__nav-link">Press</a></li>
+            <li><a href="#" class="footer__nav-link">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer__nav-column">
+          <h4 class="footer__nav-title">Resources</h4>
+          <ul class="footer__nav-list">
+            <li><a href="#" class="footer__nav-link">Documentation</a></li>
+            <li><a href="#" class="footer__nav-link">Help Center</a></li>
+            <li><a href="#" class="footer__nav-link">Community</a></li>
+            <li><a href="#" class="footer__nav-link">Security</a></li>
+            <li><a href="#" class="footer__nav-link">Status</a></li>
+          </ul>
+        </div>
+        <div class="footer__nav-column">
+          <h4 class="footer__nav-title">Legal</h4>
+          <ul class="footer__nav-list">
+            <li><a href="#" class="footer__nav-link">Privacy Policy</a></li>
+            <li><a href="#" class="footer__nav-link">Terms of Service</a></li>
+            <li><a href="#" class="footer__nav-link">Cookie Policy</a></li>
+            <li><a href="#" class="footer__nav-link">DPA</a></li>
+          </ul>
+        </div>
+      </nav>
+      <div class="footer__bottom">
+        <p class="footer__copyright">&copy; <span id="current-year"></span> Forsyte, Inc. All rights reserved.</p>
+        <div class="footer__legal-links">
+          <a href="#" class="footer__legal-link">Privacy</a>
+          <a href="#" class="footer__legal-link">Terms</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

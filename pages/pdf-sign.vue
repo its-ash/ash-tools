@@ -1,5 +1,4 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: 'PDF Sign | Ash Tools',
@@ -404,29 +403,31 @@ const download = async () => {
 
 <template>
   <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
-    <div class="flex-1 flex flex-col md:flex-row">
-
-      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+    <div class="flex-1 flex flex-col">
+      <ClientOnly>
+      <Teleport to="#page-actions">
+        <div class="flex items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
-            <span class="text-[10px] font-medium">Home</span>
+            <span>Home</span>
           </NuxtLink>
-          <label for="sign-pdf-input" class="rail-btn cursor-pointer shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Open PDF" aria-label="Open PDF">
+          <label for="sign-pdf-input" class="rail-btn cursor-pointer text-[var(--ink-3)]" title="Open PDF" aria-label="Open PDF">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6a1 1 0 011-1h3l1.5 2H16a1 1 0 011 1v7a1 1 0 01-1 1H4a1 1 0 01-1-1V6z" /><path stroke-linecap="round" d="M3 8h14" /></svg>
-            <span class="text-[10px] font-medium">Open</span>
+            <span>Open</span>
           </label>
-          <button v-if="pages.length" @click="clearAll" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Clear" aria-label="Clear">
+          <button v-if="pages.length" @click="clearAll" class="rail-btn text-[var(--ink-3)]" title="Clear" aria-label="Clear">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
-            <span class="text-[10px] font-medium">Clear</span>
+            <span>Clear</span>
           </button>
         </div>
-      </aside>
+      </Teleport>
+      </ClientOnly>
 
       <div class="order-1 md:order-2 flex-1 flex justify-center p-3.5 min-w-0">
         <div class="w-full max-w-6xl flex flex-col gap-3.5">
 
-          <header class="ui-panel p-4 flex items-center justify-between gap-3">
+          <header class="ui-panel px-4 flex items-center justify-between gap-3">
+        <div id="page-actions" class="order-first flex flex-wrap items-center gap-1"></div>
             <div class="flex items-center gap-2">
               <svg class="h-4 w-4 text-[var(--ink-3)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" /></svg>
               <h1 class="text-sm font-bold text-[var(--ink-1)]">PDF Sign</h1>

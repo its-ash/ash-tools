@@ -1,5 +1,4 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: 'Free File Compress | Local ZIP in your browser',
@@ -369,33 +368,36 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
-    <div class="flex-1 flex flex-col md:flex-row">
+    <div class="flex-1 flex flex-col">
 
-      <!-- Left rail: navigation + primary actions -->
-      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+      <!-- Toolbar: navigation + primary actions -->
+      <ClientOnly>
+      <Teleport to="#page-actions">
+        <div class="flex items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
-            <span class="text-[10px] font-medium">Home</span>
+            <span>Home</span>
           </NuxtLink>
-          <label for="folder-input" class="rail-btn cursor-pointer shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Choose folder" aria-label="Choose folder">
+          <label for="folder-input" class="rail-btn cursor-pointer text-[var(--ink-3)]" title="Choose folder" aria-label="Choose folder">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6a1 1 0 011-1h3l1.5 2H16a1 1 0 011 1v7a1 1 0 01-1 1H4a1 1 0 01-1-1V6z" /></svg>
-            <span class="text-[10px] font-medium">Folder</span>
+            <span>Folder</span>
           </label>
-          <label for="file-input" class="rail-btn cursor-pointer shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Choose files" aria-label="Choose files">
+          <label for="file-input" class="rail-btn cursor-pointer text-[var(--ink-3)]" title="Choose files" aria-label="Choose files">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h5l3 3v11a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z" /><path stroke-linecap="round" stroke-linejoin="round" d="M11 3v3h3" /></svg>
-            <span class="text-[10px] font-medium">Files</span>
+            <span>Files</span>
           </label>
-          <label for="zip-input" class="rail-btn cursor-pointer shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Open a ZIP" aria-label="Open a ZIP">
+          <label for="zip-input" class="rail-btn cursor-pointer text-[var(--ink-3)]" title="Open a ZIP" aria-label="Open a ZIP">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7a2 2 0 012-2h2l1.5 2H14a2 2 0 012 2v5a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" /><path stroke-linecap="round" d="M10 9v5M8.5 10.5L10 9l1.5 1.5" /></svg>
-            <span class="text-[10px] font-medium">Open</span>
+            <span>Open</span>
           </label>
         </div>
-      </aside>
+      </Teleport>
+      </ClientOnly>
 
       <main class="order-1 md:order-2 flex-1 min-w-0 flex flex-col p-4 md:p-6">
       <div class="mx-auto w-full max-w-6xl flex flex-col gap-4">
-      <div class="ui-panel p-4 flex items-center justify-between gap-3">
+      <div class="ui-panel px-4 flex items-center justify-between gap-3">
+        <div id="page-actions" class="order-first flex flex-wrap items-center gap-1"></div>
         <div class="flex items-center gap-2">
           <svg class="h-4 w-4 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7a2 2 0 012-2h2l1.5 2H14a2 2 0 012 2v5a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" /><path stroke-linecap="round" d="M10 9v5M8.5 10.5L10 9l1.5 1.5" /></svg>
           <h1 class="text-sm font-bold text-[var(--ink-1)]">ZIP Archiver</h1>
@@ -453,7 +455,7 @@ onUnmounted(() => {
               {{ compressing ? 'Compressing...' : 'Create ZIP' }}
             </button>
 
-            <div class="w-full h-1.5 rounded-none overflow-hidden transition-opacity duration-150" style="background: var(--surface-2); border: 1px solid var(--border)" :class="createProgress === 0 ? 'opacity-0' : 'opacity-100'">
+            <div class="w-full h-1.5 rounded-full overflow-hidden transition-opacity duration-150" style="background: var(--surface-2); border: 1px solid var(--border)" :class="createProgress === 0 ? 'opacity-0' : 'opacity-100'">
               <div class="h-full transition-all duration-150" style="background: var(--accent)" :style="{ width: `${createProgress}%` }" />
             </div>
             <div class="font-mono text-xs text-[var(--ink-3)] min-h-5">{{ createStatus || selectedFilesSummary }}</div>
@@ -522,16 +524,9 @@ onUnmounted(() => {
     </main>
     </div>
 
-    <!-- Bottom status strip -->
-    <div class="shrink-0 border-t px-5 py-2 flex items-center gap-4 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
-      <span class="truncate">{{ createStatus || selectedFilesSummary }}</span>
-      <span class="truncate">{{ openStatus }}</span>
-      <span v-if="zipEntries.length" class="ml-auto shrink-0">{{ zipEntries.length }} entries</span>
-    </div>
-
       <div v-if="modalEntry" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
         <div class="ui-panel max-w-4xl w-full max-h-[90vh] overflow-auto relative" style="background: var(--surface-1)">
-          <button @click="closeModal" class="ui-button-secondary absolute top-3 right-3 rounded-none p-2 !px-2 !py-2">✕</button>
+          <button @click="closeModal" class="ui-button-secondary absolute top-3 right-3 rounded-full p-2 !px-2 !py-2">✕</button>
           <div class="p-4 flex items-center justify-center">
             <template v-if="modalEntry && modalEntry.mime.startsWith('video/')">
               <video v-if="modalUrl" :src="modalUrl" controls autoplay class="max-w-full max-h-[80vh] rounded-[var(--radius-sm)]"></video>

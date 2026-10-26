@@ -1,0 +1,3 @@
+import { t as createTerminalsDevframe } from "../node-BSd-kWmL.mjs";
+import { DEFAULT_PORT, PLUGIN_ID, PRESETS_STATE_KEY, SESSIONS_STATE_KEY, TERMINAL_STREAM_CHANNEL } from "./constants.mjs";
+export { DEFAULT_PORT, PLUGIN_ID, PRESETS_STATE_KEY, SESSIONS_STATE_KEY, TERMINAL_STREAM_CHANNEL, createTerminalsDevframe, createTerminalsDevframe as default };

@@ -1,0 +1,12 @@
+import { a as InvokeResult, i as DevframeInspectInstanceInfo, o as RpcFunctionInfo, r as DevframeInspectCommandInfo } from "../../index-D7_vorUr.mjs";
+import { RpcDefinitionsToFunctions } from "devframe/rpc";
+//#region src/node/rpc/index.d.ts
+/**
+ * The introspection RPC functions registered by the inspector plugin.
+ * Namespaced `devframes:plugin:inspect:*` per the plugin convention.
+ */
+export declare const serverFunctions: readonly [import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devframes:plugin:inspect:list-functions", "query", [], Promise<RpcFunctionInfo[]>, undefined, undefined, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devframes:plugin:inspect:invoke", "action", [name: string, args?: unknown[] | undefined], Promise<InvokeResult>, undefined, undefined, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devframes:plugin:inspect:list-state-keys", "query", [], Promise<string[]>, undefined, undefined, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devframes:plugin:inspect:describe-agent", "query", [], Promise<import("devframe").AgentManifest>, undefined, undefined, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devframes:plugin:inspect:invoke-agent-tool", "action", [id: string, args: unknown], Promise<InvokeResult>, undefined, undefined, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devframes:plugin:inspect:read-agent-resource", "action", [id: string], Promise<InvokeResult>, undefined, undefined, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devframes:plugin:inspect:list-commands", "query", [], Promise<DevframeInspectCommandInfo[]>, undefined, undefined, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devframes:plugin:inspect:execute-command", "action", [id: string, args?: unknown[] | undefined], Promise<InvokeResult>, undefined, undefined, import("devframe").DevframeNodeContext>, import("devframe/rpc").RpcFunctionDefinitionWithoutSchemas<"devframes:plugin:inspect:list-instances", "query", [], Promise<DevframeInspectInstanceInfo[]>, undefined, undefined, import("devframe").DevframeNodeContext>];
+declare module 'devframe' {
+  interface DevframeRpcServerFunctions extends RpcDefinitionsToFunctions<typeof serverFunctions> {}
+}
+//#endregion

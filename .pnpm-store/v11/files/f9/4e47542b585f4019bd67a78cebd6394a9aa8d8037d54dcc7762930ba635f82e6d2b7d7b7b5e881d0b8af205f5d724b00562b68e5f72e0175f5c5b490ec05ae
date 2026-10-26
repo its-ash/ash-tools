@@ -1,0 +1,498 @@
+import { a as VueDevtoolsAgentSnapshot, i as VueDevtoolsAgentPage, n as createVueDevtoolsAgentSession, r as VueDevtoolsAgentConnection, t as VueDevtoolsAgentSession } from "./session-1Buaf6lK.mjs";
+import { z } from "zod";
+//#region src/mcp/tools.d.ts
+export declare function createVueDevtoolsAgentTools(connection: VueDevtoolsAgentConnection, page: VueDevtoolsAgentPage): {
+  'expand-value': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      pageSize: z.ZodOptional<z.ZodNumber>;
+      page: z.ZodDefault<z.ZodNumber>;
+      snapshotId: z.ZodOptional<z.ZodString>;
+      handle: z.ZodString;
+      path: z.ZodOptional<z.ZodArray<z.ZodString>>;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      handle: string;
+      pageSize?: number | undefined;
+      page?: number | undefined;
+      snapshotId?: string | undefined;
+      path?: string[] | undefined;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'edit-component-state'?: {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      componentId: z.ZodString;
+      sectionId: z.ZodString;
+      path: z.ZodArray<z.ZodString>;
+      value: z.ZodJSONSchema;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      componentId: string;
+      sectionId: string;
+      path: string[];
+      value: z.core.util.JSONType;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  } | undefined;
+  'edit-inspector-state'?: {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      inspectorId: z.ZodString;
+      sectionId: z.ZodString;
+      path: z.ZodArray<z.ZodString>;
+      nodeId: z.ZodString;
+      value: z.ZodJSONSchema;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      inspectorId: string;
+      sectionId: string;
+      path: string[];
+      nodeId: string;
+      value: z.core.util.JSONType;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  } | undefined;
+  'list-apps': {
+    args: never[];
+    handler: () => Promise<VueDevtoolsAgentSnapshot>;
+    type: "query" | "action";
+    jsonSerializable: true;
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+  };
+  'list-plugins': {
+    args: never[];
+    handler: () => Promise<VueDevtoolsAgentSnapshot>;
+    type: "query" | "action";
+    jsonSerializable: true;
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+  };
+  'runtime-health': {
+    args: never[];
+    handler: () => Promise<VueDevtoolsAgentSnapshot>;
+    type: "query" | "action";
+    jsonSerializable: true;
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+  };
+  'component-tree': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      filter: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      filter?: string | undefined;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'component-children': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      componentId: z.ZodString;
+      cursor: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      componentId: string;
+      cursor?: string | undefined;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'cancel-component-children': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      cursor: z.ZodString;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      cursor: string;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'component-state': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      componentId: z.ZodString;
+      page: z.ZodDefault<z.ZodNumber>;
+      pageSize: z.ZodDefault<z.ZodNumber>;
+      snapshotId: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      componentId: string;
+      page?: number | undefined;
+      pageSize?: number | undefined;
+      snapshotId?: string | undefined;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'list-inspectors': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'inspector-tree': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      inspectorId: z.ZodString;
+      filter: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      inspectorId: string;
+      filter?: string | undefined;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'inspector-state': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      inspectorId: z.ZodString;
+      page: z.ZodDefault<z.ZodNumber>;
+      pageSize: z.ZodDefault<z.ZodNumber>;
+      snapshotId: z.ZodOptional<z.ZodString>;
+      nodeId: z.ZodString;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      inspectorId: string;
+      nodeId: string;
+      page?: number | undefined;
+      pageSize?: number | undefined;
+      snapshotId?: string | undefined;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'component-render-code': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      componentId: z.ZodString;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      componentId: string;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'router-state': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'router-matches': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      path: z.ZodString;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      path: string;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'component-value': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      componentId: z.ZodString;
+      sectionId: z.ZodString;
+      path: z.ZodArray<z.ZodString>;
+      page: z.ZodOptional<z.ZodNumber>;
+      pageSize: z.ZodOptional<z.ZodNumber>;
+      snapshotId: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      componentId: string;
+      sectionId: string;
+      path: string[];
+      page?: number | undefined;
+      pageSize?: number | undefined;
+      snapshotId?: string | undefined;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+  'inspector-value': {
+    type: "query" | "action";
+    jsonSerializable: true;
+    args: [z.ZodObject<{
+      appId: z.ZodString;
+      inspectorId: z.ZodString;
+      sectionId: z.ZodString;
+      path: z.ZodArray<z.ZodString>;
+      nodeId: z.ZodString;
+      page: z.ZodOptional<z.ZodNumber>;
+      pageSize: z.ZodOptional<z.ZodNumber>;
+      snapshotId: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>];
+    returns: z.ZodObject<{
+      page: z.ZodObject<{
+        id: z.ZodString;
+        url: z.ZodString;
+        title: z.ZodString;
+      }, z.core.$strip>;
+      capturedAt: z.ZodNumber;
+      result: z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>;
+    }, z.core.$strip>;
+    agent: {
+      description: string;
+      safety: "action" | "read";
+    };
+    handler(input: {
+      appId: string;
+      inspectorId: string;
+      sectionId: string;
+      path: string[];
+      nodeId: string;
+      page?: number | undefined;
+      pageSize?: number | undefined;
+      snapshotId?: string | undefined;
+    }): Promise<VueDevtoolsAgentSnapshot>;
+  };
+};
+//#endregion
+export { type VueDevtoolsAgentConnection, type VueDevtoolsAgentPage, type VueDevtoolsAgentSession, type VueDevtoolsAgentSnapshot, createVueDevtoolsAgentSession };
+//# sourceMappingURL=index.d.mts.map

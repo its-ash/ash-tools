@@ -1,0 +1,65 @@
+import { i as DevToolsConfigPlugin, n as createDevToolsPlugins, r as resolveDevToolsPluginOptions } from "./plugins-xTcsb-wu.js";
+import { isDevToolsEnabled, normalizeDevToolsConfig } from "./config.js";
+import process from "node:process";
+import { ROLLDOWN_DEVTOOLS_ENV } from "@vitejs/devtools-kit/constants";
+//#region src/node/plugins/integration.ts
+const DEVTOOLS_BUILD_INTEGRATION_NAME = "vite:devtools:integration";
+function getDevToolsEnvironments(config, devToolsConfig) {
+	const environmentNames = devToolsConfig.config.environments ?? Object.keys(config.environments);
+	const environments = [];
+	for (const environmentName of environmentNames) {
+		const environment = config.environments[environmentName];
+		if (environment) environments.push(environment);
+	}
+	return environments;
+}
+async function runDevTools$1(builder) {
+	if (process.env[ROLLDOWN_DEVTOOLS_ENV] === "true") return;
+	const config = builder.config;
+	if (!config.plugins.some((plugin) => plugin.name === DEVTOOLS_BUILD_INTEGRATION_NAME)) return;
+	const devtoolsConfig = config.devtools;
+	if (!devtoolsConfig) return;
+	if (!isDevToolsEnabled(devtoolsConfig, config.command)) return;
+	for (const _environment of getDevToolsEnvironments(config, devtoolsConfig)) try {
+		const { startDevTools } = await import("./start-BEmLlTz9.js");
+		await startDevTools({
+			...devtoolsConfig.config,
+			root: devtoolsConfig.config.root ?? config.root
+		}, devtoolsConfig);
+	} catch (error) {
+		config.logger.error(`Failed to run Vite DevTools: ${error?.message || error?.stack || error}`, { error });
+	}
+}
+function DevToolsBuildIntegration(devtoolsConfig) {
+	return {
+		name: DEVTOOLS_BUILD_INTEGRATION_NAME,
+		apply: "build",
+		configResolved: {
+			order: "post",
+			handler(config) {
+				for (const environment of getDevToolsEnvironments(config, devtoolsConfig)) environment.build.rolldownOptions.devtools ??= {};
+			}
+		}
+	};
+}
+async function DevToolsIntegration$1(options) {
+	const { command, devtools, root = process.cwd() } = options;
+	const devtoolsConfig = normalizeDevToolsConfig(devtools.options, devtools.host);
+	if (!isDevToolsEnabled(devtoolsConfig, command)) return [];
+	const pluginOptions = resolveDevToolsPluginOptions(devtoolsConfig, root);
+	const configPlugin = DevToolsConfigPlugin(devtools.options, devtoolsConfig, command);
+	if (command === "serve") return [configPlugin, ...await createDevToolsPlugins(pluginOptions, devtoolsConfig)];
+	const plugins = [configPlugin, DevToolsBuildIntegration(devtoolsConfig)];
+	if (devtoolsConfig.config.build?.withApp) plugins.push(...await createDevToolsPlugins(pluginOptions, devtoolsConfig));
+	return plugins;
+}
+//#endregion
+//#region src/integration.ts
+function DevToolsIntegration(options) {
+	return DevToolsIntegration$1(options);
+}
+function runDevTools(builder) {
+	return runDevTools$1(builder);
+}
+//#endregion
+export { DevToolsIntegration, runDevTools };

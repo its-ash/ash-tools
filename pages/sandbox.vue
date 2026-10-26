@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: "Free Code Sandbox | Run JavaScript, Python & Rust in your browser",
@@ -155,26 +154,26 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
-    <main class="relative flex flex-col md:flex-row flex-1 min-h-0">
+  <div class="flex-1 md:flex-none md:h-[calc(100dvh-4.25rem)] md:overflow-hidden bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
+    <main class="relative flex flex-col flex-1 min-h-0">
 
-      <!-- Left rail: navigation + run controls -->
-      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+      <!-- Toolbar: navigation + run controls -->
+      <div class="flex w-fit max-w-full flex-wrap items-center gap-1 self-start rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface-1)] shadow-[var(--shadow-sm)] m-3 p-1.5">
+        <div class="flex items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
-            <span class="text-[10px] font-medium">Home</span>
+            <span>Home</span>
           </NuxtLink>
-          <button id="runBtn" class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1" style="color: var(--accent)" title="Run" aria-label="Run">
+          <button id="runBtn" class="rail-btn rail-btn-primary" title="Run" aria-label="Run">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1.5v9l8-4.5-8-4.5z" /></svg>
-            <span class="text-[10px] font-medium">Run</span>
+            <span>Run</span>
           </button>
-          <button id="stopBtn" disabled class="rail-btn shrink-0 w-14 h-14 rounded-[var(--radius-md)] flex flex-col items-center justify-center gap-1 text-[var(--ink-3)] disabled:opacity-40 disabled:pointer-events-none" title="Stop" aria-label="Stop">
+          <button id="stopBtn" disabled class="rail-btn text-[var(--ink-3)] disabled:opacity-40 disabled:pointer-events-none" title="Stop" aria-label="Stop">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="2" width="8" height="8" rx="1" /></svg>
-            <span class="text-[10px] font-medium">Stop</span>
+            <span>Stop</span>
           </button>
         </div>
-      </aside>
+      </div>
 
       <section class="order-1 md:order-2 flex flex-col gap-2 p-2 md:p-3 flex-1 min-h-0">
         <!-- Toolbar -->
@@ -220,7 +219,7 @@ onUnmounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3 flex-1 min-h-0">
           <!-- Code editor card -->
           <div
-            class="md:col-span-2 flex flex-col ui-panel overflow-hidden min-h-0" style="background: #21232d">
+            class="md:col-span-2 flex flex-col ui-panel overflow-hidden min-h-[50vh] md:min-h-0" style="background: #21232d">
             <!-- File tab bar -->
             <div class="flex items-center gap-2 px-3 pt-2.5" style="background: #21232d">
               <div
@@ -246,7 +245,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Side panel: 5 cards stacked -->
-          <div class="flex flex-col gap-2 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
+          <div class="flex flex-col gap-2 min-h-0 md:overflow-hidden">
             <!-- Execution card -->
             <div class="ui-panel p-3 shrink-0">
               <div class="flex items-baseline justify-between mb-2">
@@ -298,7 +297,7 @@ onUnmounted(() => {
 
             <!-- Errors card -->
             <div
-              class="ui-panel p-3 flex-1 flex flex-col min-h-40" style="border-color: var(--danger-soft)">
+              class="ui-panel p-3 flex-1 flex flex-col min-h-40 md:min-h-24" style="border-color: var(--danger-soft)">
               <div class="flex items-center justify-between mb-2">
                 <div>
                   <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)] block">Errors</span>
@@ -328,12 +327,6 @@ onUnmounted(() => {
         </div>
       </section>
     </main>
-
-    <!-- Bottom status strip -->
-    <div class="shrink-0 border-t px-3 md:px-4 py-2 flex items-center gap-4 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
-      <span>{{ languageLabel }}</span>
-      <span class="ml-auto">local · offline · in-browser sandbox</span>
-    </div>
   </div>
 </template>
 

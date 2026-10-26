@@ -2,7 +2,6 @@
 import { CronExpressionParser } from 'cron-parser'
 import cronstrue from 'cronstrue'
 
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: 'Free Cron Expression Explainer | Plain English & Next Runs in your browser',
@@ -101,18 +100,21 @@ const copyExpression = async () => {
 
 <template>
   <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
-    <div class="flex-1 p-4 md:p-6 flex flex-col md:flex-row gap-4">
-      <aside class="ui-panel shrink-0 md:w-[68px] w-full">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-3">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+    <div class="flex-1 p-4 md:p-6 flex flex-col gap-4">
+      <ClientOnly>
+      <Teleport to="#page-actions">
+        <div class="flex items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
-            <span class="text-[10px] font-medium">Home</span>
+            <span>Home</span>
           </NuxtLink>
         </div>
-      </aside>
+      </Teleport>
+      </ClientOnly>
 
       <main class="flex-1 min-w-0 mx-auto w-full max-w-4xl flex flex-col gap-4">
-        <div class="ui-panel p-4 flex items-center justify-between gap-3">
+        <div class="ui-panel px-4 flex items-center justify-between gap-3">
+        <div id="page-actions" class="order-first flex flex-wrap items-center gap-1"></div>
           <div class="flex items-center gap-2">
             <svg class="h-4 w-4 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7" /><path stroke-linecap="round" stroke-linejoin="round" d="M10 6v4l3 2" /></svg>
             <h1 class="text-sm font-bold text-[var(--ink-1)]">Cron Expression Explainer</h1>
@@ -145,13 +147,13 @@ const copyExpression = async () => {
           </div>
 
           <div v-if="fieldBreakdown.length" class="grid grid-cols-5 gap-2">
-            <div v-for="field in fieldBreakdown" :key="field.label" class="p-2 rounded-none border" style="background: var(--surface-2); border-color: var(--border)">
+            <div v-for="field in fieldBreakdown" :key="field.label" class="p-2 rounded-[var(--radius-md)] border" style="background: var(--surface-2); border-color: var(--border)">
               <div class="text-[9px] uppercase font-semibold tracking-wider text-[var(--ink-3)]">{{ field.label }}</div>
               <div class="text-sm font-mono font-semibold text-[var(--ink-1)]">{{ field.value }}</div>
             </div>
           </div>
 
-          <div v-if="explanation" class="p-3 rounded-none border" style="background: var(--surface-2); border-color: var(--border)">
+          <div v-if="explanation" class="p-3 rounded-[var(--radius-md)] border" style="background: var(--surface-2); border-color: var(--border)">
             <p class="text-sm font-semibold text-[var(--ink-1)]">{{ explanation }}</p>
           </div>
         </section>
@@ -161,7 +163,7 @@ const copyExpression = async () => {
             <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)]">Next {{ NEXT_RUN_COUNT }} runs</span>
           </div>
           <div class="px-4 pb-4">
-            <div class="rounded-none overflow-hidden border" style="border-color: var(--border)">
+            <div class="rounded-[var(--radius-md)] overflow-hidden border" style="border-color: var(--border)">
               <div v-if="!nextRuns.length" class="p-4 text-sm text-[var(--ink-3)]" style="background: var(--surface-1)">Enter a valid expression to preview run times.</div>
               <div v-else class="max-h-80 overflow-auto divide-y" style="border-color: var(--border)">
                 <div v-for="(run, i) in nextRuns" :key="i" class="flex items-center gap-3 px-3 py-2" style="background: var(--surface-1)">
@@ -175,10 +177,6 @@ const copyExpression = async () => {
       </main>
     </div>
 
-    <div class="shrink-0 border-t px-5 py-2 flex items-center gap-3 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
-      <span class="status-dot w-2 h-2 rounded-full inline-block shrink-0" :class="isError ? 'err' : 'ok'"></span>
-      <span class="truncate" :class="isError ? 'text-red-600' : ''">{{ status }}</span>
-    </div>
   </div>
 </template>
 

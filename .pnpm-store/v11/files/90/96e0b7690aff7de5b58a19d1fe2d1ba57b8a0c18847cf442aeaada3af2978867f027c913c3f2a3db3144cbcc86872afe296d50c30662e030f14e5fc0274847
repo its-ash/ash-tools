@@ -1,0 +1,93 @@
+{
+  "name": "@devframes/plugin-data-inspector",
+  "type": "module",
+  "version": "1.2.6",
+  "description": "Devframe plugin for inspecting live server objects interactively with jora queries.",
+  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/devframes/devframe#readme",
+  "repository": {
+    "directory": "plugins/data-inspector",
+    "type": "git",
+    "url": "git+https://github.com/devframes/devframe.git"
+  },
+  "bugs": "https://github.com/devframes/devframe/issues",
+  "keywords": [
+    "devframe",
+    "devframe-plugin",
+    "devtools",
+    "jora",
+    "data-inspector"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/node/index.mjs",
+    "./inject": "./dist/inject/index.mjs",
+    "./cli": "./dist/node/cli.mjs",
+    "./engine": "./dist/node/engine/index.mjs",
+    "./node": "./dist/node/setup.mjs",
+    "./registry": "./dist/node/registry/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/node/index.d.mts",
+  "bin": {
+    "devframe-data-inspector": "./bin.mjs"
+  },
+  "files": [
+    "bin.mjs",
+    "dist"
+  ],
+  "peerDependencies": {
+    "@devframes/plugin-data-inspector--assets": "1.2.6",
+    "devframe": "1.2.6",
+    "vite": "^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@devframes/plugin-data-inspector--assets": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "cac": "^7.0.0"
+  },
+  "devDependencies": {
+    "@antfu/design": "^0.6.0",
+    "@devframes/plugin-data-inspector--assets": "1.2.6",
+    "@devframes/vite": "1.2.6",
+    "@discoveryjs/discovery": "1.0.0-beta.99",
+    "@iconify-json/ph": "^1.2.2",
+    "@storybook/addon-docs": "^10.6.1",
+    "@storybook/vue3-vite": "^10.6.1",
+    "@types/codemirror": "^5.60.18",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "@vueuse/core": "^15.0.0",
+    "devframe": "1.2.6",
+    "dompurify": "^3.4.16",
+    "h3": "^2.0.1",
+    "jora": "^1.0.0-beta.16",
+    "reka-ui": "^2.11.0",
+    "splitpanes": "^4.1.2",
+    "storybook": "^10.6.1",
+    "tsdown": "^0.23.0",
+    "unocss": "^66.10.5",
+    "vite": "^8.3.3",
+    "vitest": "^5.0.3",
+    "vue": "^3.5.43",
+    "vue-afloat": "^0.2.0"
+  },
+  "scripts": {
+    "build": "tsdown && vite build --config app/vite.config.ts",
+    "build:app": "vite build --config app/vite.config.ts",
+    "watch": "tsdown --watch",
+    "dev": "vite --config app/vite.config.ts --host",
+    "play": "pnpm run build && node playgrounds/server.mjs",
+    "storybook": "storybook dev -p 6016",
+    "build-storybook": "storybook build",
+    "cli:build": "node bin.mjs build --out-dir dist/static",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  }
+}

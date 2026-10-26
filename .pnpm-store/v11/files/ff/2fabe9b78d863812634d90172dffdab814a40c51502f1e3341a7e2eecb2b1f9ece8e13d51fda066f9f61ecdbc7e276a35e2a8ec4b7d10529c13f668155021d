@@ -1,0 +1,2 @@
+import { t as createInspectDevframe } from "../node-Bn2HsNy2.mjs";
+export { createInspectDevframe, createInspectDevframe as default };

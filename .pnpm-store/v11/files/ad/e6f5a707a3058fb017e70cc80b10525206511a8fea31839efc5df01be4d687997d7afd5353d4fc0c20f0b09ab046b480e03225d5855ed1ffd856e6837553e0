@@ -1,0 +1,1965 @@
+//#region src/runtime/budget.d.ts
+interface RuntimeBudget {
+  components: {
+    autoTrack: boolean;
+    maxInitialDepth: number;
+    maxExpandedDepth: number;
+    updateDebounceMs: number;
+  };
+  state: {
+    maxDepth: number;
+    maxEntries: number;
+    maxStringLength: number;
+    maxHandles: number;
+    lazyChildren: boolean;
+  };
+  timeline: {
+    enabled: boolean;
+    maxEventsPerSecond: number;
+    maxBufferedEvents: number;
+  };
+  transport: {
+    maxMessageBytes: number;
+    backpressure: 'drop-oldest' | 'drop-newest' | 'pause-collection';
+  };
+}
+declare const defaultRuntimeBudget: RuntimeBudget;
+type RuntimeBudgetInput = Partial<{ [K in keyof RuntimeBudget]: Partial<RuntimeBudget[K]>; }>;
+declare function resolveRuntimeBudget(input?: RuntimeBudgetInput): RuntimeBudget;
+//#endregion
+//#region src/codec/handles.d.ts
+type ValueHandle = string;
+interface ValueHandleEntry {
+  handle: ValueHandle;
+  value: object;
+}
+interface ValueHandleRegistryOptions {
+  maxHandles?: number;
+}
+declare class ValueHandleRegistry {
+  private seed;
+  private objectToHandle;
+  private handleToObject;
+  private handleToScope;
+  private scopeToHandles;
+  private maxHandles;
+  constructor(options?: ValueHandleRegistryOptions);
+  get size(): number;
+  setMaxHandles(maxHandles: number): void;
+  getOrCreate(value: object, scope?: string): ValueHandle;
+  get(handle: ValueHandle): object | undefined;
+  getScope(handle: ValueHandle): string | undefined;
+  delete(handle: ValueHandle): void;
+  releaseScope(scope: string): number;
+  clear(): void;
+  private evictOverflow;
+}
+//#endregion
+//#region src/codec/encode.d.ts
+interface ValueEntry {
+  key: string;
+  value: EncodedValue;
+}
+type EncodedValue = {
+  kind: 'null' | 'undefined';
+} | {
+  kind: 'boolean';
+  value: boolean;
+} | {
+  kind: 'number';
+  value: number | 'NaN' | 'Infinity' | '-Infinity';
+} | {
+  kind: 'string';
+  value: string;
+  truncated?: boolean;
+  length?: number;
+} | {
+  kind: 'bigint';
+  value: string;
+} | {
+  kind: 'symbol';
+  description: string;
+} | {
+  kind: 'function';
+  name?: string;
+  sourcePreview?: string;
+} | {
+  kind: 'array';
+  length: number;
+  preview: ValueEntry[];
+  handle?: ValueHandle;
+} | {
+  kind: 'object';
+  name: string;
+  entries: number;
+  preview: ValueEntry[];
+  handle?: ValueHandle;
+} | {
+  kind: 'map' | 'set';
+  size: number;
+  preview: ValueEntry[];
+  handle?: ValueHandle;
+} | {
+  kind: 'component';
+  id?: ComponentId;
+  name: string;
+} | {
+  kind: 'dom';
+  tag: string;
+  id?: string;
+  className?: string;
+} | {
+  kind: 'custom';
+  type?: string;
+  display?: string;
+  tooltip?: string;
+  value: EncodedValue;
+  handle?: ValueHandle;
+  file?: string;
+  abstract?: boolean;
+  readOnly?: boolean;
+  actions?: {
+    icon?: string;
+    tooltip?: string;
+  }[];
+  fields?: Record<string, unknown>;
+} | {
+  kind: 'date';
+  value: string;
+} | {
+  kind: 'regexp';
+  value: string;
+} | {
+  kind: 'error';
+  name: string;
+  message: string;
+  stack?: string;
+} | {
+  kind: 'circular';
+  handle: ValueHandle;
+};
+interface ValueCodecOptions {
+  /** Offset within the root collection; nested previews always start at zero. */
+  entryOffset?: number;
+  entryKeys?: string[];
+  maxDepth?: number;
+  maxEntries?: number;
+  maxStringLength?: number;
+  handles?: ValueHandleRegistry;
+  /** Handle scope used for lifecycle release (e.g. `component:<id>`). */
+  handleScope?: string;
+}
+declare function encodeValue(value: unknown, options?: ValueCodecOptions): EncodedValue;
+declare function safeOwnEnumerableStringKeys(value: object): string[];
+declare function formatPreviewKey(value: unknown): string;
+//#endregion
+//#region src/plugin/settings.d.ts
+interface PluginSettingsChange {
+  key: string;
+  value: unknown;
+  oldValue: unknown;
+  settings: Record<string, unknown>;
+}
+/**
+ * Setting values for one plugin id. Adapters that register the same id for several apps
+ * share one instance, so a change reaches every app's `setPluginSettings` handlers.
+ */
+declare class PluginSettings {
+  private readonly descriptor;
+  private values;
+  private readonly listeners;
+  constructor(descriptor: PluginDescriptor);
+  get(): Record<string, unknown>;
+  sync(): void;
+  subscribe(listener: (change: PluginSettingsChange) => Promise<void>): () => void;
+  update(key: string, value: unknown): Promise<void>;
+}
+//#endregion
+//#region src/plugin/api.d.ts
+interface PluginDescriptor {
+  id: PluginId;
+  label?: string;
+  logo?: string;
+  app?: object;
+  packageName?: string;
+  homepage?: string;
+  componentStateTypes?: string[];
+  disableAppScope?: boolean;
+  disablePluginScope?: boolean;
+  /**
+   * Run plugin setup before a DevTools UI client connects so early timeline
+   * events and inspector registrations can be buffered.
+   */
+  enableEarlyProxy?: boolean;
+  settings?: Record<string, PluginSettingsItem>;
+}
+interface PluginSettingOption {
+  value: string | number;
+  label: string;
+}
+interface PluginSettingsItem {
+  label?: string;
+  description?: string;
+  type?: 'boolean' | 'choice' | 'text' | 'number';
+  defaultValue?: unknown;
+  options?: PluginSettingOption[];
+  component?: 'select' | 'button-group';
+  [key: string]: unknown;
+}
+type PluginSetupFunction = (api: DevToolsPluginAPI) => void | Promise<void>;
+interface CustomInspectorOptions {
+  id: InspectorId;
+  label: string;
+  icon?: string;
+  treeFilterPlaceholder?: string;
+  stateFilterPlaceholder?: string;
+  noSelectionText?: string;
+  actions?: {
+    icon: string;
+    tooltip?: string;
+    action: () => void | Promise<void>;
+  }[];
+  nodeActions?: {
+    icon: string;
+    tooltip?: string;
+    action: (nodeId: string) => void | Promise<void>;
+  }[];
+}
+interface TimelineLayerOptions {
+  id: string;
+  label: string;
+  color: number;
+}
+interface TimelineEventOptions {
+  layerId: string;
+  event: {
+    time: number;
+    title: string;
+    subtitle?: string;
+    data?: unknown;
+    logType?: 'default' | 'warning' | 'error';
+    meta?: Record<string, unknown>;
+    groupId?: number;
+  };
+  all?: boolean;
+}
+interface MutableInspectorTreePayload {
+  app?: object;
+  inspectorId: InspectorId;
+  filter?: string;
+  rootNodes: unknown[];
+}
+interface MutableInspectorStatePayload {
+  app?: object;
+  inspectorId: InspectorId;
+  nodeId: string;
+  state: unknown;
+}
+interface MutableEditStatePayload {
+  app?: object;
+  inspectorId: InspectorId;
+  nodeId: string;
+  componentInstance?: object;
+  path: string[];
+  type: string;
+  state: {
+    value?: unknown;
+    newKey?: string | null;
+    remove?: boolean;
+    type?: string;
+  };
+  set?: (object: object, path?: string | string[], value?: unknown, cb?: (object: Record<PropertyKey, unknown>, field: string, value: unknown) => void) => void;
+}
+interface VisitComponentTreePayload {
+  app?: object;
+  componentInstance: object;
+  treeNode: unknown;
+  filter: string;
+}
+interface InspectComponentPayload {
+  app?: object;
+  componentInstance: object;
+  instanceData: unknown;
+}
+interface InspectTimelineEventPayload {
+  app?: object;
+  appId?: string;
+  pluginId?: PluginId;
+  layerId: string;
+  event: unknown;
+  all?: boolean;
+  data: unknown;
+}
+interface SetPluginSettingsPayload {
+  app?: object;
+  pluginId: PluginId;
+  key: string;
+  newValue: unknown;
+  oldValue: unknown;
+  /** @deprecated Use `newValue`. Retained for pre-v9 adapter consumers. */
+  value?: unknown;
+  settings: Record<string, unknown>;
+}
+interface DevToolsPluginAPIHooks {
+  visitComponentTree: (payload: VisitComponentTreePayload) => MaybePromise<void>;
+  inspectComponent: (payload: InspectComponentPayload) => MaybePromise<void>;
+  editComponentState: (payload: MutableEditStatePayload) => MaybePromise<void>;
+  getInspectorTree: (payload: MutableInspectorTreePayload) => MaybePromise<void>;
+  getInspectorState: (payload: MutableInspectorStatePayload) => MaybePromise<void>;
+  editInspectorState: (payload: MutableEditStatePayload) => MaybePromise<void>;
+  inspectTimelineEvent: (payload: InspectTimelineEventPayload) => MaybePromise<void>;
+  timelineCleared: (payload: Record<string, never>) => MaybePromise<void>;
+  setPluginSettings: (payload: SetPluginSettingsPayload) => MaybePromise<void>;
+}
+/**
+ * Versioned capabilities of the current plugin adapter. Bump a capability's
+ * version when its payload contract changes; add a new key when the adapter
+ * learns a new API surface. Plugins can read this via `api.capabilities` to
+ * feature-detect instead of probing individual methods.
+ */
+declare const PLUGIN_API_CAPABILITIES: Readonly<Record<string, number>>;
+interface DevToolsPluginAPI {
+  readonly capabilities: Readonly<Record<string, number>>;
+  on: { [K in keyof DevToolsPluginAPIHooks]: (handler: DevToolsPluginAPIHooks[K]) => void; };
+  addInspector(options: CustomInspectorOptions): void;
+  sendInspectorTree(inspectorId: InspectorId): void;
+  sendInspectorState(inspectorId: InspectorId): void;
+  selectInspectorNode(inspectorId: InspectorId, nodeId: string): void;
+  notifyComponentUpdate(instance?: object): void;
+  visitComponentTree(payload: VisitComponentTreePayload): Promise<void>;
+  addTimelineLayer(options: TimelineLayerOptions): void;
+  addTimelineEvent(options: TimelineEventOptions): void;
+  getComponentInstances(app: object): Promise<object[]>;
+  getComponentBounds(instance: object): Promise<unknown>;
+  getComponentName(instance: object): Promise<string | undefined>;
+  getSettings(pluginId?: string): Record<string, unknown>;
+  highlightElement(instance: object): Promise<void>;
+  now(): number;
+  unhighlightElement(): Promise<void>;
+}
+interface PluginApiAdapter {
+  descriptor: PluginDescriptor;
+  api: DevToolsPluginAPI;
+  getSettings(pluginId?: string): Record<string, unknown>;
+  syncSettings(): void;
+  updateSetting(key: string, value: unknown): Promise<void>;
+  clearHooks(): void;
+  callHook<K extends keyof DevToolsPluginAPIHooks>(key: K, payload: Parameters<DevToolsPluginAPIHooks[K]>[0]): Promise<void>;
+}
+declare function createPluginApiAdapter(descriptor: PluginDescriptor, runtime: DevtoolsRuntime, resolvePluginSettings?: (pluginId: string) => Record<string, unknown> | undefined, settings?: PluginSettings): PluginApiAdapter;
+declare function reportPluginError(pluginId: PluginId, context: string, error: unknown): void;
+//#endregion
+//#region src/protocol/messages.d.ts
+interface AppSnapshot {
+  id: AppId;
+  name: string;
+  version?: string;
+  componentCount: number;
+}
+interface ComponentTreeNodeTag {
+  label: string;
+  textColor?: number;
+  backgroundColor?: number;
+  tooltip?: string;
+}
+interface AppsSnapshotMessage {
+  apps: AppSnapshot[];
+}
+interface DevtoolsCapabilitiesMessage {
+  openInEditor: boolean;
+  pagedComponentTree?: boolean;
+}
+interface ComponentTreePageMessage {
+  nodes: ComponentTreeNodeSnapshot[];
+  cursor?: string;
+}
+interface ComponentTreeNodeSnapshot {
+  id: ComponentId;
+  appId: AppId;
+  parentId?: ComponentId;
+  name: string;
+  file?: string;
+  renderKey?: string | number;
+  inactive?: boolean;
+  isFragment?: boolean;
+  tags?: ComponentTreeNodeTag[];
+  domOrder?: number[];
+  consoleId?: number;
+  autoOpen?: boolean;
+  lastMountMs?: number;
+  lastUpdateMs?: number;
+  updatedAt: number;
+  childCount?: number;
+}
+interface ComponentTreeSnapshotMessage {
+  appId?: AppId;
+  version?: number;
+  nodes: ComponentTreeNodeSnapshot[];
+}
+interface StatePageOptions {
+  page?: number;
+  pageSize?: number;
+  snapshotId?: string;
+}
+interface StatePagination {
+  total: number;
+  pageSize: number;
+  current: number;
+  next: number | null;
+}
+interface ComponentStateSnapshotMessage {
+  snapshotId?: string;
+  pagination?: StatePagination;
+  componentId: ComponentId;
+  version: number;
+  sections: ComponentStateSection[];
+  reactivityGraph?: ReactivityGraphSnapshot;
+}
+interface ComponentInspectionResultMessage {
+  appId: AppId;
+  componentId: ComponentId;
+  nodes?: ComponentTreeNodeSnapshot[];
+}
+interface ComponentStateSection {
+  id: string;
+  label: string;
+  entries: StateEntry[];
+  partial?: boolean;
+}
+interface StateEntry {
+  key: string;
+  path: string[];
+  value: EncodedValue;
+  editable: boolean;
+  meta?: Record<string, unknown>;
+}
+type ReactivityGraphNodeType = 'ref' | 'computed' | 'reactive' | 'watch' | 'render' | 'effect' | 'unknown';
+interface ReactivityGraphNode {
+  id: string;
+  type: ReactivityGraphNodeType;
+  label: string;
+  data: Record<string, unknown>;
+}
+interface ReactivityRelationship {
+  id: string;
+  from: string;
+  to: string;
+}
+interface ReactivityGraphSnapshot {
+  nodes: ReactivityGraphNode[];
+  relationships: ReactivityRelationship[];
+}
+interface ExpandedValueMessage {
+  snapshotId?: string;
+  pagination?: StatePagination;
+  handle: string;
+  path: string[];
+  value: EncodedValue;
+}
+interface InspectorsListMessage {
+  inspectors: {
+    id: InspectorId;
+    label: string;
+    pluginId?: string;
+    icon?: string;
+    treeFilterPlaceholder?: string;
+    stateFilterPlaceholder?: string;
+    noSelectionText?: string;
+    actions?: {
+      icon: string;
+      tooltip?: string;
+    }[];
+    nodeActions?: {
+      icon: string;
+      tooltip?: string;
+    }[];
+  }[];
+}
+interface InspectorTreeSnapshotMessage {
+  inspectorId: InspectorId;
+  rootNodes: CustomInspectorTreeNode[];
+}
+interface CustomInspectorTreeNode {
+  id: string;
+  label: string;
+  children?: CustomInspectorTreeNode[];
+  tags?: ComponentTreeNodeTag[];
+  name?: string;
+  file?: string;
+}
+interface PluginSnapshot {
+  id: string;
+  label?: string;
+  logo?: string;
+  packageName?: string;
+  homepage?: string;
+  settings: Record<string, PluginSettingsItem>;
+  settingValues: Record<string, unknown>;
+}
+interface PluginsSnapshotMessage {
+  plugins: PluginSnapshot[];
+}
+interface RouterRouteRecordSnapshot {
+  path: string;
+  name?: string;
+  children?: RouterRouteRecordSnapshot[];
+  meta?: Record<string, unknown>;
+}
+interface RouterRouteSnapshot {
+  fullPath?: string;
+  hash?: string;
+  href?: string;
+  path?: string;
+  name?: string;
+  params?: Record<string, unknown>;
+  query?: Record<string, unknown>;
+  matched?: RouterRouteRecordSnapshot[];
+}
+interface RouterSnapshotMessage {
+  appId?: AppId;
+  currentRoute?: RouterRouteSnapshot;
+  routes: RouterRouteRecordSnapshot[];
+}
+/** A missing path is distinct from a present null or undefined value. */
+type StateValueMessage = {
+  found: false;
+} | {
+  found: true;
+  value: EncodedValue;
+  editable: boolean;
+  snapshotId?: string;
+  pagination?: StatePagination;
+};
+//#endregion
+//#region src/protocol/patches.d.ts
+type ComponentTreePatch = {
+  op: 'insert';
+  parentId?: ComponentId;
+  index?: number;
+  node: ComponentTreeNodeSnapshot;
+} | {
+  op: 'remove';
+  id: ComponentId;
+} | {
+  op: 'update';
+  id: ComponentId;
+  changes: Partial<ComponentTreeNodeSnapshot>;
+} | {
+  op: 'reorder';
+  parentId: ComponentId;
+  children: ComponentId[];
+};
+//#endregion
+//#region src/runtime/types.d.ts
+type AppId = string;
+type ComponentId = string;
+type InspectorId = string;
+type PluginId = string;
+type RuntimeEventType = RuntimeEvent['type'];
+type RuntimeDomainEventType = RuntimeDomainEvent['type'];
+type MaybePromise<T> = T | Promise<T>;
+type AppRef = object;
+type InstanceRef = object;
+interface VueTypeMap {
+  [key: string]: string | symbol;
+}
+interface RuntimeEventBase {
+  time: number;
+}
+type RuntimeEvent = (RuntimeEventBase & {
+  type: 'app:init';
+  app: AppRef;
+  version: string;
+  vueTypes: VueTypeMap;
+}) | (RuntimeEventBase & {
+  type: 'app:unmount';
+  app: AppRef;
+}) | (RuntimeEventBase & {
+  type: 'component:add';
+  appId: AppId;
+  app?: AppRef;
+  instance: InstanceRef;
+  parent?: InstanceRef;
+}) | (RuntimeEventBase & {
+  type: 'component:update';
+  appId: AppId;
+  app?: AppRef;
+  instance: InstanceRef;
+  parent?: InstanceRef;
+}) | (RuntimeEventBase & {
+  type: 'component:remove';
+  appId: AppId;
+  app?: AppRef;
+  instanceId?: ComponentId;
+  instance?: InstanceRef;
+  parentId?: ComponentId;
+  parent?: InstanceRef;
+}) | (RuntimeEventBase & {
+  type: 'component:emit';
+  appId: AppId;
+  app?: AppRef;
+  instance: InstanceRef;
+  event: string;
+  args: unknown[];
+}) | (RuntimeEventBase & {
+  type: 'perf:start' | 'perf:end';
+  appId: AppId;
+  app?: AppRef;
+  instance: InstanceRef;
+  phase: string;
+  timestamp: number;
+}) | (RuntimeEventBase & {
+  type: 'plugin:setup';
+  descriptor: unknown;
+  setup: unknown;
+});
+type RuntimeDomainEvent = RuntimeEvent | {
+  type: 'apps:changed';
+  time: number;
+  appId?: AppId;
+} | {
+  type: 'components:changed';
+  time: number;
+  appId: AppId;
+  componentId?: ComponentId;
+  reason: 'add' | 'update' | 'remove';
+} | {
+  type: 'components:treePatched';
+  time: number;
+  appId: AppId;
+  version: number;
+  patches: ComponentTreePatch[];
+} | {
+  type: 'components:stateInvalidated';
+  time: number;
+  appId: AppId;
+  componentId: ComponentId;
+  version: number;
+  reason: 'add' | 'update' | 'remove' | 'edit';
+} | {
+  type: 'inspectors:changed';
+  time: number;
+  appId?: AppId;
+  inspectorId: InspectorId;
+  pluginId?: PluginId;
+  reason: 'add' | 'update' | 'remove';
+} | {
+  type: 'inspectors:treeInvalidated';
+  time: number;
+  appId?: AppId;
+  inspectorId: InspectorId;
+  pluginId?: PluginId;
+  reason: 'update';
+} | {
+  type: 'inspectors:stateInvalidated';
+  time: number;
+  appId?: AppId;
+  inspectorId: InspectorId;
+  nodeId?: string;
+  pluginId?: PluginId;
+  reason: 'select' | 'edit' | 'update' | 'action';
+} | {
+  type: 'timeline:layerAdded';
+  time: number;
+  appId?: AppId;
+  pluginId?: PluginId;
+  layerId: string;
+  label?: string;
+  color?: number;
+} | {
+  type: 'timeline:eventAdded';
+  time: number;
+  appId?: AppId;
+  pluginId?: PluginId;
+  layerId: string;
+  title: string;
+  subtitle?: string;
+  data?: EncodedValue;
+  meta?: EncodedValue;
+  groupId?: number;
+  logType?: 'default' | 'warning' | 'error';
+  all?: boolean;
+} | {
+  type: 'timeline:eventsLimited';
+  time: number;
+  layerId: string;
+  dropped: number;
+  coalesced: number;
+};
+/** Unvalidated wire request; use RuntimeQueryRequest for built-in callers. */
+interface RuntimeQuery {
+  type: string;
+  appId?: AppId;
+  payload?: unknown;
+}
+interface RuntimeCommand<Payload = unknown> {
+  type: string;
+  appId?: AppId;
+  payload?: Payload;
+}
+interface RuntimeCommandResult {
+  status: 0 | 1;
+  error?: unknown;
+}
+type RuntimeEventHandler<TEvent extends RuntimeDomainEvent = RuntimeDomainEvent> = (event: TEvent) => void;
+//#endregion
+//#region src/runtime/registry.d.ts
+interface ComponentRecord {
+  id: ComponentId;
+  uid?: number | string;
+  appId: AppId;
+  instance: InstanceRef;
+  parentId?: ComponentId;
+  name: string;
+  file?: string;
+  renderKey?: string | number;
+  inactive?: boolean;
+  isFragment?: boolean;
+  hidden?: boolean;
+  tags?: ComponentTreeNodeTag[];
+  domOrder?: number[];
+  consoleId?: number;
+  autoOpen?: boolean;
+  lastMountMs?: number;
+  lastUpdateMs?: number;
+  updatedAt: number;
+}
+interface RefreshComponentTreeOptions {
+  maxDepth?: number;
+  rootComponentId?: ComponentId;
+  time?: number;
+}
+interface AppRecord {
+  id: AppId;
+  name: string;
+  version?: string;
+  app: AppRef;
+  vueTypes?: VueTypeMap;
+  rootInstance?: InstanceRef;
+  components: Map<ComponentId, ComponentRecord>;
+  createdAt: number;
+  updatedAt: number;
+}
+type ComponentSnapshot = ComponentTreeNodeSnapshot;
+interface ComponentRecordOverrides {
+  inactive?: boolean;
+  tags?: ComponentTreeNodeTag[];
+  domOrder?: number[];
+  consoleId?: number;
+  autoOpen?: boolean;
+}
+interface WalkedComponentChild {
+  instance: InstanceRef;
+  tags?: ComponentTreeNodeTag[];
+  inactive?: boolean;
+}
+declare class ComponentDomOrderCache {
+  private parents;
+  private observer?;
+  constructor(observe?: boolean);
+  private invalidate;
+  preparePage(): void;
+  dispose(): void;
+  indexOf(parent: Element, node: Node): number;
+}
+declare class RuntimeRegistry {
+  private appIdSeed;
+  private appByRef;
+  private apps;
+  private componentIds;
+  private retiredApps;
+  private eventDomOrder?;
+  private getEventDomOrder;
+  apply(event: RuntimeEvent): AppRecord | ComponentRecord | undefined;
+  addApp(app: AppRef, version: string, vueTypes: VueTypeMap, time: number): AppRecord;
+  removeApp(app: AppRef): AppRecord | undefined;
+  isAppRetired(app: AppRef): boolean;
+  ensureComponent(appId: AppId, instance: InstanceRef, parent: InstanceRef | undefined, time: number, forcedUid?: string, overrides?: ComponentRecordOverrides, domOrderCache?: ComponentDomOrderCache): ComponentRecord | undefined;
+  refreshComponentTree(appId: AppId, options?: RefreshComponentTreeOptions): ComponentRecord[];
+  removeComponent(appId: AppId, componentId?: ComponentId, instance?: InstanceRef): ComponentRecord | undefined;
+  getApp(appId: AppId): AppRecord | undefined;
+  getAppByRef(app: AppRef): AppRecord | undefined;
+  listApps(): AppRecord[];
+  resetComponentTracking(): void;
+  getComponentId(instance: InstanceRef): ComponentId | undefined;
+  getComponent(componentId: ComponentId, appId?: AppId): ComponentRecord | undefined;
+  getComponentDepth(record: ComponentRecord): number;
+  getComponentChildCount(record: ComponentRecord): number;
+  getComponentChildren(record: ComponentRecord): WalkedComponentChild[];
+  refreshChild(parent: ComponentRecord, child: WalkedComponentChild, cache: ComponentDomOrderCache): ComponentRecord | undefined;
+  toAppSnapshot(record: AppRecord): AppSnapshot;
+  toComponentSnapshot(record: ComponentRecord): ComponentSnapshot;
+}
+declare function readComponentName(instance: object): string;
+//#endregion
+//#region src/runtime/inspectors.d.ts
+interface RuntimeInspectorAction {
+  icon: string;
+  tooltip?: string;
+}
+interface RuntimeInspectorRecord {
+  pluginId: PluginId;
+  app?: AppRef;
+  options: CustomInspectorOptions;
+  treeFilter: string;
+  selectedNodeId: string;
+}
+interface RuntimeInspectorInfo {
+  id: InspectorId;
+  label: string;
+  icon?: string;
+  pluginId: PluginId;
+  treeFilterPlaceholder: string;
+  stateFilterPlaceholder: string;
+  noSelectionText?: string;
+  actions: RuntimeInspectorAction[];
+  nodeActions: RuntimeInspectorAction[];
+}
+declare class RuntimeInspectorStore {
+  private records;
+  add(options: CustomInspectorOptions, pluginId: PluginId, app?: AppRef): RuntimeInspectorRecord;
+  list(app?: AppRef): RuntimeInspectorInfo[];
+  get(id: InspectorId, app?: AppRef): RuntimeInspectorRecord | undefined;
+  removeByApp(app: AppRef): RuntimeInspectorRecord[];
+  getInfo(id: InspectorId, app?: AppRef): RuntimeInspectorInfo | undefined;
+  setSelectedNode(id: InspectorId, nodeId: string, app?: AppRef): void;
+  callAction(id: InspectorId, actionIndex: number, app?: AppRef): Promise<boolean>;
+  callNodeAction(id: InspectorId, actionIndex: number, nodeId: string, app?: AppRef): Promise<boolean>;
+  clear(): void;
+  private toInfo;
+}
+//#endregion
+//#region src/runtime/performance.d.ts
+interface RuntimePerformanceSnapshot {
+  receivedEvents: number;
+  emittedEvents: number;
+  droppedEvents: number;
+  coalescedEvents: number;
+  bufferedEvents: number;
+  bufferedBytes: number;
+  collectionActive: boolean;
+  attachedClients: number;
+}
+interface RuntimePerformanceMonitor {
+  snapshot(): RuntimePerformanceSnapshot;
+  recordReceived(count?: number): void;
+  recordEmitted(count?: number): void;
+  recordDropped(count?: number): void;
+  recordCoalesced(count?: number): void;
+  setBuffer(events: number, bytes: number): void;
+  setCollectionState(active: boolean, attachedClients: number): void;
+}
+declare function createRuntimePerformanceMonitor(collectionActive: boolean): RuntimePerformanceMonitor;
+//#endregion
+//#region src/protocol/requests.d.ts
+type ComponentTarget = {
+  componentId: string;
+} | {
+  instance: object;
+};
+type InspectorTarget = {
+  inspectorId: string;
+  app?: object;
+  pluginId?: string;
+};
+interface StateEdit {
+  sectionId?: string;
+  path: string[];
+  value?: unknown;
+  remove?: boolean;
+  newKey?: string;
+  /** Reject the edit unless the path exists and is editable, as reported by the stateValue query. */
+  requireEditable?: boolean;
+}
+/** Built-in request contracts. Extend these interfaces to type additional registered methods. */
+interface RuntimeQueryMap {
+  'apps:snapshot': {
+    payload: undefined;
+    result: AppsSnapshotMessage;
+  };
+  'devtools:capabilities': {
+    payload: undefined;
+    result: DevtoolsCapabilitiesMessage;
+  };
+  'runtime:health': {
+    payload: undefined;
+    result: {
+      status: 'ready';
+      performance: RuntimePerformanceSnapshot;
+    };
+  };
+  'plugins:snapshot': {
+    payload: undefined;
+    result: PluginsSnapshotMessage;
+  };
+  'components:treeSnapshot': {
+    payload: {
+      filter?: string;
+    } | undefined;
+    result: ComponentTreeSnapshotMessage;
+  };
+  'components:search': {
+    payload: {
+      filter: string;
+    };
+    result: ComponentTreeSnapshotMessage;
+  };
+  'components:treeChildren': {
+    payload: {
+      componentId: string;
+      cursor?: string;
+    };
+    result: ComponentTreePageMessage;
+  };
+  'components:stateSnapshot': {
+    payload: {
+      componentId: string;
+      maxEntries?: number;
+      maxPreviewEntries?: number;
+    } & StatePageOptions;
+    result: ComponentStateSnapshotMessage | undefined;
+  };
+  'components:stateValue': {
+    payload: {
+      componentId: string;
+      sectionId: string;
+      path: string[];
+    } & StatePageOptions;
+    result: StateValueMessage;
+  };
+  'inspectors:stateValue': {
+    payload: {
+      inspectorId: string;
+      nodeId: string;
+      sectionId: string;
+      path: string[];
+    } & StatePageOptions;
+    result: StateValueMessage;
+  };
+  'components:inspect': {
+    payload: undefined;
+    result: ComponentInspectionResultMessage | undefined;
+  };
+  'components:getBounds': {
+    payload: ComponentTarget;
+    result: ComponentBounds | undefined;
+  };
+  'components:getName': {
+    payload: ComponentTarget;
+    result: string | undefined;
+  };
+  'components:getRenderCode': {
+    payload: ComponentTarget;
+    result: string | undefined;
+  };
+  'inspectors:list': {
+    payload: undefined;
+    result: InspectorsListMessage;
+  };
+  'inspectors:info': {
+    payload: {
+      inspectorId: string;
+    };
+    result: RuntimeInspectorInfo | undefined;
+  };
+  'inspectors:treeSnapshot': {
+    payload: {
+      inspectorId: string;
+      filter?: string;
+    };
+    result: InspectorTreeSnapshotMessage;
+  };
+  'inspectors:stateSnapshot': {
+    payload: {
+      inspectorId: string;
+      nodeId: string;
+    } & StatePageOptions;
+    result: ComponentStateSnapshotMessage | undefined;
+  };
+  'router:snapshot': {
+    payload: undefined;
+    result: RouterSnapshotMessage;
+  };
+  'router:matchedRoutes': {
+    payload: {
+      path: string;
+    };
+    result: {
+      appId?: string;
+      path: string;
+      routes: RouterRouteRecordSnapshot[];
+    };
+  };
+  'values:expand': {
+    payload: {
+      handle: string;
+      path?: string[];
+      maxEntries?: number;
+    } & StatePageOptions;
+    result: ExpandedValueMessage | {
+      found: false;
+    } | undefined;
+  };
+  'values:storeAsGlobal': {
+    payload: {
+      handle: string;
+    } | {
+      componentId: string;
+      sectionId: string;
+      path: string[];
+    };
+    result: {
+      varName: string;
+    } | undefined;
+  };
+}
+interface RuntimeCommandMap {
+  'components:expandTreeNode': {
+    componentId: string;
+  };
+  'components:cancelTreeChildren': {
+    cursor: string;
+  };
+  'components:cancelInspect': undefined;
+  'components:highlight': ComponentTarget;
+  'components:unhighlight': undefined;
+  'components:setHighlightUpdates': {
+    enabled: boolean;
+  };
+  'components:scrollTo': ComponentTarget;
+  'components:inspectDom': ComponentTarget;
+  'components:editState': StateEdit & {
+    componentId: string;
+    stateType?: string;
+  };
+  'components:addState': {
+    componentId: string;
+    sectionId?: string;
+    path: string[];
+    value?: unknown;
+  };
+  'components:invalidate': {
+    componentId: string;
+  };
+  'values:customAction': {
+    handle: string;
+    actionIndex: number;
+  };
+  'values:recompute': {
+    componentId: string;
+    sectionId: string;
+    path: string[];
+  };
+  'inspectors:add': {
+    options: CustomInspectorOptions;
+    pluginId: string;
+    app?: object;
+  };
+  'inspectors:invalidateTree': InspectorTarget;
+  'inspectors:invalidateState': InspectorTarget;
+  'inspectors:selectNode': InspectorTarget & {
+    nodeId: string;
+  };
+  'inspectors:editState': StateEdit & {
+    inspectorId: string;
+    nodeId: string;
+  };
+  'inspectors:callAction': {
+    inspectorId: string;
+    actionIndex: number;
+  };
+  'inspectors:callNodeAction': {
+    inspectorId: string;
+    nodeId: string;
+    actionIndex: number;
+  };
+  'plugins:updateSetting': {
+    pluginId: string;
+    key: string;
+    value: unknown;
+  };
+  'router:navigate': {
+    path: string;
+  };
+  'timeline:setRecording': {
+    recording?: boolean;
+    disabledLayerIds?: string[];
+  };
+  'timeline:clear': undefined;
+  'timeline:inspectEvent': {
+    pluginId: string;
+    layerId?: string;
+    event: object;
+  };
+  'timeline:addLayer': {
+    options: TimelineLayerOptions;
+    pluginId?: string;
+    app?: object;
+  };
+  'timeline:addEvent': {
+    options: TimelineEventOptions;
+    pluginId?: string;
+    app?: object;
+  };
+}
+type RequestPayload<P> = undefined extends P ? {
+  payload?: P;
+} : {
+  payload: P;
+};
+type RuntimeQueryRequest<K extends keyof RuntimeQueryMap = keyof RuntimeQueryMap> = { [T in K]: {
+  type: T;
+  appId?: AppId;
+} & RequestPayload<RuntimeQueryMap[T]['payload']>; }[K];
+type RuntimeCommandRequest<K extends keyof RuntimeCommandMap = keyof RuntimeCommandMap> = { [T in K]: {
+  type: T;
+  appId?: AppId;
+} & RequestPayload<RuntimeCommandMap[T]>; }[K];
+interface RuntimeRequests {
+  query<K extends keyof RuntimeQueryMap>(request: RuntimeQueryRequest<K>): Promise<RuntimeQueryMap[K]['result']>;
+  command(request: RuntimeCommandRequest): Promise<RuntimeCommandResult>;
+  /** Explicit escape hatches for dynamic extensions and unvalidated transport messages. */
+  queryCustom<T = unknown>(request: RuntimeQuery): Promise<T>;
+  commandCustom(request: RuntimeCommand): Promise<RuntimeCommandResult>;
+}
+//#endregion
+//#region src/runtime/components.d.ts
+interface ComponentTreeSnapshot {
+  appId?: AppId;
+  version: number;
+  nodes: ComponentSnapshot[];
+}
+interface ComponentTreePatchBatch {
+  appId: AppId;
+  version: number;
+  patches: ComponentTreePatch[];
+}
+declare class ComponentTreeStore {
+  private readonly registry;
+  private readonly budget;
+  includePerfMetrics: boolean;
+  private appVersions;
+  private nodesByApp;
+  private childrenByApp;
+  private visibleNodesByApp;
+  private expandedNodesByApp;
+  private expansionSeed;
+  private expansions;
+  private pendingChildren;
+  private pendingParents;
+  constructor(registry: RuntimeRegistry, budget: RuntimeBudget['components']);
+  syncApp(app: AppRecord): ComponentTreePatchBatch | undefined;
+  apply(event: RuntimeEvent, record?: ComponentRecord): ComponentTreePatchBatch | undefined;
+  search(appId: AppId | undefined, needle: string, limit?: number): ComponentTreeSnapshot;
+  snapshot(appId?: AppId): ComponentTreeSnapshot;
+  expand(appId: AppId, componentId: ComponentId): ComponentTreePatchBatch | undefined;
+  readChildrenPage(appId: AppId, componentId: ComponentId, cursor: string | undefined, maxMessageBytes: number): ComponentTreePageMessage;
+  cancelChildrenPage(appId: AppId, cursor: string): void;
+  private deleteExpansion;
+  resetTrackingCache(): void;
+  revealPath(appId: AppId, componentId: ComponentId): ComponentSnapshot[];
+  getVersion(appId: AppId): number;
+  isVisible(appId: AppId, componentId: ComponentId): boolean;
+  touch(record: ComponentRecord): ComponentTreePatchBatch | undefined;
+  removeApp(appId: AppId): void;
+  private upsert;
+  private remove;
+  private commit;
+  private readOrderedNodes;
+  private toSnapshot;
+  private addChild;
+  private removeChild;
+  private createChildCountPatch;
+  private removePendingChild;
+  private clearPendingChildren;
+  private getNodes;
+  private getChildren;
+  private getVisibleNodes;
+  private getExpandedNodes;
+  private isPatchVisible;
+  private pruneToVisible;
+}
+//#endregion
+//#region src/runtime/events.d.ts
+interface RuntimeEventLog {
+  dispatch(event: RuntimeDomainEvent): void;
+  subscribe(type: '*', handler: RuntimeEventHandler): () => void;
+  subscribe<Type extends RuntimeDomainEventType>(type: Type, handler: RuntimeEventHandler<Extract<RuntimeDomainEvent, {
+    type: Type;
+  }>>): () => void;
+  clear(): void;
+}
+declare function createRuntimeEventLog(): RuntimeEventLog;
+//#endregion
+//#region src/runtime/scheduler.d.ts
+interface RuntimeScheduler {
+  schedule(key: string, task: () => MaybePromise<void>, delayMs?: number): boolean;
+  flush(): Promise<void>;
+  clear(): void;
+}
+declare function createRuntimeScheduler(): RuntimeScheduler;
+//#endregion
+//#region src/runtime/state/index.d.ts
+interface LegacyComponentStateEntry {
+  type?: string;
+  key?: string | number | symbol;
+  value?: unknown;
+  editable?: boolean;
+  meta?: Record<string, unknown>;
+  objectType?: string;
+  raw?: string;
+}
+declare class ComponentStateCollector {
+  private readonly registry;
+  private readonly budget;
+  private pages;
+  private handles;
+  private handleScopes;
+  private versions;
+  private reactivityGraphIds;
+  private reactivityGraphIdSeed;
+  constructor(registry: RuntimeRegistry, budget: RuntimeBudget);
+  get handleCount(): number;
+  /**
+   * Starts a fresh handle scope for a state snapshot: stale handles from
+   * earlier snapshots of the same component/inspector node are released, and
+   * scopes beyond the retention window are recycled so switching components
+   * cannot grow the registry without bound.
+   */
+  beginStateScope(scope: string): string;
+  invalidate(componentId: ComponentId): number;
+  hasSnapshot(componentId: ComponentId): boolean;
+  snapshot(componentId: ComponentId, maxEntries?: number, maxPreviewEntries?: number): ComponentStateSnapshotMessage | undefined;
+  statePage(target: string, options: StatePageOptions, componentId: string, legacy?: LegacyComponentStateEntry[], initial?: ComponentStateSnapshotMessage): ComponentStateSnapshotMessage;
+  expandPage(target: string, options: StatePageOptions, handle: string, path?: string[]): ExpandedValueMessage | {
+    found: false;
+  } | undefined;
+  private valuePage;
+  expand(handle: string, path?: string[], maxEntries?: number): ExpandedValueMessage | {
+    found: false;
+  } | undefined;
+  getHandleValue(handle: string): object | undefined;
+  resolveEntryValue(componentId: ComponentId, sectionId: string, path: string[]): {
+    found: boolean;
+    value?: unknown;
+  };
+  readStateValue(componentId: ComponentId, sectionId: string, path: string[], options?: StatePageOptions): StateValueMessage;
+  readStatePath(source: object, path: string[], scope: string, editable: boolean, options?: StatePageOptions, target?: string): StateValueMessage;
+  /** `triggerRef` the live computed for this state path. */
+  recompute(componentId: ComponentId, sectionId: string, path: string[]): boolean;
+  edit(componentId: ComponentId, sectionId: string, path: string[], value: unknown, newKey?: string): boolean;
+  delete(componentId: ComponentId, sectionId: string, path: string[]): boolean;
+  add(componentId: ComponentId, sectionId: string, path: string[], value: unknown): boolean;
+  appendLegacyEntries(snapshot: ComponentStateSnapshotMessage, entries: LegacyComponentStateEntry[], limits?: {
+    maxEntries?: number;
+    maxPreviewEntries?: number;
+  }): void;
+  executeCustomAction(handle: string, actionIndex: number): Promise<boolean>;
+  clear(): void;
+  private encodePluginStateEntry;
+  private encodeStateValue;
+  private collectSection;
+  private collectReactivityGraph;
+  private getReactivityGraphNodeId;
+}
+//#endregion
+//#region src/runtime/runtime.d.ts
+type RuntimeQueryHandler<T = unknown> = (query: RuntimeQuery, runtime: DevtoolsRuntime) => MaybePromise<T>;
+type RuntimeCommandHandler<Payload = unknown> = (command: RuntimeCommand<Payload>, runtime: DevtoolsRuntime) => MaybePromise<RuntimeCommandResult | void>;
+interface DevtoolsRuntime extends RuntimeRequests {
+  readonly budget: RuntimeBudget;
+  readonly components: ComponentTreeStore;
+  readonly componentState: ComponentStateCollector;
+  readonly events: RuntimeEventLog;
+  readonly inspectors: RuntimeInspectorStore;
+  readonly performance: RuntimePerformanceMonitor;
+  readonly registry: RuntimeRegistry;
+  readonly scheduler: RuntimeScheduler;
+  isCollectionActive(): boolean;
+  setCollectionActive(active: boolean, attachedClients?: number): void;
+  dispatch(event: RuntimeEvent): void;
+  registerQuery<T>(type: string, handler: RuntimeQueryHandler<T>): () => void;
+  registerCommand<Payload = unknown>(type: string, handler: RuntimeCommandHandler<Payload>): () => void;
+  setPluginHookRunner(runner: ((key: string, payload: unknown, pluginId?: string) => Promise<void>) | undefined): void;
+  callPluginHook(key: string, payload: unknown, pluginId?: string): Promise<void>;
+  subscribe(type: '*', handler: RuntimeEventHandler): () => void;
+  subscribe<Type extends RuntimeDomainEventType>(type: Type, handler: RuntimeEventHandler<Extract<RuntimeDomainEvent, {
+    type: Type;
+  }>>): () => void;
+  dispose(): void;
+}
+interface CreateDevtoolsRuntimeOptions {
+  budget?: RuntimeBudgetInput;
+  collectionInitiallyActive?: boolean;
+  componentInspectorDockController?: ComponentInspectorDockController;
+}
+declare function createDevtoolsRuntime(options?: CreateDevtoolsRuntimeOptions): DevtoolsRuntime;
+//#endregion
+//#region src/runtime/component-inspector.d.ts
+interface ComponentBounds {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+type ComponentInspectorDockRestore = () => Promise<void> | void;
+interface ComponentInspectorDockController {
+  closeForComponentInspection(): Promise<ComponentInspectorDockRestore | undefined> | ComponentInspectorDockRestore | undefined;
+}
+//#endregion
+//#region src/rpc/constants.d.ts
+declare const DEVTOOLS_RPC_QUERY = "devtools:query";
+declare const DEVTOOLS_RPC_COMMAND = "devtools:command";
+declare const DEVTOOLS_RPC_EVENT = "devtools:event";
+declare const DEVTOOLS_IFRAME_RPC_SOURCE = "vue-devtools";
+declare const DEVTOOLS_IFRAME_RPC_CONNECT = "devtools:iframe-rpc-connect";
+declare const DEFAULT_DEVTOOLS_RPC_CHANNEL_ID = "vue-devtools";
+//#endregion
+//#region src/rpc/types.d.ts
+type DevtoolsRpcChannelKind = 'iframe' | 'extension';
+interface DevtoolsRpcEvent {
+  type: RuntimeDomainEvent['type'];
+  time: number;
+  appId?: AppId;
+  componentId?: ComponentId;
+  reason?: string;
+  inspectorId?: string;
+  nodeId?: string;
+  pluginId?: string;
+  layerId?: string;
+  label?: string;
+  color?: number;
+  title?: string;
+  subtitle?: string;
+  data?: EncodedValue;
+  meta?: EncodedValue;
+  groupId?: number;
+  logType?: 'default' | 'warning' | 'error';
+  all?: boolean;
+  dropped?: number;
+  coalesced?: number;
+  version?: number;
+  patches?: ComponentTreePatch[];
+}
+type DevtoolsRpcEventHandler = (event: DevtoolsRpcEvent) => void;
+type DevtoolsRpcServerFunctions = {
+  [DEVTOOLS_RPC_QUERY]: (query: RuntimeQuery) => Promise<unknown>;
+  [DEVTOOLS_RPC_COMMAND]: (command: RuntimeCommand) => Promise<RuntimeCommandResult>;
+};
+type DevtoolsRpcClientFunctions = {
+  [DEVTOOLS_RPC_EVENT]: (event: DevtoolsRpcEvent) => void;
+};
+interface DevtoolsInPageProtocol {
+  functions: {
+    pageScript: DevtoolsRpcServerFunctions;
+  };
+  events: {
+    panel: DevtoolsRpcClientFunctions;
+  };
+}
+declare function toDevtoolsRpcEvent(event: RuntimeDomainEvent): DevtoolsRpcEvent | undefined;
+//#endregion
+//#region src/rpc/channel.d.ts
+interface DevtoolsRpcChannel {
+  post(data: unknown, ...extras: unknown[]): unknown;
+  on(handler: (data: unknown, ...extras: unknown[]) => void): unknown;
+  off?(handler: (data: unknown, ...extras: unknown[]) => void): unknown;
+  serialize?(data: unknown): unknown;
+  deserialize?(data: unknown): unknown;
+  meta?: unknown;
+}
+interface DevtoolsRpcChannelHandle {
+  readonly kind?: DevtoolsRpcChannelKind;
+  dispose(): void;
+}
+declare function createMessagePortDevtoolsRpcChannel(port: MessagePort): DevtoolsRpcChannel;
+//#endregion
+//#region src/rpc/client.d.ts
+interface CreateDevtoolsRpcClientOptions {
+  channel: DevtoolsRpcChannel;
+  disposeChannel?: () => void;
+}
+interface DevtoolsRpcClient extends RuntimeRequests {
+  onEvent(handler: DevtoolsRpcEventHandler): () => void;
+  onConnectionChanged?(handler: (status: 'connecting' | 'connected' | 'closed') => void): () => void;
+  dispose(): void;
+}
+declare function createDevtoolsRpcClient(options: CreateDevtoolsRpcClientOptions): DevtoolsRpcClient;
+//#endregion
+//#region src/rpc/channels/extension.d.ts
+declare const DEVTOOLS_EXTENSION_PORT_SOURCE = "vue-devtools";
+declare const DEVTOOLS_EXTENSION_PORT_VERSION = 1;
+type DevtoolsExtensionPortRole = 'page' | 'panel';
+interface DevtoolsExtensionPortDescriptor {
+  source: typeof DEVTOOLS_EXTENSION_PORT_SOURCE;
+  version: typeof DEVTOOLS_EXTENSION_PORT_VERSION;
+  role: DevtoolsExtensionPortRole;
+  tabId?: number;
+}
+interface ConnectDevtoolsExtensionClientOptions {
+  chrome?: ChromeExtensionApi;
+  tabId?: number;
+  name?: string;
+}
+interface ChromeExtensionEvent<TListener> {
+  addListener(listener: TListener): void;
+  removeListener(listener: TListener): void;
+}
+interface ChromeRuntimePort {
+  name: string;
+  sender?: {
+    tab?: {
+      id?: number;
+    };
+    frameId?: number;
+    documentId?: string;
+    url?: string;
+  };
+  onDisconnect: ChromeExtensionEvent<(port: ChromeRuntimePort) => void>;
+  onMessage: ChromeExtensionEvent<(message: unknown, port: ChromeRuntimePort) => void>;
+  disconnect(): void;
+  postMessage(message: unknown): void;
+}
+interface ChromeExtensionApi {
+  devtools?: {
+    inspectedWindow?: {
+      tabId?: number;
+    };
+  };
+  runtime?: {
+    connect(connectInfo?: {
+      name?: string;
+    }): ChromeRuntimePort;
+    lastError?: {
+      message?: string;
+    };
+  };
+}
+declare function createDevtoolsExtensionPortName(role: DevtoolsExtensionPortRole, tabId?: number): string;
+declare function parseDevtoolsExtensionPortName(name: string): DevtoolsExtensionPortDescriptor | undefined;
+declare const DEVTOOLS_EXTENSION_FRAME_CONTROL_SOURCE = "vue-devtools:frame-control";
+interface DevtoolsExtensionFrameDescriptor {
+  frameId: number;
+  documentId?: string;
+  url?: string;
+  main: boolean;
+}
+type DevtoolsExtensionFrameActivationReason = 'initial' | 'select' | 'navigation';
+interface DevtoolsExtensionFramesChangedMessage {
+  source: typeof DEVTOOLS_EXTENSION_FRAME_CONTROL_SOURCE;
+  type: 'frames:changed';
+  frames: DevtoolsExtensionFrameDescriptor[];
+  activeFrameId?: number;
+}
+interface DevtoolsExtensionFrameActivatedMessage {
+  source: typeof DEVTOOLS_EXTENSION_FRAME_CONTROL_SOURCE;
+  type: 'frames:activated';
+  frame: DevtoolsExtensionFrameDescriptor;
+  reason: DevtoolsExtensionFrameActivationReason;
+}
+interface DevtoolsExtensionFrameSelectMessage {
+  source: typeof DEVTOOLS_EXTENSION_FRAME_CONTROL_SOURCE;
+  type: 'frames:select';
+  frameId: number;
+}
+type DevtoolsExtensionFrameControlMessage = DevtoolsExtensionFramesChangedMessage | DevtoolsExtensionFrameActivatedMessage | DevtoolsExtensionFrameSelectMessage;
+declare function isDevtoolsExtensionFrameControlMessage(value: unknown): value is DevtoolsExtensionFrameControlMessage;
+interface DevtoolsExtensionFrameController {
+  getFrames(): DevtoolsExtensionFrameDescriptor[];
+  getActiveFrameId(): number | undefined;
+  selectFrame(frameId: number): void;
+  onFramesChanged(handler: (frames: DevtoolsExtensionFrameDescriptor[], activeFrameId?: number) => void): () => void;
+  onFrameActivated(handler: (frame: DevtoolsExtensionFrameDescriptor, reason: DevtoolsExtensionFrameActivationReason) => void): () => void;
+}
+interface DevtoolsExtensionRpcClient extends DevtoolsRpcClient {
+  frames: DevtoolsExtensionFrameController;
+}
+declare function createChromeRuntimePortDevtoolsRpcChannel(port: ChromeRuntimePort): DevtoolsRpcChannel;
+declare function connectDevtoolsExtensionClient(options?: ConnectDevtoolsExtensionClientOptions): DevtoolsExtensionRpcClient;
+declare function createExtensionDevtoolsClientHost(options?: ConnectDevtoolsExtensionClientOptions): DevtoolsClientHost;
+declare function isExtensionDevtoolsClientHostAvailable(options?: Pick<ConnectDevtoolsExtensionClientOptions, 'chrome' | 'tabId'>): boolean;
+//#endregion
+//#region src/rpc/connect.d.ts
+interface DevtoolsClientHost {
+  readonly kind: DevtoolsRpcChannelKind;
+  available(): boolean;
+  connect(): DevtoolsRpcClient;
+}
+interface ConnectDevtoolsClientOptions {
+  hosts?: DevtoolsClientHost[];
+  extension?: ConnectDevtoolsExtensionClientOptions;
+  iframe?: ConnectDevtoolsIframeClientOptions;
+}
+declare function connectDevtoolsClient(options?: ConnectDevtoolsClientOptions): DevtoolsRpcClient;
+declare function getDefaultDevtoolsClientHosts(options?: ConnectDevtoolsClientOptions): DevtoolsClientHost[];
+//#endregion
+//#region ../../node_modules/.pnpm/devframe@1.1.0_@devframes+agentic@1.1.0_cac@7.0.0_srvx@1.0.4/node_modules/devframe/dist/index-CeEtxDmK.d.mts
+//#region ../../node_modules/.pnpm/@standard-schema+spec@1.1.0/node_modules/@standard-schema/spec/dist/index.d.ts
+/** The Standard Typed interface. This is a base type extended by other specs. */
+interface StandardTypedV1<Input = unknown, Output = Input> {
+  /** The Standard properties. */
+  readonly "~standard": StandardTypedV1.Props<Input, Output>;
+}
+declare namespace StandardTypedV1 {
+  /** The Standard Typed properties interface. */
+  interface Props<Input = unknown, Output = Input> {
+    /** The version number of the standard. */
+    readonly version: 1;
+    /** The vendor name of the schema library. */
+    readonly vendor: string;
+    /** Inferred types associated with the schema. */
+    readonly types?: Types<Input, Output> | undefined;
+  }
+  /** The Standard Typed types interface. */
+  interface Types<Input = unknown, Output = Input> {
+    /** The input type of the schema. */
+    readonly input: Input;
+    /** The output type of the schema. */
+    readonly output: Output;
+  }
+  /** Infers the input type of a Standard Typed. */
+  type InferInput<Schema extends StandardTypedV1> = NonNullable<Schema["~standard"]["types"]>["input"];
+  /** Infers the output type of a Standard Typed. */
+  type InferOutput<Schema extends StandardTypedV1> = NonNullable<Schema["~standard"]["types"]>["output"];
+}
+/** The Standard Schema interface. */
+interface StandardSchemaV1<Input = unknown, Output = Input> {
+  /** The Standard Schema properties. */
+  readonly "~standard": StandardSchemaV1.Props<Input, Output>;
+}
+declare namespace StandardSchemaV1 {
+  /** The Standard Schema properties interface. */
+  interface Props<Input = unknown, Output = Input> extends StandardTypedV1.Props<Input, Output> {
+    /** Validates unknown input values. */
+    readonly validate: (value: unknown, options?: StandardSchemaV1.Options | undefined) => Result<Output> | Promise<Result<Output>>;
+  }
+  /** The result interface of the validate function. */
+  type Result<Output> = SuccessResult<Output> | FailureResult;
+  /** The result interface if validation succeeds. */
+  interface SuccessResult<Output> {
+    /** The typed output value. */
+    readonly value: Output;
+    /** A falsy value for `issues` indicates success. */
+    readonly issues?: undefined;
+  }
+  interface Options {
+    /** Explicit support for additional vendor-specific parameters, if needed. */
+    readonly libraryOptions?: Record<string, unknown> | undefined;
+  }
+  /** The result interface if validation fails. */
+  interface FailureResult {
+    /** The issues of failed validation. */
+    readonly issues: ReadonlyArray<Issue>;
+  }
+  /** The issue interface of the failure output. */
+  interface Issue {
+    /** The error message of the issue. */
+    readonly message: string;
+    /** The path of the issue, if any. */
+    readonly path?: ReadonlyArray<PropertyKey | PathSegment> | undefined;
+  }
+  /** The path segment interface of the issue. */
+  interface PathSegment {
+    /** The key representing a path segment. */
+    readonly key: PropertyKey;
+  }
+  /** The Standard types interface. */
+  interface Types<Input = unknown, Output = Input> extends StandardTypedV1.Types<Input, Output> {}
+  /** Infers the input type of a Standard. */
+  type InferInput<Schema extends StandardTypedV1> = StandardTypedV1.InferInput<Schema>;
+  /** Infers the output type of a Standard. */
+  type InferOutput<Schema extends StandardTypedV1> = StandardTypedV1.InferOutput<Schema>;
+}
+//#endregion
+//#region ../../node_modules/.pnpm/devframe@1.1.0_@devframes+agentic@1.1.0_cac@7.0.0_srvx@1.0.4/node_modules/devframe/dist/types-BmDbfHCx.d.mts
+//#endregion
+//#region src/rpc/types.d.ts
+type Thenable<T> = T | Promise<T>;
+/**
+ * Agent exposure settings for an RPC function. When this field is set,
+ * the function is surfaced to agents (e.g. via the devframe MCP adapter)
+ * as a callable tool. Functions without an `agent` field are not exposed;
+ * default-deny.
+ */
+interface RpcFunctionAgentOptions {
+  /**
+   * Human-readable description shown to the agent. Required, since agents
+   * rely on this to decide when to invoke the tool. Keep it to ~1–3
+   * sentences explaining what the tool does and when to use it.
+   */
+  description: string;
+  /**
+   * Optional human-friendly display title. Maps to the MCP tool `title`
+   * annotation. Falls back to the RPC function `name` when omitted.
+   */
+  title?: string;
+  /**
+   * Safety classification. Drives MCP annotations (`readOnlyHint`,
+   * `destructiveHint`) downstream.
+   * - `'read'`: no side effects; safe to call freely.
+   * - `'action'`: mutates state but not destructive.
+   * - `'destructive'`: may perform destructive updates.
+   *
+   * When omitted it is inferred from the function `type`:
+   *   - `'static'` / `'query'` → `'read'`
+   *   - `'action'` / `'event'` → `'action'`
+   */
+  safety?: 'read' | 'action' | 'destructive';
+  /** Free-form tags for grouping or filtering. */
+  tags?: readonly string[];
+  /**
+   * Optional example invocations shown to agents. Returned verbatim in
+   * the agent manifest.
+   */
+  examples?: readonly {
+    args: unknown[];
+    description?: string;
+  }[];
+}
+/**
+ * Positional argument schemas for an RPC function. Each entry is any
+ * [Standard Schema](https://standardschema.dev)-compliant validator
+ * (valibot, zod, arktype, …); the entry at index `i` validates argument
+ * `i` at call time and drives that argument's inferred type.
+ */
+type RpcArgsSchema = readonly StandardSchemaV1[];
+/**
+ * Return-value schema for an RPC function. Any
+ * [Standard Schema](https://standardschema.dev)-compliant validator; it
+ * validates the handler's resolved return value and drives its inferred
+ * type.
+ */
+type RpcReturnSchema = StandardSchemaV1;
+//#endregion
+//#region ../../node_modules/.pnpm/devframe@1.1.0_@devframes+agentic@1.1.0_cac@7.0.0_srvx@1.0.4/node_modules/devframe/dist/context--tVkJw3W.d.mts
+//#region src/types/events.d.ts
+interface EventsMap {
+  [event: string]: any;
+}
+interface EventUnsubscribe {
+  (): void;
+}
+interface EventEmitter<Events extends EventsMap> {
+  /**
+   * Calls each of the listeners registered for a given event.
+   *
+   * ```js
+   * ee.emit('tick', tickType, tickDuration)
+   * ```
+   *
+   * @param event The event name.
+   * @param args The arguments for listeners.
+   */
+  emit: <K extends keyof Events>(event: K, ...args: Parameters<Events[K]>) => void;
+  /**
+   * Calls the listeners for a given event once and then removes the listener.
+   *
+   * @param event The event name.
+   * @param args The arguments for listeners.
+   */
+  emitOnce: <K extends keyof Events>(event: K, ...args: Parameters<Events[K]>) => void;
+  /**
+   * Event names in keys and arrays with listeners in values.
+   *
+   * @internal
+   */
+  _listeners: Partial<{ [E in keyof Events]: Events[E][]; }>;
+  /**
+   * Add a listener for a given event.
+   *
+   * ```js
+   * const unbind = ee.on('tick', (tickType, tickDuration) => {
+   *   count += 1
+   * })
+   *
+   * disable () {
+   *   unbind()
+   * }
+   * ```
+   *
+   * @param event The event name.
+   * @param cb The listener function.
+   * @returns Unbind listener from event.
+   */
+  on: <K extends keyof Events>(event: K, cb: Events[K]) => EventUnsubscribe;
+  /**
+   * Add a listener for a given event once.
+   *
+   * ```js
+   * const unbind = ee.once('tick', (tickType, tickDuration) => {
+   *   count += 1
+   * })
+   *
+   * disable () {
+   *   unbind()
+   * }
+   * ```
+   *
+   * @param event The event name.
+   * @param cb The listener function.
+   * @returns Unbind listener from event.
+   */
+  once: <K extends keyof Events>(event: K, cb: Events[K]) => EventUnsubscribe;
+}
+//#endregion
+//#region src/utils/shared-state.d.ts
+type ImmutablePrimitive = undefined | null | boolean | string | number | Function;
+type Immutable<T> = T extends ImmutablePrimitive ? T : T extends Array<infer U> ? ImmutableArray<U> : T extends Map<infer K, infer V> ? ImmutableMap<K, V> : T extends Set<infer M> ? ImmutableSet<M> : ImmutableObject<T>;
+type ImmutableArray<T> = ReadonlyArray<Immutable<T>>;
+type ImmutableMap<K, V> = ReadonlyMap<Immutable<K>, Immutable<V>>;
+type ImmutableSet<T> = ReadonlySet<Immutable<T>>;
+type ImmutableObject<T> = { readonly [K in keyof T]: Immutable<T[K]>; };
+/**
+ * Serializable patch describing a single mutation to a `SharedState`.
+ * Structurally compatible with JSON-Patch and is safe to send over RPC.
+ */
+interface SharedStatePatch {
+  op: 'add' | 'remove' | 'replace';
+  path: readonly (string | number)[];
+  value?: unknown;
+}
+/**
+ * State host that is immutable by default with explicit mutate.
+ */
+interface SharedState<T> {
+  /**
+   * Get the current state. Immutable.
+   */
+  value: () => Immutable<T>;
+  /**
+   * Subscribe to state changes.
+   */
+  on: EventEmitter<SharedStateEvents<T>>['on'];
+  /**
+   * Mutate the state.
+   */
+  mutate: (fn: (state: T) => void, syncId?: string) => void;
+  /**
+   * Apply patches to the state.
+   */
+  patch: (patches: SharedStatePatch[], syncId?: string) => void;
+  /**
+   * Sync IDs that have been applied to the state.
+   */
+  syncIds: Set<string>;
+}
+interface SharedStateEvents<T> {
+  updated: (fullState: T, patches: SharedStatePatch[] | undefined, syncId: string) => void;
+}
+//#endregion
+//#region ../../node_modules/.pnpm/devframe@1.1.0_@devframes+agentic@1.1.0_cac@7.0.0_srvx@1.0.4/node_modules/devframe/dist/in-page-channel/index.d.mts
+//#region src/in-page-channel/types.d.ts
+/**
+ * The shared contract of one in-page channel, declared once (usually in a
+ * `shared/protocol.ts` both sides import) and passed to both endpoints as a
+ * type parameter. Purely a type; the only runtime companion is the
+ * channel-name constant declared next to it.
+ */
+interface InPageChannelProtocol {
+  functions?: {
+    /** Functions implemented by the page script. */
+    pageScript?: Record<string, (...args: any[]) => any>;
+    /** Functions implemented by panels. */
+    panel?: Record<string, (...args: any[]) => any>;
+  };
+  events?: {
+    /** Events emitted by panels and received by the page script. */
+    pageScript?: Record<string, (...args: any[]) => void>;
+    /** Events emitted by the page script and received by panels. */
+    panel?: Record<string, (...args: any[]) => void>;
+  };
+  /**
+   * Shared-state slots. The page script is the authority: it owns the
+   * canonical value; panels are seeded on connect and converge through
+   * syncId-deduplicated patches.
+   */
+  sharedStates?: Record<string, object>;
+}
+type SideFunctions<S> = S extends Record<string, (...args: any[]) => any> ? S : Record<string, never>;
+type SideDeclarations<P extends InPageChannelProtocol, Kind extends 'functions' | 'events', Side extends 'pageScript' | 'panel'> = Kind extends keyof P ? Side extends keyof NonNullable<P[Kind]> ? SideFunctions<NonNullable<NonNullable<P[Kind]>[Side]>> : Record<string, never> : Record<string, never>;
+type PageScriptFunctions<P extends InPageChannelProtocol> = SideDeclarations<P, 'functions', 'pageScript'>;
+type PanelFunctions<P extends InPageChannelProtocol> = SideDeclarations<P, 'functions', 'panel'>;
+type SharedStates<P extends InPageChannelProtocol> = P['sharedStates'] extends Record<string, object> ? P['sharedStates'] : Record<string, never>;
+type FnArgs<F> = F extends ((...args: infer A) => any) ? A : never;
+type FnReturn<F> = F extends ((...args: any[]) => infer R) ? Awaited<R> : never;
+type PageScriptEvents<P extends InPageChannelProtocol> = SideDeclarations<P, 'events', 'pageScript'>;
+type PanelEvents<P extends InPageChannelProtocol> = SideDeclarations<P, 'events', 'panel'>;
+/**
+ * Converts a protocol function to its accepted endpoint handler.
+ *
+ * @internal
+ */
+type ProtocolHandler<F> = F extends ((...args: any[]) => any) ? (...args: FnArgs<F>) => Thenable<FnReturn<F>> : never;
+/**
+ * Function metadata with its handler constrained by a protocol function.
+ *
+ * @internal
+ */
+interface InPageDefinitionOptionBase {
+  /** Optional Standard Schema array validating the arguments. */
+  args?: RpcArgsSchema;
+  /** Optional Standard Schema validating the resolved return value. */
+  returns?: RpcReturnSchema;
+  jsonSerializable?: boolean;
+}
+interface InPageFunctionOptionBase extends InPageDefinitionOptionBase {
+  /** Expose this function through DevFrame's browser-to-node agent bridge. */
+  agent?: RpcFunctionAgentOptions;
+}
+interface InPageEventFunctionOption<F> extends InPageDefinitionOptionBase {
+  type?: 'event';
+  handler?: ProtocolHandler<F>;
+}
+type InPageEventOption<F> = [F] extends [never] ? never : InPageEventFunctionOption<F>;
+interface InPageQueryFunctionOption<F> extends InPageFunctionOptionBase {
+  type?: 'query';
+  handler: ProtocolHandler<F>;
+}
+interface InPageActionFunctionOption<F> extends InPageFunctionOptionBase {
+  type: 'action';
+  handler: ProtocolHandler<F>;
+}
+type InPageFunctionOption<F> = InPageQueryFunctionOption<F> | InPageActionFunctionOption<F>;
+/**
+ * Functions implemented by {@link createPageScriptChannel}.
+ *
+ * @internal
+ */
+type CreatePageScriptChannelOptionsFunctions<P extends InPageChannelProtocol> = { [NAME in keyof PageScriptFunctions<P> & string]: InPageFunctionOption<PageScriptFunctions<P>[NAME]>; };
+/**
+ * Options shared by both in-page channel endpoints.
+ *
+ * @internal
+ */
+interface InPageChannelCommonOptions {
+  /**
+   * Channel name, namespaced with the devframe id by convention
+   * (e.g. `devframes:plugin:a11y`). Both endpoints must use the same name.
+   */
+  name: string;
+  /**
+   * Origins accepted during the handshake (and used as `targetOrigin` when
+   * posting handshake messages). The in-page channel is same-origin by
+   * definition, so this defaults to `[location.origin]`.
+   */
+  allowedOrigins?: string[];
+  /**
+   * Timeout for request/response calls, in milliseconds; `-1` disables.
+   * Rejections are `InPageChannelError`s (code `timeout`) carrying the
+   * endpoint status, so a hanging call explains itself.
+   * @default 15000
+   */
+  callTimeoutMs?: number;
+  /**
+   * Liveness heartbeat guarding against silently dead ports. Defaults to a
+   * 5s ping / 12s silence window; pass `false` to disable, on both
+   * endpoints together.
+   */
+  heartbeat?: {
+    intervalMs?: number;
+    timeoutMs?: number;
+  } | false;
+  /**
+   * Applied to each outgoing argument and handler result before posting;
+   * the place to unwrap framework reactivity (Vue `toRaw`, Solid `unwrap`)
+   * into plain structured-cloneable values.
+   */
+  serialize?: (value: unknown) => unknown;
+  /** Applied to each incoming argument and call result. */
+  deserialize?: (value: unknown) => unknown;
+}
+/** Options for {@link createPageScriptChannel}. */
+interface CreatePageScriptChannelOptions<Protocol extends InPageChannelProtocol = InPageChannelProtocol> extends InPageChannelCommonOptions {
+  /** Every page-script function declaration, with a required handler. */
+  functions: CreatePageScriptChannelOptionsFunctions<Protocol>;
+  /** Optional metadata or handlers for incoming events. Listeners may instead subscribe through `channel.on()`. */
+  events?: { [NAME in keyof PageScriptEvents<Protocol> & string]?: InPageEventOption<PageScriptEvents<Protocol>[NAME]>; };
+  /**
+   * Window whose `message` events carry panel hellos. Defaults to the
+   * global `window`; pass `false` to skip the handshake listener entirely
+   * (bring-your-own ports via `addPanelPort` only).
+   */
+  window?: Window | false;
+}
+/**
+ * The channel shared-state accessor, mirroring `rpc.sharedState`, with the
+ * page script playing the server's role as rendezvous and authority. The
+ * page script's first `get` of a key must provide `initialValue`; a panel's
+ * `get` without one resolves once the authority's first replay arrives.
+ */
+interface InPageSharedStateHost<P extends InPageChannelProtocol> {
+  get: <K extends keyof SharedStates<P> & string>(key: K, options?: {
+    initialValue?: SharedStates<P>[K];
+  }) => Promise<SharedState<SharedStates<P>[K]>>;
+}
+/** Emitter events of a page-script endpoint. */
+interface PageScriptChannelEvents<P extends InPageChannelProtocol> {
+  'panel:connected': (panel: PanelPeer<P>) => void;
+  'panel:disconnected': (panel: PanelPeer<P>) => void;
+}
+/** One connected panel, as seen from the page script. */
+interface PanelPeer<P extends InPageChannelProtocol> {
+  /** Unique id of the panel endpoint (stable across its lifetime, not reloads). */
+  readonly id: string;
+  /** Call one panel's function and await the result. */
+  call: <K extends keyof PanelFunctions<P> & string>(name: K, ...args: FnArgs<PanelFunctions<P>[K]>) => Promise<FnReturn<PanelFunctions<P>[K]>>;
+  /** Disconnect this panel. */
+  close: () => void;
+}
+/**
+ * The page-script endpoint of an in-page channel: answers panel handshakes,
+ * holds one dedicated port per connected panel, fans events out to all of
+ * them, and is the authority for the channel's shared states.
+ */
+interface PageScriptChannel<P extends InPageChannelProtocol> {
+  readonly name: string;
+  /**
+   * This page context's instance id (persisted per tab in sessionStorage),
+   * carried in every handshake so panels can pin to one instance when the
+   * same app is open in several tabs.
+   */
+  readonly instanceId: string;
+  /** Currently connected panels. */
+  readonly panels: readonly PanelPeer<P>[];
+  readonly events: Pick<EventEmitter<PageScriptChannelEvents<P>>, 'on' | 'once'>;
+  /** Fan an event out to every connected panel. */
+  emit: <K extends keyof PanelEvents<P> & string>(name: K, ...args: FnArgs<PanelEvents<P>[K]>) => void;
+  /** Subscribe to an event emitted by a panel. Returns an unsubscribe function. */
+  on: <K extends keyof PageScriptEvents<P> & string>(name: K, listener: (...args: FnArgs<PageScriptEvents<P>[K]>) => void) => () => void;
+  /** Page-script-authoritative shared states, replayed to joining panels. */
+  readonly sharedState: InPageSharedStateHost<P>;
+  /** Adopt a pre-established port as a panel peer (bring-your-own transport). */
+  addPanelPort: (port: MessagePort) => PanelPeer<P>;
+  /** Tear the endpoint down: disconnect every panel, stop answering hellos. */
+  close: () => void;
+}
+//#endregion
+//#region src/rpc/server.d.ts
+interface DevtoolsRpcServer {
+  attachInPage(options: Pick<CreatePageScriptChannelOptions<DevtoolsInPageProtocol>, 'name' | 'window' | 'allowedOrigins'>): {
+    channel: PageScriptChannel<DevtoolsInPageProtocol>;
+    dispose(): void;
+  };
+  attach(channel: DevtoolsRpcChannel): DevtoolsRpcChannelHandle;
+  dispose(): void;
+}
+declare function createDevtoolsRpcServer(runtime: DevtoolsRuntime): DevtoolsRpcServer;
+//#endregion
+//#region src/rpc/channels/iframe.d.ts
+interface StartIframeDevtoolsRpcHostOptions {
+  window?: Window;
+  channelId?: string;
+  allowedOrigins?: string[];
+}
+interface ConnectDevtoolsIframeClientOptions {
+  window?: Window;
+  targetWindow?: Window;
+  targetOrigin?: string;
+  channelId?: string;
+}
+declare function startIframeDevtoolsRpcHost(server: DevtoolsRpcServer, options?: StartIframeDevtoolsRpcHostOptions): () => void;
+declare function connectDevtoolsIframeClient(options?: ConnectDevtoolsIframeClientOptions): DevtoolsRpcClient;
+declare function createIframeDevtoolsClientHost(options?: ConnectDevtoolsIframeClientOptions): DevtoolsClientHost;
+declare function isIframeDevtoolsClientHostAvailable(options?: Pick<ConnectDevtoolsIframeClientOptions, 'window' | 'targetWindow'>): boolean;
+//#endregion
+export { DEVTOOLS_RPC_COMMAND as $, formatPreviewKey as $n, RuntimeQuery as $t, connectDevtoolsExtensionClient as A, DevToolsPluginAPI as An, AppRecord as At, DevtoolsRpcChannel as B, PluginSettingOption as Bn, ComponentId as Bt, DevtoolsExtensionFrameController as C, RouterRouteSnapshot as Cn, RuntimePerformanceMonitor as Ct, DevtoolsExtensionPortDescriptor as D, StatePagination as Dn, RuntimeInspectorInfo as Dt, DevtoolsExtensionFramesChangedMessage as E, StatePageOptions as En, RuntimeInspectorAction as Et, isExtensionDevtoolsClientHostAvailable as F, MutableInspectorStatePayload as Fn, RuntimeRegistry as Ft, DevtoolsRpcClientFunctions as G, TimelineLayerOptions as Gn, RuntimeCommand as Gt, createMessagePortDevtoolsRpcChannel as H, PluginSetupFunction as Hn, InstanceRef as Ht, parseDevtoolsExtensionPortName as I, MutableInspectorTreePayload as In, WalkedComponentChild as It, DevtoolsRpcServerFunctions as J, reportPluginError as Jn, RuntimeDomainEventType as Jt, DevtoolsRpcEvent as K, VisitComponentTreePayload as Kn, RuntimeCommandResult as Kt, CreateDevtoolsRpcClientOptions as L, PLUGIN_API_CAPABILITIES as Ln, readComponentName as Lt, createDevtoolsExtensionPortName as M, InspectComponentPayload as Mn, ComponentRecord as Mt, createExtensionDevtoolsClientHost as N, InspectTimelineEventPayload as Nn, ComponentSnapshot as Nt, DevtoolsExtensionPortRole as O, StateValueMessage as On, RuntimeInspectorRecord as Ot, isDevtoolsExtensionFrameControlMessage as P, MutableEditStatePayload as Pn, RefreshComponentTreeOptions as Pt, DEVTOOLS_IFRAME_RPC_SOURCE as Q, encodeValue as Qn, RuntimeEventType as Qt, DevtoolsRpcClient as R, PluginApiAdapter as Rn, AppId as Rt, DevtoolsExtensionFrameControlMessage as S, RouterRouteRecordSnapshot as Sn, RuntimeRequests as St, DevtoolsExtensionFrameSelectMessage as T, StateEntry as Tn, createRuntimePerformanceMonitor as Tt, DevtoolsInPageProtocol as U, SetPluginSettingsPayload as Un, MaybePromise as Ut, DevtoolsRpcChannelHandle as V, PluginSettingsItem as Vn, InspectorId as Vt, DevtoolsRpcChannelKind as W, TimelineEventOptions as Wn, PluginId as Wt, DEFAULT_DEVTOOLS_RPC_CHANNEL_ID as X, ValueCodecOptions as Xn, RuntimeEventBase as Xt, toDevtoolsRpcEvent as Y, EncodedValue as Yn, RuntimeEvent as Yt, DEVTOOLS_IFRAME_RPC_CONNECT as Z, ValueEntry as Zn, RuntimeEventHandler as Zt, DEVTOOLS_EXTENSION_FRAME_CONTROL_SOURCE as _, PluginsSnapshotMessage as _n, ComponentTreeStore as _t, isIframeDevtoolsClientHostAvailable as a, ComponentStateSection as an, RuntimeBudget as ar, DevtoolsRuntime as at, DevtoolsExtensionFrameActivatedMessage as b, ReactivityGraphSnapshot as bn, RuntimeQueryMap as bt, createDevtoolsRpcServer as c, ComponentTreeNodeTag as cn, resolveRuntimeBudget as cr, createDevtoolsRuntime as ct, connectDevtoolsClient as d, CustomInspectorTreeNode as dn, RuntimeScheduler as dt, VueTypeMap as en, safeOwnEnumerableStringKeys as er, DEVTOOLS_RPC_EVENT as et, getDefaultDevtoolsClientHosts as f, DevtoolsCapabilitiesMessage as fn, createRuntimeScheduler as ft, ConnectDevtoolsExtensionClientOptions as g, PluginSnapshot as gn, ComponentTreeSnapshot as gt, ChromeRuntimePort as h, InspectorsListMessage as hn, ComponentTreePatchBatch as ht, createIframeDevtoolsClientHost as i, ComponentInspectionResultMessage as in, ValueHandleRegistryOptions as ir, CreateDevtoolsRuntimeOptions as it, createChromeRuntimePortDevtoolsRpcChannel as j, DevToolsPluginAPIHooks as jn, ComponentDomOrderCache as jt, DevtoolsExtensionRpcClient as k, CustomInspectorOptions as kn, RuntimeInspectorStore as kt, ConnectDevtoolsClientOptions as l, ComponentTreePageMessage as ln, ComponentStateCollector as lt, ChromeExtensionEvent as m, InspectorTreeSnapshotMessage as mn, createRuntimeEventLog as mt, StartIframeDevtoolsRpcHostOptions as n, AppSnapshot as nn, ValueHandleEntry as nr, ComponentInspectorDockController as nt, startIframeDevtoolsRpcHost as o, ComponentStateSnapshotMessage as on, RuntimeBudgetInput as or, RuntimeCommandHandler as ot, ChromeExtensionApi as p, ExpandedValueMessage as pn, RuntimeEventLog as pt, DevtoolsRpcEventHandler as q, createPluginApiAdapter as qn, RuntimeDomainEvent as qt, connectDevtoolsIframeClient as r, AppsSnapshotMessage as rn, ValueHandleRegistry as rr, ComponentInspectorDockRestore as rt, DevtoolsRpcServer as s, ComponentTreeNodeSnapshot as sn, defaultRuntimeBudget as sr, RuntimeQueryHandler as st, ConnectDevtoolsIframeClientOptions as t, ComponentTreePatch as tn, ValueHandle as tr, DEVTOOLS_RPC_QUERY as tt, DevtoolsClientHost as u, ComponentTreeSnapshotMessage as un, LegacyComponentStateEntry as ut, DEVTOOLS_EXTENSION_PORT_SOURCE as v, ReactivityGraphNode as vn, RuntimeCommandMap as vt, DevtoolsExtensionFrameDescriptor as w, RouterSnapshotMessage as wn, RuntimePerformanceSnapshot as wt, DevtoolsExtensionFrameActivationReason as x, ReactivityRelationship as xn, RuntimeQueryRequest as xt, DEVTOOLS_EXTENSION_PORT_VERSION as y, ReactivityGraphNodeType as yn, RuntimeCommandRequest as yt, createDevtoolsRpcClient as z, PluginDescriptor as zn, AppRef as zt };

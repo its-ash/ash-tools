@@ -1,0 +1,48 @@
+import { n as resolveDockRendererRegistrations, t as createViteDevToolsUi } from "./ui-BpHmaWlG.js";
+import { colors } from "devframe/utils/colors";
+import { DEVTOOLS_DIRNAME, DEVTOOLS_MOUNT_PATH } from "@vitejs/devtools-kit/constants";
+import { join, relative, resolve } from "pathe";
+import { existsSync } from "node:fs";
+import fs from "node:fs/promises";
+import { buildHub } from "@devframes/hub/build";
+//#region src/node/build-static.ts
+/**
+* Join the deploy `base` with the kit-pinned `/__devtools/` mount so absolute
+* URLs in the snapshot point at the right place when hosted below the domain
+* root. `/` (the default) collapses to the bare mount path.
+*/
+function resolveMountPath(base) {
+	const prefix = base.replace(/\/+$/, "");
+	return prefix ? `${prefix}${DEVTOOLS_MOUNT_PATH}` : DEVTOOLS_MOUNT_PATH;
+}
+async function buildStaticDevTools(options) {
+	const { context, outDir, withApp } = options;
+	const mountPath = resolveMountPath(options.base ?? "/");
+	if (!withApp && existsSync(outDir)) await fs.rm(outDir, { recursive: true });
+	await context.services.ready();
+	await buildHub({
+		context,
+		outDir: join(outDir, DEVTOOLS_DIRNAME),
+		base: mountPath,
+		ui: createViteDevToolsUi(options.ui),
+		renderers: resolveDockRendererRegistrations(options.renderers),
+		clean: false
+	});
+	if (!existsSync(resolve(outDir, "index.html"))) await fs.writeFile(resolve(outDir, "index.html"), [
+		"<!doctype html>",
+		"<html lang=\"en\">",
+		"<head>",
+		"  <meta charset=\"UTF-8\">",
+		"  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">",
+		"  <title>Vite DevTools</title>",
+		`  <meta http-equiv="refresh" content="0; url=${mountPath}">`,
+		"</head>",
+		"<body>",
+		`  <script>location.replace(${JSON.stringify(mountPath)})<\/script>`,
+		"</body>",
+		"</html>"
+	].join("\n"), "utf-8");
+	console.log(colors.green`${"⬢"} Built DevTools to ${relative(context.cwd, outDir)}`);
+}
+//#endregion
+export { buildStaticDevTools };

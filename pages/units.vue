@@ -1,5 +1,4 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: 'Free Unit Converter | Length, Weight, Temperature & more in your browser',
@@ -143,19 +142,22 @@ const quickTable = computed(() => {
 
 <template>
   <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
-    <div class="flex-1 flex flex-col md:flex-row">
-      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+    <div class="flex-1 flex flex-col">
+      <ClientOnly>
+      <Teleport to="#page-actions">
+        <div class="flex items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
-            <span class="text-[10px] font-medium">Home</span>
+            <span>Home</span>
           </NuxtLink>
         </div>
-      </aside>
+      </Teleport>
+      </ClientOnly>
 
       <main class="order-1 md:order-2 flex-1 min-w-0 flex flex-col p-4 md:p-6">
       <div class="mx-auto w-full max-w-4xl flex flex-col gap-4">
-        <div class="ui-panel p-4 flex items-center justify-between gap-3">
+        <div class="ui-panel px-4 flex items-center justify-between gap-3">
+        <div id="page-actions" class="order-first flex flex-wrap items-center gap-1"></div>
           <div class="flex items-center gap-2">
             <svg class="h-4 w-4 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h9M13 7l-2.5-2.5M13 7l-2.5 2.5M16 13H7M7 13l2.5-2.5M7 13l2.5 2.5" /></svg>
             <h1 class="text-sm font-bold text-[var(--ink-1)]">Unit Converter</h1>
@@ -163,11 +165,11 @@ const quickTable = computed(() => {
           <span class="text-xs font-mono text-[var(--ink-3)]">local · offline · no upload</span>
         </div>
 
-        <div class="ui-panel p-3 flex flex-wrap items-center gap-1 rounded-none">
+        <div class="ui-panel p-3 flex flex-wrap items-center gap-1">
           <button
             v-for="(cat, key) in categories"
             :key="key"
-            class="px-3 py-1.5 text-xs font-semibold rounded-none transition-colors duration-150"
+            class="px-3 py-1.5 text-xs font-semibold rounded-full transition-colors duration-150"
             :class="category === key ? 'ui-button !py-1.5 !px-3' : 'text-[var(--ink-3)] hover:text-[var(--ink-1)]'"
             @click="category = key as Category"
           >
@@ -185,7 +187,7 @@ const quickTable = computed(() => {
               <input v-model="fromValue" type="text" inputmode="decimal" class="ui-input font-mono text-sm mt-1" placeholder="Enter value">
             </label>
 
-            <button class="ui-button-secondary !p-2.5 rounded-none self-center mb-1" title="Swap units" aria-label="Swap units" @click="swap">
+            <button class="ui-button-secondary !p-2.5 rounded-[var(--radius-sm)] self-center mb-1" title="Swap units" aria-label="Swap units" @click="swap">
               <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4L4 7l3 3M4 7h12M13 16l3-3-3-3M16 13H4" /></svg>
             </button>
 
@@ -204,7 +206,7 @@ const quickTable = computed(() => {
         <section v-if="quickTable.length" class="ui-panel p-4">
           <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)]">Quick reference</span>
           <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <div v-for="row in quickTable" :key="row.label" class="p-2.5 rounded-none border" style="background: var(--surface-2); border-color: var(--border)">
+            <div v-for="row in quickTable" :key="row.label" class="p-2.5 rounded-[var(--radius-sm)] border" style="background: var(--surface-2); border-color: var(--border)">
               <div class="text-[10px] text-[var(--ink-3)]">{{ row.label }}</div>
               <div class="text-sm font-mono font-semibold text-[var(--ink-1)] truncate">{{ Number.isFinite(row.value) ? parseFloat(row.value.toFixed(6)) : '—' }}</div>
             </div>
@@ -214,10 +216,6 @@ const quickTable = computed(() => {
       </main>
     </div>
 
-    <div class="shrink-0 border-t px-5 py-2 flex items-center gap-3 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
-      <span class="status-dot ok w-2 h-2 rounded-full inline-block shrink-0"></span>
-      <span class="truncate">Click the result to copy it.</span>
-    </div>
   </div>
 </template>
 

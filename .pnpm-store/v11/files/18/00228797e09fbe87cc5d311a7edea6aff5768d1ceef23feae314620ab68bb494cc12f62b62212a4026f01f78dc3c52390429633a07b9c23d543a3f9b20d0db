@@ -1,0 +1,3 @@
+import { t as createDataInspectorDevframe } from "../node-CeWmMs4X.mjs";
+import { l as registerDataSource, t as DATA_SOURCES_SERVICE_ID } from "../registry-BO6lIklX.mjs";
+export { DATA_SOURCES_SERVICE_ID, createDataInspectorDevframe, createDataInspectorDevframe as default, registerDataSource };

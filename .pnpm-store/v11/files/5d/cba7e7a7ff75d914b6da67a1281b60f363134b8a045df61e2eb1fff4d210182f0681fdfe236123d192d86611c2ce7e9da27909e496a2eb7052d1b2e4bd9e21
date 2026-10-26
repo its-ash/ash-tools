@@ -1,0 +1,6 @@
+import { DevframeNodeContext } from "devframe/types";
+//#region src/mcp/host.d.ts
+/** Prime the host agent surface so its automatic MCP route exists before the page connects. */
+export declare function registerVueDevtoolsAgentHost(ctx: Pick<DevframeNodeContext, 'agent'>): () => void;
+//#endregion
+//# sourceMappingURL=node.d.mts.map

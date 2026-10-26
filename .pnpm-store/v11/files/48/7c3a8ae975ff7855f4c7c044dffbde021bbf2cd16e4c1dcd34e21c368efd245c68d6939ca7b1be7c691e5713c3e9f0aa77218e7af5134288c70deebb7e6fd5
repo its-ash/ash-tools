@@ -1,0 +1,73 @@
+import { PLUGIN_ID } from "./node/constants.mjs";
+import { defineDevframe } from "devframe";
+//#region package.json
+var name = "@devframes/plugin-terminals";
+var version = "1.2.6";
+var description = "Devframe plugin providing terminal panels for streamed output and interactive PTY shells.";
+var homepage = "https://github.com/devframes/devframe#readme";
+//#endregion
+//#region src/node/index.ts
+/**
+* Build a {@link DevframeDefinition} for the terminals panel. The same
+* definition runs standalone (`createCac`), mounts into a Vite host
+* (`/vite`), or docks inside a hub, since its `setup` only relies on the core
+* devframe RPC surface.
+*
+* @experimental This plugin is experimental and may change without a major
+* version bump until it stabilizes.
+*
+* @example
+* ```ts
+* import { createTerminalsDevframe } from '@devframes/plugin-terminals'
+*
+* export default createTerminalsDevframe({
+*   presets: [{ id: 'dev', title: 'pnpm dev', command: 'pnpm', args: ['dev'] }],
+* })
+* ```
+*/
+const remoteAssets = {
+	package: `${name}--assets`,
+	version
+};
+function createTerminalsDevframe(options = {}) {
+	const distDir = options.distDir ?? remoteAssets;
+	return defineDevframe({
+		id: PLUGIN_ID,
+		name: "Terminals",
+		version,
+		packageName: name,
+		importMetaUrl: import.meta.url,
+		homepage,
+		description,
+		icon: "ph:terminal-window-duotone",
+		/**
+		* Terminals are inherently live (PTY sessions over the streaming
+		* channel), so a static build would only produce a dead shell of the
+		* tool: `createBuild` refuses and a hub static build skips this dock.
+		*/
+		capabilities: { build: false },
+		/**
+		* Leave undefined so `resolveBasePath` picks `/` standalone and
+		* `/__<id>/` when hosted. Authors override via `options.basePath`.
+		*/
+		basePath: options.basePath,
+		clientAssets: distDir,
+		cli: {
+			command: options.command ?? "devframe-terminals",
+			port: options.port ?? 9011,
+			/**
+			* Gate the standalone server by default, since shell access is sensitive.
+			* `maybeOpenBrowser` folds the current OTP into the `--open` URL so
+			* the tab lands already trusted.
+			*/
+			auth: options.auth ?? true
+		},
+		dock: { category: "~builtin" },
+		async setup(ctx) {
+			const { setupTerminals } = await import("./node/setup.mjs");
+			await setupTerminals(ctx, options);
+		}
+	});
+}
+//#endregion
+export { createTerminalsDevframe as t };

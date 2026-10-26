@@ -1,0 +1,27 @@
+import process from "node:process";
+import { ROLLDOWN_DEVTOOLS_ENV } from "@vitejs/devtools-kit/constants";
+//#region src/node/config.ts
+function resolveHost(host) {
+	if (host === void 0 || typeof host === "boolean") return "localhost";
+	return host;
+}
+function normalizeDevToolsConfig(config, host) {
+	const resolved = typeof config === "object" && config !== null ? config : void 0;
+	const enabled = config === true || resolved != null && (resolved.enabled ?? true);
+	const { enabled: _enabled, apply = "all", ...options } = resolved ?? {};
+	return {
+		enabled,
+		apply,
+		config: {
+			...options,
+			clientAuth: resolved?.clientAuth ?? true,
+			clientAuthTokens: resolved?.clientAuthTokens ?? [],
+			host: resolved?.host ?? resolveHost(host)
+		}
+	};
+}
+function isDevToolsEnabled(config, command) {
+	return config.enabled && (config.apply === "all" || config.apply === command || command === "build" && process.env[ROLLDOWN_DEVTOOLS_ENV] === "true");
+}
+//#endregion
+export { isDevToolsEnabled, normalizeDevToolsConfig, resolveHost };

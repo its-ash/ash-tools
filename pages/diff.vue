@@ -1,5 +1,4 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'tools' })
 
 useHead({
   title: 'Free Diff Checker | Compare Text Locally in your browser',
@@ -121,27 +120,30 @@ const onRightFile = (event: Event) => {
 
 <template>
   <div class="min-h-screen bg-[var(--surface-0)] text-[var(--ink-1)] flex flex-col">
-    <div class="flex-1 flex flex-col md:flex-row">
-      <aside class="order-2 md:order-1 shrink-0 border-t md:border-t-0 md:border-r md:w-[76px] w-full" style="background: var(--surface-1); border-color: var(--border)">
-        <div class="flex md:flex-col items-center gap-1 p-2 md:py-4 overflow-x-auto md:overflow-visible">
-          <NuxtLink to="/" class="rail-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
+    <div class="flex-1 flex flex-col">
+      <ClientOnly>
+      <Teleport to="#page-actions">
+        <div class="flex items-center gap-1">
+          <NuxtLink to="/" class="rail-btn text-[var(--ink-3)]" title="Back to home" aria-label="Back to home">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 4L6 9.5l5.5 5.5" /></svg>
-            <span class="text-[10px] font-medium">Home</span>
+            <span>Home</span>
           </NuxtLink>
-          <button class="rail-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Swap sides" aria-label="Swap sides" @click="swap">
+          <button class="rail-btn text-[var(--ink-3)]" title="Swap sides" aria-label="Swap sides" @click="swap">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 4L4 7l3 3M4 7h12M13 16l3-3-3-3M16 13H4" /></svg>
-            <span class="text-[10px] font-medium">Swap</span>
+            <span>Swap</span>
           </button>
-          <button class="rail-btn shrink-0 w-14 h-14 rounded-none flex flex-col items-center justify-center gap-1 text-[var(--ink-3)]" title="Clear" aria-label="Clear" @click="clearAll">
+          <button class="rail-btn text-[var(--ink-3)]" title="Clear" aria-label="Clear" @click="clearAll">
             <svg class="h-[18px] w-[18px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 6h10M8 6V4h4v2m-6 0l1 10h6l1-10" /></svg>
-            <span class="text-[10px] font-medium">Clear</span>
+            <span>Clear</span>
           </button>
         </div>
-      </aside>
+      </Teleport>
+      </ClientOnly>
 
       <main class="order-1 md:order-2 flex-1 min-w-0 flex flex-col p-4 md:p-6">
       <div class="mx-auto w-full max-w-6xl flex flex-col gap-4">
-        <div class="ui-panel p-4 flex items-center justify-between gap-3">
+        <div class="ui-panel px-4 flex items-center justify-between gap-3">
+        <div id="page-actions" class="order-first flex flex-wrap items-center gap-1"></div>
           <div class="flex items-center gap-2">
             <svg class="h-4 w-4 text-[var(--ink-3)]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 4v9a2 2 0 002 2h6M14 16V7a2 2 0 00-2-2H6" /></svg>
             <h1 class="text-sm font-bold text-[var(--ink-1)]">Diff Checker</h1>
@@ -195,7 +197,7 @@ const onRightFile = (event: Event) => {
             <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--ink-3)]">Diff</span>
           </div>
           <div class="px-4 pb-4">
-            <div class="rounded-none overflow-hidden border" style="border-color: var(--border)">
+            <div class="rounded-[var(--radius-md)] overflow-hidden border" style="border-color: var(--border)">
               <div v-if="!diffResult.length" class="p-4 text-sm text-[var(--ink-3)]" style="background: var(--surface-1)">No differences to show yet.</div>
               <div v-else class="max-h-[480px] overflow-auto font-mono text-xs">
                 <div
@@ -221,10 +223,6 @@ const onRightFile = (event: Event) => {
       </main>
     </div>
 
-    <div class="shrink-0 border-t px-5 py-2 flex items-center gap-3 text-xs font-mono" style="border-color: var(--border); background: var(--surface-1); color: var(--ink-3)">
-      <span class="status-dot ok w-2 h-2 rounded-full inline-block shrink-0"></span>
-      <span class="truncate">{{ status }}</span>
-    </div>
   </div>
 </template>
 

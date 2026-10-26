@@ -1,0 +1,181 @@
+import { $ as DEVTOOLS_RPC_COMMAND, $n as formatPreviewKey, $t as RuntimeQuery, A as connectDevtoolsExtensionClient, An as DevToolsPluginAPI, At as AppRecord, B as DevtoolsRpcChannel, Bn as PluginSettingOption, Bt as ComponentId, C as DevtoolsExtensionFrameController, Cn as RouterRouteSnapshot, Ct as RuntimePerformanceMonitor, D as DevtoolsExtensionPortDescriptor, Dn as StatePagination, Dt as RuntimeInspectorInfo, E as DevtoolsExtensionFramesChangedMessage, En as StatePageOptions, Et as RuntimeInspectorAction, F as isExtensionDevtoolsClientHostAvailable, Fn as MutableInspectorStatePayload, Ft as RuntimeRegistry, G as DevtoolsRpcClientFunctions, Gn as TimelineLayerOptions, Gt as RuntimeCommand, H as createMessagePortDevtoolsRpcChannel, Hn as PluginSetupFunction, Ht as InstanceRef, I as parseDevtoolsExtensionPortName, In as MutableInspectorTreePayload, It as WalkedComponentChild, J as DevtoolsRpcServerFunctions, Jn as reportPluginError, Jt as RuntimeDomainEventType, K as DevtoolsRpcEvent, Kn as VisitComponentTreePayload, Kt as RuntimeCommandResult, L as CreateDevtoolsRpcClientOptions, Ln as PLUGIN_API_CAPABILITIES, Lt as readComponentName, M as createDevtoolsExtensionPortName, Mn as InspectComponentPayload, Mt as ComponentRecord, N as createExtensionDevtoolsClientHost, Nn as InspectTimelineEventPayload, Nt as ComponentSnapshot, O as DevtoolsExtensionPortRole, On as StateValueMessage, Ot as RuntimeInspectorRecord, P as isDevtoolsExtensionFrameControlMessage, Pn as MutableEditStatePayload, Pt as RefreshComponentTreeOptions, Q as DEVTOOLS_IFRAME_RPC_SOURCE, Qn as encodeValue, Qt as RuntimeEventType, R as DevtoolsRpcClient, Rn as PluginApiAdapter, Rt as AppId, S as DevtoolsExtensionFrameControlMessage, Sn as RouterRouteRecordSnapshot, St as RuntimeRequests, T as DevtoolsExtensionFrameSelectMessage, Tn as StateEntry, Tt as createRuntimePerformanceMonitor, U as DevtoolsInPageProtocol, Un as SetPluginSettingsPayload, Ut as MaybePromise, V as DevtoolsRpcChannelHandle, Vn as PluginSettingsItem, Vt as InspectorId, W as DevtoolsRpcChannelKind, Wn as TimelineEventOptions, Wt as PluginId, X as DEFAULT_DEVTOOLS_RPC_CHANNEL_ID, Xn as ValueCodecOptions, Xt as RuntimeEventBase, Y as toDevtoolsRpcEvent, Yn as EncodedValue, Yt as RuntimeEvent, Z as DEVTOOLS_IFRAME_RPC_CONNECT, Zn as ValueEntry, Zt as RuntimeEventHandler, _ as DEVTOOLS_EXTENSION_FRAME_CONTROL_SOURCE, _n as PluginsSnapshotMessage, _t as ComponentTreeStore, a as isIframeDevtoolsClientHostAvailable, an as ComponentStateSection, ar as RuntimeBudget, at as DevtoolsRuntime, b as DevtoolsExtensionFrameActivatedMessage, bn as ReactivityGraphSnapshot, bt as RuntimeQueryMap, c as createDevtoolsRpcServer, cn as ComponentTreeNodeTag, cr as resolveRuntimeBudget, ct as createDevtoolsRuntime, d as connectDevtoolsClient, dn as CustomInspectorTreeNode, dt as RuntimeScheduler, en as VueTypeMap, er as safeOwnEnumerableStringKeys, et as DEVTOOLS_RPC_EVENT, f as getDefaultDevtoolsClientHosts, fn as DevtoolsCapabilitiesMessage, ft as createRuntimeScheduler, g as ConnectDevtoolsExtensionClientOptions, gn as PluginSnapshot, gt as ComponentTreeSnapshot, h as ChromeRuntimePort, hn as InspectorsListMessage, ht as ComponentTreePatchBatch, i as createIframeDevtoolsClientHost, in as ComponentInspectionResultMessage, ir as ValueHandleRegistryOptions, it as CreateDevtoolsRuntimeOptions, j as createChromeRuntimePortDevtoolsRpcChannel, jn as DevToolsPluginAPIHooks, jt as ComponentDomOrderCache, k as DevtoolsExtensionRpcClient, kn as CustomInspectorOptions, kt as RuntimeInspectorStore, l as ConnectDevtoolsClientOptions, ln as ComponentTreePageMessage, lt as ComponentStateCollector, m as ChromeExtensionEvent, mn as InspectorTreeSnapshotMessage, mt as createRuntimeEventLog, n as StartIframeDevtoolsRpcHostOptions, nn as AppSnapshot, nr as ValueHandleEntry, nt as ComponentInspectorDockController, o as startIframeDevtoolsRpcHost, on as ComponentStateSnapshotMessage, or as RuntimeBudgetInput, ot as RuntimeCommandHandler, p as ChromeExtensionApi, pn as ExpandedValueMessage, pt as RuntimeEventLog, q as DevtoolsRpcEventHandler, qn as createPluginApiAdapter, qt as RuntimeDomainEvent, r as connectDevtoolsIframeClient, rn as AppsSnapshotMessage, rr as ValueHandleRegistry, rt as ComponentInspectorDockRestore, s as DevtoolsRpcServer, sn as ComponentTreeNodeSnapshot, sr as defaultRuntimeBudget, st as RuntimeQueryHandler, t as ConnectDevtoolsIframeClientOptions, tn as ComponentTreePatch, tr as ValueHandle, tt as DEVTOOLS_RPC_QUERY, u as DevtoolsClientHost, un as ComponentTreeSnapshotMessage, ut as LegacyComponentStateEntry, v as DEVTOOLS_EXTENSION_PORT_SOURCE, vn as ReactivityGraphNode, vt as RuntimeCommandMap, w as DevtoolsExtensionFrameDescriptor, wn as RouterSnapshotMessage, wt as RuntimePerformanceSnapshot, x as DevtoolsExtensionFrameActivationReason, xn as ReactivityRelationship, xt as RuntimeQueryRequest, y as DEVTOOLS_EXTENSION_PORT_VERSION, yn as ReactivityGraphNodeType, yt as RuntimeCommandRequest, z as createDevtoolsRpcClient, zn as PluginDescriptor, zt as AppRef } from "./iframe-D6lxd0ZN.mjs";
+//#region src/codec/computed-ref.d.ts
+export declare const NOT_ACCESSED_COMPUTED_TYPE = "computed-not-accessed";
+export declare const NOT_ACCESSED_COMPUTED_DISPLAY = "not accessed";
+export declare const NOT_ACCESSED_COMPUTED_TOOLTIP = "This computed property has never been accessed.";
+export declare function createNotAccessedComputedCustomValue(): {
+  _custom: {
+    type: string;
+    display: string;
+    tooltip: string;
+    abstract: true;
+    readOnly: true;
+    value: undefined;
+  };
+};
+interface ComputedRefLike {
+  __v_isRef: true;
+  _value?: unknown;
+  flags?: unknown;
+  _dirty?: unknown;
+  deps?: unknown;
+  effect?: {
+    deps?: unknown;
+  };
+  fn?: unknown;
+}
+export declare function isComputedRef(value: unknown): value is ComputedRefLike;
+export declare function isUnaccessedComputed(value: unknown): boolean;
+export declare function readCachedComputedValue(value: ComputedRefLike): unknown;
+//#endregion
+//#region src/codec/edit.d.ts
+/**
+ * Text shown in the state edit input for an encoded value. Paired with
+ * `parseEditText` so every editable typed value round-trips: the text this
+ * produces always parses back to a value that encodes to the same kind.
+ */
+export declare function formatEditText(value: EncodedValue): string;
+/**
+ * Parses edit input text back into a runtime value, keyed by the kind of the
+ * value being edited so `"undefined"` (string) and `undefined` stay distinct.
+ * Throws with a user-facing message on invalid input.
+ */
+export declare function parseEditText(value: EncodedValue, text: string): unknown;
+//#endregion
+//#region src/plugin/registry.d.ts
+export declare function setupDevToolsPlugin(descriptor: PluginDescriptor, setupFn: PluginSetupFunction): void;
+export interface PluginController {
+  readonly adapters: ReadonlyMap<string, PluginApiAdapter>;
+  register(descriptor: PluginDescriptor, setupFn: PluginSetupFunction): Promise<PluginApiAdapter>;
+  callHook(key: string, payload: unknown): Promise<void>;
+  callHookFor(pluginId: string, key: string, payload: unknown): Promise<void>;
+  dispose(): void;
+}
+export declare function createPluginController(runtime: DevtoolsRuntime): PluginController;
+//#endregion
+//#region src/plugin/lifecycle.d.ts
+type ConnectionCallback = () => void;
+export declare function onDevToolsConnected(callback: ConnectionCallback): Promise<void>;
+export declare function onDevToolsClientConnected(callback: ConnectionCallback): Promise<void>;
+//#endregion
+//#region src/protocol/features.d.ts
+export declare const REACTIVITY_GRAPH_MIN_VUE_VERSION = "3.6.0";
+export declare function supportsReactivityGraphVueVersion(version: string | undefined): boolean;
+//#endregion
+//#region src/hook/types.d.ts
+export declare const enum DevtoolsHookEvent {
+  APP_INIT = "app:init",
+  APP_UNMOUNT = "app:unmount",
+  COMPONENT_ADDED = "component:added",
+  COMPONENT_UPDATED = "component:updated",
+  COMPONENT_REMOVED = "component:removed",
+  COMPONENT_EMIT = "component:emit",
+  PERFORMANCE_START = "perf:start",
+  PERFORMANCE_END = "perf:end",
+  SETUP_DEVTOOLS_PLUGIN = "devtools-plugin:setup"
+}
+export interface DevtoolsGlobalHook {
+  id: string;
+  devtoolsVersion: string;
+  enabled: boolean;
+  apps: AppRef[];
+  events: Map<string, Set<Function>>;
+  cleanupBuffer(component: InstanceRef): boolean;
+  on<T extends Function>(event: string, handler: T): () => void;
+  once<T extends Function>(event: string, handler: T): void;
+  off<T extends Function>(event: string, handler: T): void;
+  emit(event: string, ...payload: unknown[]): void;
+}
+export interface DevtoolsHookableBridge {
+  hook<T extends Function>(event: string, handler: T): () => void;
+  callHook(event: string, ...payload: unknown[]): Promise<void>;
+}
+export interface DevtoolsHookTarget {
+  __VUE_DEVTOOLS_GLOBAL_HOOK__?: DevtoolsGlobalHook;
+  __VUE_DEVTOOLS_HOOK?: DevtoolsHookableBridge;
+  __VUE_DEVTOOLS_HOOK__?: DevtoolsHookableBridge;
+  __VUE_DEVTOOLS_HOOK_REPLAY__?: Array<(hook: DevtoolsGlobalHook) => void>;
+}
+export type HookApp = AppRef & {
+  _instance?: InstanceRef;
+  _container?: {
+    _vnode?: {
+      component?: InstanceRef;
+    };
+  };
+};
+export type HookComponentPayload = [app: HookApp, uid: number, parentUid: number, component: InstanceRef];
+export type HookAppInitPayload = [app: HookApp, version: string, types: VueTypeMap];
+export type HookAppUnmountPayload = [app: HookApp];
+//#endregion
+//#region src/hook/install.d.ts
+export interface InstallDevtoolsHookOptions {
+  runtime: DevtoolsRuntime;
+  target?: DevtoolsHookTarget;
+  replay?: boolean;
+}
+export interface InstalledDevtoolsHook {
+  hook: DevtoolsGlobalHook;
+  dispose(): void;
+}
+export declare function createDevtoolsGlobalHook(): DevtoolsGlobalHook;
+export declare function installDevtoolsHook(options: InstallDevtoolsHookOptions): InstalledDevtoolsHook;
+//#endregion
+//#region src/hook/normalize.d.ts
+export declare function normalizeHookEvent(registry: RuntimeRegistry, event: DevtoolsHookEvent | string, payload: unknown[], time?: number): RuntimeEvent | undefined;
+//#endregion
+//#region src/rpc/channels/extension-page.d.ts
+export interface StartExtensionPageRpcHostOptions {
+  window?: Window;
+  channelId?: string;
+  allowedOrigins?: string[] | ((origin: string, event: MessageEvent) => boolean);
+}
+export declare function startExtensionPageRpcHost(server: DevtoolsRpcServer, options?: StartExtensionPageRpcHostOptions): () => void;
+//#endregion
+//#region src/rpc/event-buffer.d.ts
+export interface RuntimeEventBuffer {
+  enqueue(event: RuntimeDomainEvent): void;
+  flush(): Promise<void>;
+  clear(): void;
+}
+export interface CreateRuntimeEventBufferOptions {
+  budget: RuntimeBudget;
+  emit(event: DevtoolsRpcEvent): Promise<void>;
+  performance: RuntimePerformanceMonitor;
+  setBackpressurePaused(paused: boolean): void;
+  now?: () => number;
+}
+export declare function createRuntimeEventBuffer(options: CreateRuntimeEventBufferOptions): RuntimeEventBuffer;
+export declare function measureRuntimeMessageBytes(value: unknown): number;
+//#endregion
+//#region src/kit.d.ts
+export interface DevtoolsKitTarget {
+  name: string;
+  version?: string;
+}
+export interface DevtoolsKitOptions {
+  target: DevtoolsKitTarget;
+  enabled?: boolean;
+  clientName?: string;
+  hook?: {
+    install?: boolean;
+    replay?: boolean;
+    target?: DevtoolsHookTarget;
+  };
+  budget?: RuntimeBudgetInput;
+  capabilities?: Partial<DevtoolsCapabilitiesMessage>;
+  componentInspectorDockController?: ComponentInspectorDockController;
+}
+export interface DevtoolsKit {
+  clientName: string;
+  target: DevtoolsKitTarget;
+  enabled: boolean;
+  runtime: DevtoolsRuntime;
+  rpc: DevtoolsRpcServer;
+  plugins: PluginController;
+  install(): void;
+  dispose(): void | Promise<void>;
+}
+export declare function createDevtoolsKit(options: DevtoolsKitOptions): DevtoolsKit;
+//#endregion
+export { AppId, AppRecord, AppRef, AppSnapshot, AppsSnapshotMessage, ChromeExtensionApi, ChromeExtensionEvent, ChromeRuntimePort, ComponentDomOrderCache, ComponentId, ComponentInspectionResultMessage, type ComponentInspectorDockController, type ComponentInspectorDockRestore, ComponentRecord, ComponentSnapshot, ComponentStateCollector, ComponentStateSection, ComponentStateSnapshotMessage, ComponentTreeNodeSnapshot, ComponentTreeNodeTag, ComponentTreePageMessage, ComponentTreePatch, ComponentTreePatchBatch, ComponentTreeSnapshot, ComponentTreeSnapshotMessage, ComponentTreeStore, ConnectDevtoolsClientOptions, ConnectDevtoolsExtensionClientOptions, ConnectDevtoolsIframeClientOptions, CreateDevtoolsRpcClientOptions, CreateDevtoolsRuntimeOptions, CustomInspectorOptions, CustomInspectorTreeNode, DEFAULT_DEVTOOLS_RPC_CHANNEL_ID, DEVTOOLS_EXTENSION_FRAME_CONTROL_SOURCE, DEVTOOLS_EXTENSION_PORT_SOURCE, DEVTOOLS_EXTENSION_PORT_VERSION, DEVTOOLS_IFRAME_RPC_CONNECT, DEVTOOLS_IFRAME_RPC_SOURCE, DEVTOOLS_RPC_COMMAND, DEVTOOLS_RPC_EVENT, DEVTOOLS_RPC_QUERY, DevToolsPluginAPI, DevToolsPluginAPIHooks, DevtoolsCapabilitiesMessage, DevtoolsClientHost, DevtoolsExtensionFrameActivatedMessage, DevtoolsExtensionFrameActivationReason, DevtoolsExtensionFrameControlMessage, DevtoolsExtensionFrameController, DevtoolsExtensionFrameDescriptor, DevtoolsExtensionFrameSelectMessage, DevtoolsExtensionFramesChangedMessage, DevtoolsExtensionPortDescriptor, DevtoolsExtensionPortRole, DevtoolsExtensionRpcClient, DevtoolsInPageProtocol, DevtoolsRpcChannel, DevtoolsRpcChannelHandle, DevtoolsRpcChannelKind, DevtoolsRpcClient, DevtoolsRpcClientFunctions, DevtoolsRpcEvent, DevtoolsRpcEventHandler, DevtoolsRpcServer, DevtoolsRpcServerFunctions, DevtoolsRuntime, EncodedValue, ExpandedValueMessage, InspectComponentPayload, InspectTimelineEventPayload, InspectorId, InspectorTreeSnapshotMessage, InspectorsListMessage, InstanceRef, LegacyComponentStateEntry, MaybePromise, MutableEditStatePayload, MutableInspectorStatePayload, MutableInspectorTreePayload, PLUGIN_API_CAPABILITIES, PluginApiAdapter, PluginDescriptor, PluginId, PluginSettingOption, PluginSettingsItem, PluginSetupFunction, PluginSnapshot, PluginsSnapshotMessage, ReactivityGraphNode, ReactivityGraphNodeType, ReactivityGraphSnapshot, ReactivityRelationship, RefreshComponentTreeOptions, RouterRouteRecordSnapshot, RouterRouteSnapshot, RouterSnapshotMessage, RuntimeBudget, RuntimeBudgetInput, RuntimeCommand, RuntimeCommandHandler, RuntimeCommandMap, RuntimeCommandRequest, RuntimeCommandResult, RuntimeDomainEvent, RuntimeDomainEventType, RuntimeEvent, RuntimeEventBase, RuntimeEventHandler, RuntimeEventLog, RuntimeEventType, RuntimeInspectorAction, RuntimeInspectorInfo, RuntimeInspectorRecord, RuntimeInspectorStore, RuntimePerformanceMonitor, RuntimePerformanceSnapshot, RuntimeQuery, RuntimeQueryHandler, RuntimeQueryMap, RuntimeQueryRequest, RuntimeRegistry, RuntimeRequests, RuntimeScheduler, SetPluginSettingsPayload, StartIframeDevtoolsRpcHostOptions, StateEntry, StatePageOptions, StatePagination, StateValueMessage, TimelineEventOptions, TimelineLayerOptions, ValueCodecOptions, ValueEntry, ValueHandle, ValueHandleEntry, ValueHandleRegistry, ValueHandleRegistryOptions, VisitComponentTreePayload, VueTypeMap, WalkedComponentChild, connectDevtoolsClient, connectDevtoolsExtensionClient, connectDevtoolsIframeClient, createChromeRuntimePortDevtoolsRpcChannel, createDevtoolsExtensionPortName, createDevtoolsRpcClient, createDevtoolsRpcServer, createDevtoolsRuntime, createExtensionDevtoolsClientHost, createIframeDevtoolsClientHost, createMessagePortDevtoolsRpcChannel, createPluginApiAdapter, createRuntimeEventLog, createRuntimePerformanceMonitor, createRuntimeScheduler, defaultRuntimeBudget, encodeValue, formatPreviewKey, getDefaultDevtoolsClientHosts, isDevtoolsExtensionFrameControlMessage, isExtensionDevtoolsClientHostAvailable, isIframeDevtoolsClientHostAvailable, parseDevtoolsExtensionPortName, readComponentName, reportPluginError, resolveRuntimeBudget, safeOwnEnumerableStringKeys, startIframeDevtoolsRpcHost, toDevtoolsRpcEvent };

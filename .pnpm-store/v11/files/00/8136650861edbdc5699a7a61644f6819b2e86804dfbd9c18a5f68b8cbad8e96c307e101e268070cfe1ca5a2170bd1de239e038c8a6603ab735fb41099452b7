@@ -1,0 +1,649 @@
+import { a as defaultResolvedDevToolsConfig, i as isClientAuthDisabled, o as setResolvedDevToolsConfig, r as getAuthHandler, s as __exportAll, t as createDevToolsHub } from "./server-BO_NzUVT.js";
+import { t as attachJsonRenderer } from "./json-render-DvhsprvS.js";
+import { DEVTOOLS_ASSETS_BASE, dirAssets } from "./dirs.js";
+import { n as DEVTOOLS_CLIENT_MODULE_RESOLUTION, t as diagnostics } from "./diagnostics-uBEOg880.js";
+import { normalizeDevToolsConfig } from "./config.js";
+import { createInstallLauncher, createKitContext, createPluginFromDevframe, createViteDevToolsHost } from "@vitejs/devtools-kit/node";
+import { createDebug } from "obug";
+import process from "node:process";
+import { colors } from "devframe/utils/colors";
+import { defineRpcFunction } from "@vitejs/devtools-kit";
+import { relative, resolve } from "node:path";
+import { launchEditor } from "devframe/utils/launch-editor";
+import { open } from "devframe/utils/open";
+import { DEVTOOLS_DOCK_IMPORTS_VIRTUAL_ID, DEVTOOLS_INSPECTOR_DOCK_ID, DEVTOOLS_MOUNT_PATH, DEVTOOLS_MOUNT_PATH_NO_TRAILING_SLASH } from "@vitejs/devtools-kit/constants";
+import { resolve as resolve$1 } from "pathe";
+import { createInspectDevframe } from "@devframes/plugin-inspect";
+import { createMessagesDevframe } from "@devframes/plugin-messages";
+import { createTerminalsDevframe } from "@devframes/plugin-terminals";
+import { isPackageExists } from "local-pkg";
+//#region src/node/rpc/internal/commands-execute.ts
+const commandsExecute = defineRpcFunction({
+	name: "devtoolskit:internal:commands:execute",
+	type: "action",
+	setup: (context) => {
+		return { async handler(id, ...args) {
+			return context.commands.execute(id, ...args);
+		} };
+	}
+});
+//#endregion
+//#region src/node/rpc/internal/commands-list.ts
+const commandsList = defineRpcFunction({
+	name: "devtoolskit:internal:commands:list",
+	type: "static",
+	jsonSerializable: true,
+	setup: (context) => {
+		return { async handler() {
+			return context.commands.list();
+		} };
+	}
+});
+//#endregion
+//#region src/node/rpc/internal/docks-on-launch.ts
+const docksOnLaunch = defineRpcFunction({
+	name: "devtoolskit:internal:docks:on-launch",
+	type: "action",
+	setup: (context) => {
+		const launchMap = /* @__PURE__ */ new Map();
+		return { handler: async (entryId, payload) => {
+			if (launchMap.has(entryId)) return launchMap.get(entryId);
+			const entry = context.docks.values().find((entry) => entry.id === entryId);
+			if (!entry) throw diagnostics.DTK0030({ id: entryId });
+			if (entry.type !== "launcher") throw diagnostics.DTK0031({ id: entryId });
+			const run = (async () => {
+				try {
+					context.docks.update({
+						...entry,
+						launcher: {
+							...entry.launcher,
+							status: "loading",
+							error: void 0
+						}
+					});
+					const { onLaunch, command } = entry.launcher;
+					const result = onLaunch ? await onLaunch(payload) : command ? await context.commands.execute(command, payload) : void 0;
+					const newEntry = context.docks.values().find((entry) => entry.id === entryId) || entry;
+					if (newEntry.type === "launcher") context.docks.update({
+						...newEntry,
+						launcher: {
+							...newEntry.launcher,
+							status: "success"
+						}
+					});
+					return result;
+				} catch (error) {
+					diagnostics.DTK0032({
+						id: entryId,
+						cause: error
+					});
+					const newEntry = context.docks.values().find((entry) => entry.id === entryId) || entry;
+					if (newEntry.type === "launcher") context.docks.update({
+						...newEntry,
+						launcher: {
+							...newEntry.launcher,
+							status: "error",
+							error: error instanceof Error ? error.message : String(error)
+						}
+					});
+				}
+			})();
+			launchMap.set(entryId, run);
+			try {
+				return await run;
+			} finally {
+				launchMap.delete(entryId);
+			}
+		} };
+	}
+});
+//#endregion
+//#region src/node/rpc/internal/messages-add.ts
+const messagesAdd = defineRpcFunction({
+	name: "devtoolskit:internal:messages:add",
+	type: "action",
+	jsonSerializable: true,
+	setup: (context) => {
+		return { async handler(input) {
+			return (await context.messages.add({
+				...input,
+				from: "browser"
+			})).entry;
+		} };
+	}
+});
+//#endregion
+//#region src/node/rpc/internal/messages-clear.ts
+const messagesClear = defineRpcFunction({
+	name: "devtoolskit:internal:messages:clear",
+	type: "action",
+	jsonSerializable: true,
+	setup: (context) => {
+		return { async handler() {
+			await context.messages.clear();
+		} };
+	}
+});
+//#endregion
+//#region src/node/rpc/internal/messages-list.ts
+const messagesList = defineRpcFunction({
+	name: "devtoolskit:internal:messages:list",
+	type: "static",
+	jsonSerializable: true,
+	setup: (context) => {
+		const host = context.messages;
+		return { async handler(since) {
+			const currentVersion = host._clock;
+			if (since == null) return {
+				entries: Array.from(host.entries.values()),
+				removedIds: [],
+				version: currentVersion
+			};
+			const entries = [];
+			for (const [id, entry] of host.entries) {
+				const mod = host.lastModified?.get(id);
+				if (mod != null && mod > since) entries.push(entry);
+			}
+			const removedIds = [];
+			const removals = host.removals;
+			for (const r of removals) if (r.time > since) removedIds.push(r.id);
+			const pruneThreshold = since;
+			while (removals.length > 0 && removals[0].time <= pruneThreshold) removals.shift();
+			return {
+				entries,
+				removedIds,
+				version: currentVersion
+			};
+		} };
+	}
+});
+//#endregion
+//#region src/node/rpc/internal/messages-remove.ts
+const messagesRemove = defineRpcFunction({
+	name: "devtoolskit:internal:messages:remove",
+	type: "action",
+	jsonSerializable: true,
+	setup: (context) => {
+		return { async handler(id) {
+			await context.messages.remove(id);
+		} };
+	}
+});
+//#endregion
+//#region src/node/rpc/internal/messages-update.ts
+const messagesUpdate = defineRpcFunction({
+	name: "devtoolskit:internal:messages:update",
+	type: "action",
+	jsonSerializable: true,
+	setup: (context) => {
+		return { async handler(id, patch) {
+			return await context.messages.update(id, patch) ?? null;
+		} };
+	}
+});
+//#endregion
+//#region src/node/rpc/internal/rpc-server-list.ts
+const rpcServerList = defineRpcFunction({
+	name: "devtoolskit:internal:rpc:server:list",
+	type: "static",
+	jsonSerializable: true,
+	setup: (context) => {
+		return { async handler() {
+			return Object.fromEntries(Array.from(context.rpc.definitions.entries()).map(([name, fn]) => [name, {
+				type: fn.type,
+				cacheable: fn.cacheable || false
+			}]));
+		} };
+	}
+});
+//#endregion
+//#region src/node/rpc/index.ts
+const builtinPublicRpcDeclarations = [defineRpcFunction({
+	name: "vite:core:open-in-editor",
+	type: "action",
+	jsonSerializable: true,
+	setup: (context) => {
+		return { handler: async (path) => {
+			const resolved = resolve(context.workspaceRoot, path);
+			const rel = relative(context.workspaceRoot, resolved);
+			if (rel.startsWith("..") || rel.includes("\0")) throw diagnostics.DTK0028();
+			launchEditor(resolved);
+		} };
+	}
+}), defineRpcFunction({
+	name: "vite:core:open-in-finder",
+	type: "action",
+	jsonSerializable: true,
+	setup: (context) => {
+		return { handler: async (path) => {
+			const resolved = resolve(context.workspaceRoot, path);
+			const rel = relative(context.workspaceRoot, resolved);
+			if (rel.startsWith("..") || rel.includes("\0")) throw diagnostics.DTK0029();
+			await open(resolved);
+		} };
+	}
+})];
+const builtinInternalRpcDeclarations = [
+	commandsExecute,
+	commandsList,
+	docksOnLaunch,
+	messagesAdd,
+	messagesClear,
+	messagesList,
+	messagesRemove,
+	messagesUpdate,
+	rpcServerList
+];
+const builtinRpcDeclarations = [...builtinPublicRpcDeclarations, ...builtinInternalRpcDeclarations];
+//#endregion
+//#region src/node/context.ts
+var context_exports = /* @__PURE__ */ __exportAll({ createDevToolsContext: () => createDevToolsContext });
+const debugSetup = createDebug("vite:devtools:context:setup");
+function isObject(value) {
+	return typeof value === "object" && value !== null;
+}
+function shouldSkipSetupByCapabilities(plugin, mode) {
+	const modeCapabilities = plugin.devtools?.capabilities?.[mode];
+	if (modeCapabilities === false) return true;
+	if (!isObject(modeCapabilities)) return false;
+	return Object.values(modeCapabilities).includes(false);
+}
+async function createDevToolsContext(viteConfig, viteServer, devtoolsConfig) {
+	const cwd = viteConfig.root;
+	const { searchForWorkspaceRoot } = await import("vite");
+	const mode = viteConfig.command === "serve" ? "dev" : "build";
+	const workspaceRoot = searchForWorkspaceRoot(cwd) ?? cwd;
+	const context = await createKitContext({
+		cwd,
+		workspaceRoot,
+		mode,
+		host: createViteDevToolsHost({
+			viteConfig,
+			viteServer,
+			workspaceRoot
+		}),
+		builtinRpcDeclarations,
+		viteConfig,
+		viteServer
+	});
+	attachJsonRenderer(context);
+	setResolvedDevToolsConfig(context, devtoolsConfig ?? defaultResolvedDevToolsConfig);
+	context.diagnostics.register(diagnostics);
+	if (viteServer) context.staticConfig.dock = {
+		...context.staticConfig.dock,
+		clientModuleResolution: DEVTOOLS_CLIENT_MODULE_RESOLUTION
+	};
+	context.docks.register({
+		type: "~builtin",
+		id: "~settings",
+		category: "~builtin",
+		title: "Settings",
+		icon: "ph:gear-duotone",
+		defaultOrder: 1e6
+	});
+	const rpcHost = context.rpc;
+	if (!isClientAuthDisabled(context)) for (const fn of getAuthHandler(context).rpcFunctions) rpcHost.register(fn);
+	context.commands.register({
+		id: "vite:open-in-editor",
+		title: "Open in Editor",
+		icon: "ph:pencil-duotone",
+		category: "editor",
+		showInPalette: false,
+		handler: (path) => rpcHost.invokeLocal("vite:core:open-in-editor", path)
+	});
+	context.commands.register({
+		id: "vite:open-in-finder",
+		title: "Open in Finder",
+		icon: "ph:folder-open-duotone",
+		category: "editor",
+		showInPalette: false,
+		handler: (path) => rpcHost.invokeLocal("vite:core:open-in-finder", path)
+	});
+	context.docks.register({
+		id: "viteplus",
+		type: "group",
+		title: "Vite+",
+		category: "framework",
+		icon: `${DEVTOOLS_ASSETS_BASE}vite-plus.svg`
+	}, true);
+	if (viteServer || mode === "build") context.views.hostStatic(DEVTOOLS_ASSETS_BASE, dirAssets);
+	const plugins = viteConfig.plugins.filter((plugin) => "devtools" in plugin);
+	for (const plugin of plugins) {
+		if (!plugin.devtools?.setup) continue;
+		if (shouldSkipSetupByCapabilities(plugin, mode)) {
+			debugSetup(`skipping plugin ${JSON.stringify(plugin.name)} due to disabled capabilities in ${mode} mode`);
+			continue;
+		}
+		try {
+			debugSetup(`setting up plugin ${JSON.stringify(plugin.name)}`);
+			await plugin.devtools?.setup?.(context);
+		} catch (error) {
+			throw diagnostics.DTK0014({
+				name: plugin.name,
+				cause: error
+			});
+		}
+	}
+	return context;
+}
+//#endregion
+//#region src/node/plugins/build.ts
+function DevToolsBuild(options = {}) {
+	let context;
+	let resolvedConfig;
+	return {
+		name: "vite:devtools:build",
+		apply: "build",
+		configResolved(config) {
+			resolvedConfig = config;
+		},
+		async buildStart() {
+			const { createDevToolsContext } = await Promise.resolve().then(() => context_exports);
+			context = await createDevToolsContext(resolvedConfig, void 0, options.resolvedConfig);
+		},
+		async closeBundle() {
+			console.log(colors.cyan`${"⬢"} Building static Vite DevTools...`);
+			const outDir = options.outDir ? resolve$1(resolvedConfig.root, options.outDir) : resolve$1(resolvedConfig.root, resolvedConfig.build.outDir);
+			const { buildStaticDevTools } = await import("./build-static-CmchrehP.js");
+			await buildStaticDevTools({
+				context,
+				outDir,
+				base: resolvedConfig.base,
+				withApp: true,
+				ui: options.ui,
+				renderers: options.renderers
+			});
+		}
+	};
+}
+//#endregion
+//#region package.json
+var version = "0.8.0";
+//#endregion
+//#region src/node/plugins/auto-hide.ts
+/**
+* Keep a dock entry out of the dock bar while its backing collection is empty.
+*
+* Attaches a live `when` getter to the registered entry that resolves to `'false'`
+* (unconditionally hidden) while `isEmpty()` and `undefined` (visible)
+* otherwise. The hub already re-serializes the dock shared state on every
+* terminal / message change, so the getter is re-read at exactly the right
+* moments — no explicit event subscription needed here.
+*
+* Call this from the `setup(ctx)` hook of the `createPluginFromDevframe` mount,
+* after the auto-derived dock entry has been registered.
+*
+* TODO: once devframe/hub ships first-class support for a functional `when`
+* (`when?: () => string | boolean | undefined`, resolved during dock
+* serialization), this can become a plain `dock: { when: () => ... }` option
+* on `createPluginFromDevframe` and the getter trick can be deleted.
+*/
+function hideDockWhenEmpty(ctx, dockId, isEmpty) {
+	const view = ctx.docks.views.get(dockId);
+	if (!view) return;
+	Object.defineProperty(view, "when", {
+		enumerable: true,
+		configurable: true,
+		get: () => isEmpty() ? "false" : void 0
+	});
+}
+//#endregion
+//#region src/node/plugins/builtin.ts
+const BUILTIN_LAUNCHER_INTEGRATIONS = [
+	{
+		id: "rolldown",
+		pkg: "@vitejs/devtools-rolldown",
+		title: "Rolldown DevTools",
+		icon: `${DEVTOOLS_ASSETS_BASE}rolldown.svg`,
+		groupId: "viteplus",
+		load: () => import("@vitejs/devtools-rolldown").then((m) => m.DevToolsRolldownUI()),
+		install: [`@vitejs/devtools-rolldown@^${version}`]
+	},
+	{
+		id: "vite",
+		pkg: "@vitejs/devtools-vite",
+		title: "Vite DevTools",
+		icon: `${DEVTOOLS_ASSETS_BASE}vite.svg`,
+		groupId: "viteplus",
+		load: () => import("@vitejs/devtools-vite").then((m) => m.DevToolsViteUI()),
+		install: [`@vitejs/devtools-vite@^${version}`]
+	},
+	{
+		id: "vitest",
+		pkg: "@vitejs/devtools-vitest",
+		title: "Vitest UI",
+		icon: `${DEVTOOLS_ASSETS_BASE}vitest.svg`,
+		groupId: "viteplus",
+		load: () => import("@vitejs/devtools-vitest").then((m) => m.DevToolsVitestUI()),
+		install: [
+			"vitest",
+			`@vitejs/devtools-vitest@^${version}`,
+			"@vitest/ui"
+		]
+	},
+	{
+		id: "oxc",
+		pkg: "@vitejs/devtools-oxc",
+		title: "Oxc DevTools",
+		icon: `${DEVTOOLS_ASSETS_BASE}oxc.svg`,
+		groupId: "viteplus",
+		load: () => import("@vitejs/devtools-oxc/vite").then((m) => m.DevToolsOxc()),
+		install: ["@vitejs/devtools-oxc@latest"]
+	}
+];
+/**
+* Set up the built-in DevTools dock entries (Terminals, Messages, Inspector) and
+* the built-in integration launchers (Rolldown, Vite, Vitest, Oxc).
+*/
+async function DevToolsBuiltin(options) {
+	const plugins = [];
+	if (!options.builtinDevTools) return [];
+	const cwd = resolve$1(options.cwd ?? process.cwd());
+	const launchers = [];
+	for (const integration of BUILTIN_LAUNCHER_INTEGRATIONS) if (isPackageExists(integration.pkg, { paths: [cwd] })) plugins.push(integration.load());
+	else launchers.push(integration);
+	plugins.push({
+		name: "vite:devtools:builtin",
+		enforce: "pre",
+		devtools: { async setup(ctx) {
+			const plugins = [];
+			const terminalsDevframe = createTerminalsDevframe();
+			const messagesDevframe = createMessagesDevframe();
+			const inspectDevframe = createInspectDevframe({ id: DEVTOOLS_INSPECTOR_DOCK_ID });
+			plugins.push(createPluginFromDevframe(terminalsDevframe, { dock: { category: "~builtin" } }));
+			plugins.push(createPluginFromDevframe(messagesDevframe, {
+				dock: { category: "~builtin" },
+				setup(ctx) {
+					hideDockWhenEmpty(ctx, messagesDevframe.id, () => ctx.messages.entries.size === 0);
+				}
+			}));
+			plugins.push(createPluginFromDevframe(inspectDevframe, { dock: {
+				category: "~builtin",
+				icon: "ph:stethoscope-duotone"
+			} }));
+			for (const integration of launchers) plugins.push(createInstallLauncher({
+				id: integration.id,
+				title: integration.title,
+				icon: integration.icon,
+				groupId: integration.groupId ?? void 0,
+				install: integration.install,
+				label: integration.title,
+				pkg: integration.pkg
+			}));
+			for (const plugin of plugins) await plugin.devtools?.setup?.(ctx);
+		} }
+	});
+	return Promise.all(plugins).then((arr) => arr.flat(Infinity));
+}
+//#endregion
+//#region src/node/plugins/config.ts
+function DevToolsConfigPlugin(config, resolvedConfig, command) {
+	return {
+		name: "vite:devtools",
+		enforce: "pre",
+		apply: command,
+		configResolved: {
+			order: "pre",
+			handler(viteConfig) {
+				if (viteConfig.plugins.filter((plugin) => plugin.name === "vite:devtools").length > 1) throw diagnostics.DTK0034();
+				Object.assign(resolvedConfig, normalizeDevToolsConfig(config, viteConfig.server.host));
+				Object.assign(viteConfig, { devtools: resolvedConfig });
+			}
+		}
+	};
+}
+//#endregion
+//#region src/node/plugins/injection.ts
+/**
+* Inject the `@devframes/hub-ui` embedded bootstrap into the host app's HTML.
+* The hub serves the prebuilt, self-contained module at `<base>embedded.js`
+* (the `ui.embedded` slot); the client bundles its own framework and styles
+* and reads its reveal policy and dock preferences from the connection meta
+* (`ConnectionMeta.configs.ui`, seeded by `createUi`), so the host app's build
+* never processes it.
+*
+* The bootstrap is loaded by an **inline** module that creates the `<script>`
+* element at runtime, rather than a static `<script type="module" src=…>`.
+* A static root-relative module `src` makes Vite try to pre-transform
+* `<base>embedded.js` through its own module pipeline — it isn't a project
+* file, so Vite logs a load error and (depending on version) can shadow the
+* hub-served module, which breaks the client's `import.meta.url`-relative
+* `branding.json` fetch (the dock then falls back to the default accent
+* instead of the Vite DevTools brand color). Injecting the element at runtime
+* keeps `<base>embedded.js` out of Vite's graph entirely, so the browser
+* fetches it straight from the hub with its real URL intact.
+*/
+function DevToolsInjection(build) {
+	let src = `${DEVTOOLS_MOUNT_PATH}embedded.js`;
+	return {
+		name: "vite:devtools:injection",
+		enforce: "post",
+		apply(_config, env) {
+			return !env.isSsrBuild && (env.command === "serve" || build?.injection === true);
+		},
+		configResolved(config) {
+			if (config.command === "build") {
+				if (!build?.withApp) throw diagnostics.DTK0035({});
+				src = `${config.base.replace(/\/+$/, "")}${DEVTOOLS_MOUNT_PATH}embedded.js`;
+			}
+		},
+		transformIndexHtml: {
+			order: "pre",
+			handler() {
+				return [{
+					tag: "script",
+					attrs: { type: "module" },
+					children: `const s = document.createElement('script'); s.type = 'module'; s.src = ${JSON.stringify(src)}; document.body.appendChild(s);`,
+					injectTo: "body"
+				}];
+			}
+		}
+	};
+}
+//#endregion
+//#region src/node/plugins/server.ts
+/**
+* Core plugin for enabling Vite DevTools
+*/
+function renderDockImportsMap(docks) {
+	const map = /* @__PURE__ */ new Map();
+	for (const dock of docks) {
+		const id = `${dock.type}:${dock.id}`;
+		if (dock.type === "action") map.set(id, dock.action);
+		else if (dock.type === "custom-render") map.set(id, dock.renderer);
+		else if (dock.type === "iframe" && dock.clientScript) map.set(id, dock.clientScript);
+	}
+	return [
+		`export const importsMap = {`,
+		...[...map.entries()].filter(([, entry]) => entry != null).map(([id, { importFrom, importName }]) => `  [${JSON.stringify(id)}]: () => import(${JSON.stringify(importFrom)}).then(r => r[${JSON.stringify(importName ?? "default")}]),`),
+		"}"
+	].join("\n");
+}
+function DevToolsServer(options = {}, devtoolsConfig, renderers) {
+	let context;
+	let close;
+	return {
+		name: "vite:devtools:server",
+		enforce: "post",
+		apply: "serve",
+		async configureServer(viteDevServer) {
+			context = await createDevToolsContext(viteDevServer.config, viteDevServer, devtoolsConfig);
+			const host = viteDevServer.config.server.host === true ? "0.0.0.0" : viteDevServer.config.server.host || "localhost";
+			const devtools = await createDevToolsHub({
+				context,
+				ui: options,
+				renderers,
+				server: viteDevServer.httpServer ?? void 0,
+				host
+			});
+			close = devtools.close;
+			viteDevServer.middlewares.use((req, res, next) => {
+				if (req.url === DEVTOOLS_MOUNT_PATH_NO_TRAILING_SLASH || req.url?.startsWith(`${DEVTOOLS_MOUNT_PATH_NO_TRAILING_SLASH}?`)) {
+					res.statusCode = 302;
+					res.setHeader("Location", `${DEVTOOLS_MOUNT_PATH}${req.url.slice(DEVTOOLS_MOUNT_PATH_NO_TRAILING_SLASH.length)}`);
+					res.end();
+					return;
+				}
+				next();
+			});
+			viteDevServer.middlewares.use(devtools.middleware);
+		},
+		async closeBundle() {
+			await close?.();
+		},
+		resolveId(id) {
+			if (id === DEVTOOLS_DOCK_IMPORTS_VIRTUAL_ID) return id;
+		},
+		load(id) {
+			if (id === DEVTOOLS_DOCK_IMPORTS_VIRTUAL_ID) {
+				if (!context) throw new Error("DevTools context is not initialized");
+				return renderDockImportsMap(context.docks.values());
+			}
+		}
+	};
+}
+//#endregion
+//#region src/node/plugins/index.ts
+function resolveDevToolsPluginOptions(config, cwd) {
+	const { branding, build, builtinDevTools, dockPreferences, embeddedVisibility, renderers } = config.config;
+	return {
+		branding,
+		build,
+		builtinDevTools,
+		cwd,
+		dockPreferences,
+		embeddedVisibility,
+		renderers
+	};
+}
+async function DevTools(options = {}) {
+	const { cwd: _cwd, ...configOptions } = options;
+	const config = {
+		...configOptions,
+		enabled: true
+	};
+	const resolvedConfig = normalizeDevToolsConfig(config, "localhost");
+	return [DevToolsConfigPlugin(config, resolvedConfig), ...await createDevToolsPlugins(options, resolvedConfig)];
+}
+async function createDevToolsPlugins(options = {}, resolvedConfig) {
+	const { builtinDevTools = true, build, branding, embeddedVisibility = "normal", dockPreferences, renderers } = options;
+	const ui = {
+		branding,
+		embeddedVisibility,
+		dockPreferences
+	};
+	const plugins = [DevToolsInjection(build), DevToolsServer(ui, resolvedConfig, renderers)];
+	if (build?.withApp) plugins.push(DevToolsBuild({
+		outDir: build.outDir,
+		renderers,
+		resolvedConfig,
+		ui
+	}));
+	plugins.unshift(...await DevToolsBuiltin({
+		cwd: options.cwd,
+		builtinDevTools
+	}));
+	return plugins;
+}
+//#endregion
+export { createDevToolsContext as a, DevToolsConfigPlugin as i, createDevToolsPlugins as n, resolveDevToolsPluginOptions as r, DevTools as t };

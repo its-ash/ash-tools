@@ -1,0 +1,71 @@
+{
+  "name": "@devframes/vite",
+  "type": "module",
+  "version": "1.2.6",
+  "description": "Vite plugin for mounting a devframe inside any Vite-based host (Astro, SolidStart, Nuxt, plain Vite apps).",
+  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/devframes/devframe#readme",
+  "repository": {
+    "directory": "packages/vite",
+    "type": "git",
+    "url": "git+https://github.com/devframes/devframe.git"
+  },
+  "bugs": "https://github.com/devframes/devframe/issues",
+  "keywords": [
+    "devframe",
+    "vite",
+    "devtools"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./single": "./dist/single.mjs",
+    "./hub": "./dist/hub.mjs",
+    "./hub/client": "./dist/hub-client.mjs",
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "@devframes/hub": "1.2.6",
+    "@devframes/hub-ui": "1.2.6",
+    "devframe": "1.2.6",
+    "vite": "^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@devframes/hub": {
+      "optional": true
+    },
+    "@devframes/hub-ui": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "pathe": "^2.0.3"
+  },
+  "devDependencies": {
+    "@devframes/hub": "1.2.6",
+    "@devframes/hub-ui": "1.2.6",
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@types/node": "^26.6.4",
+    "@types/ws": "^8.18.2",
+    "devframe": "1.2.6",
+    "get-port-please": "^3.2.0",
+    "tsdown": "^0.23.0",
+    "vite": "^8.3.3",
+    "vitest": "^5.0.3",
+    "ws": "^8.22.0"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "watch": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  }
+}

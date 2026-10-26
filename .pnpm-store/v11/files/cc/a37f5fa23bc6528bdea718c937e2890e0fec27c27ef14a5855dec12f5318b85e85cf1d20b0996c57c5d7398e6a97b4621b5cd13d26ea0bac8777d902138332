@@ -1,0 +1,17 @@
+import { t as createCodeServerDevframe } from "../node-C7OUMfII.mjs";
+import { devframeViteBridge, devframeVitePlugin } from "@devframes/vite/single";
+//#region src/node/vite.ts
+/**
+* Mount the code-server launcher into an existing Vite dev server. Returns two
+* plugins: a bridge that starts the devframe RPC + WebSocket server (so the
+* launcher can detect/start/stop code-server), and a static mount that serves
+* the bundled SPA at the mount base. The bridge is listed first so its
+* `__connection.json` route is matched ahead of the SPA fallback.
+*/
+function codeServerVite(options = {}) {
+	const { vite, ...codeServerOptions } = options;
+	const definition = createCodeServerDevframe(codeServerOptions);
+	return [devframeViteBridge(definition, vite), devframeVitePlugin(definition, { base: vite?.base })];
+}
+//#endregion
+export { codeServerVite };

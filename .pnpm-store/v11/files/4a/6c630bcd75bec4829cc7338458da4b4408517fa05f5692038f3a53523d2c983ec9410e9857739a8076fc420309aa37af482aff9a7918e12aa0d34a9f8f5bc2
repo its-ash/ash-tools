@@ -1,0 +1,72 @@
+import { PLUGIN_ID } from "./node/constants.mjs";
+import { defineDevframe } from "devframe";
+//#region package.json
+var name = "@devframes/plugin-code-server";
+var version = "1.2.6";
+var description = "Devframe plugin that runs VS Code in the browser as an embedded editor panel.";
+var homepage = "https://github.com/devframes/devframe#readme";
+//#endregion
+//#region src/node/index.ts
+const remoteAssets = {
+	package: `${name}--assets`,
+	version
+};
+/**
+* Build a {@link DevframeDefinition} for the code-server panel. The same
+* definition runs standalone (`createCac`), mounts into a Vite host
+* (`/vite`), or docks inside a hub, since its `setup` only relies on the core
+* devframe RPC + shared-state surface.
+*
+* @experimental This plugin is experimental and may change without a major
+* version bump until it stabilizes.
+*
+* @example
+* ```ts
+* import { createCodeServerDevframe } from '@devframes/plugin-code-server'
+*
+* export default createCodeServerDevframe({ serverPort: 8080 })
+* ```
+*/
+function createCodeServerDevframe(options = {}) {
+	const resolvedDist = options.distDir ?? remoteAssets;
+	return defineDevframe({
+		id: PLUGIN_ID,
+		name: "Code Server",
+		version,
+		packageName: name,
+		importMetaUrl: import.meta.url,
+		homepage,
+		description,
+		icon: "ph:code-duotone",
+		/**
+		* The whole surface proxies a live `code-server` process, so a static
+		* build would only produce a dead shell of the tool: `createBuild`
+		* refuses and a hub static build skips this dock.
+		*/
+		capabilities: { build: false },
+		/**
+		* Leave undefined so `resolveBasePath` picks `/` standalone and
+		* `/__<id>/` when hosted. Authors override via `options.basePath`.
+		*/
+		basePath: options.basePath,
+		clientAssets: resolvedDist,
+		cli: {
+			command: options.command ?? "devframe-code-server",
+			port: options.port ?? 9013,
+			portRange: options.portRange,
+			random: options.random,
+			/**
+			* Gate the standalone launcher by default; `maybeOpenBrowser` folds the
+			* current OTP into the `--open` URL so the tab lands already trusted.
+			* Hosted adapters supply their own auth layer and ignore this.
+			*/
+			auth: options.auth ?? true
+		},
+		async setup(ctx) {
+			const { setupCodeServer } = await import("./node/setup.mjs");
+			await setupCodeServer(ctx, options);
+		}
+	});
+}
+//#endregion
+export { createCodeServerDevframe as t };

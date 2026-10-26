@@ -1,0 +1,95 @@
+{
+  "name": "@devframes/plugin-messages",
+  "type": "module",
+  "version": "1.2.6",
+  "description": "Devframe plugin for browsing, filtering, and dismissing the hub message feed.",
+  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/devframes/devframe#readme",
+  "repository": {
+    "directory": "plugins/messages",
+    "type": "git",
+    "url": "git+https://github.com/devframes/devframe.git"
+  },
+  "bugs": "https://github.com/devframes/devframe/issues",
+  "keywords": [
+    "devframe",
+    "devframe-plugin",
+    "devtools",
+    "messages",
+    "notifications"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": "./dist/node/index.mjs",
+    "./client": "./dist/client/index.mjs",
+    "./cli": "./dist/node/cli.mjs",
+    "./constants": "./dist/node/constants.mjs",
+    "./node": "./dist/node/setup.mjs",
+    "./rpc": "./dist/node/rpc/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/node/index.d.mts",
+  "bin": {
+    "devframe-messages": "./bin.mjs"
+  },
+  "files": [
+    "bin.mjs",
+    "dist"
+  ],
+  "peerDependencies": {
+    "@devframes/hub": "1.2.6",
+    "@devframes/plugin-messages--assets": "1.2.6",
+    "devframe": "1.2.6",
+    "vite": "^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@devframes/plugin-messages--assets": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@devframes/service-open": "1.2.6",
+    "cac": "^7.0.0"
+  },
+  "devDependencies": {
+    "@antfu/design": "^0.6.0",
+    "@devframes/hub": "1.2.6",
+    "@devframes/plugin-messages--assets": "1.2.6",
+    "@devframes/vite": "1.2.6",
+    "@iconify-json/ph": "^1.2.2",
+    "@storybook/addon-docs": "^10.6.1",
+    "@storybook/vue3-vite": "^10.6.1",
+    "@types/node": "^26.6.4",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "@vueuse/core": "^15.0.0",
+    "colorjs.io": "^0.7.1",
+    "devframe": "1.2.6",
+    "h3": "^2.0.1",
+    "storybook": "^10.6.1",
+    "tsdown": "^0.23.0",
+    "unocss": "^66.10.5",
+    "vite": "^8.3.3",
+    "vite-plugin-css-injected-by-js": "^5.0.2",
+    "vitest": "^5.0.3",
+    "vue": "^3.5.43",
+    "vue-afloat": "^0.2.0",
+    "ws": "^8.22.0"
+  },
+  "scripts": {
+    "build": "tsdown && vite build --config app/client/vite.config.ts && vite build --config app/vite.config.ts",
+    "build:client": "vite build --config app/client/vite.config.ts",
+    "build:app": "vite build --config app/vite.config.ts",
+    "dev": "vite --config app/vite.config.ts --host",
+    "watch": "tsdown --watch",
+    "play": "pnpm run build && node playgrounds/server.mjs",
+    "cli:build": "node bin.mjs build --out-dir dist/static",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  }
+}
